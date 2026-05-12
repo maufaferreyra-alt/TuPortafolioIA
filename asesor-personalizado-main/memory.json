@@ -1,0 +1,391 @@
+{
+  "portfolios": [
+    {
+      "id": "d30cf0a3",
+      "fecha": "2026-05-02",
+      "risk_profile": "agresivo",
+      "posiciones": [
+        {
+          "ticker": "NVDA",
+          "sector": "tecnologia",
+          "precio_entrada": 100.0,
+          "descuento_vs_sector_entrada": 5.0,
+          "fecha_salida": "2026-05-02",
+          "precio_salida": 88.0,
+          "retorno_pct": -12.0,
+          "resultado": "perdedor"
+        }
+      ]
+    }
+  ],
+  "performance": [
+    {
+      "ticker": "NVDA",
+      "operaciones": 1,
+      "ganadores": 0,
+      "perdedores": 1,
+      "retorno_promedio_pct": -12.0,
+      "descuento_vs_sector_promedio_pct": 5.0,
+      "mejor_retorno": -12.0,
+      "peor_retorno": -12.0
+    }
+  ],
+  "aprendizaje": {
+    "umbral_descuento_minimo_pct": 12.0,
+    "score_minimo": 55,
+    "ajustes_calidad_sector": {},
+    "sectores_evitar": [],
+    "sectores_sobreponderar": [],
+    "patrones_detectados": [
+      {
+        "tipo": "descuento_insuficiente",
+        "ticker": "NVDA",
+        "fecha": "2026-05-02",
+        "detalle": "Retorno -12.0% con descuento 5.0% vs sector"
+      }
+    ],
+    "reglas_aprendidas": [
+      "Subido umbral_descuento_minimo_pct a 12.0% tras pérdida en NVDA con descuento insuficiente."
+    ],
+    "historial_medianas_sector": {
+      "tecnologia": [
+        {
+          "fecha": "2026-05-02",
+          "pe": 33.52,
+          "ev_ebitda": 19.21
+        },
+        {
+          "fecha": "2026-05-02",
+          "pe": 20.32,
+          "ev_ebitda": 21.61,
+          "score_mediano": 62,
+          "bloques": {
+            "valuacion": 13,
+            "calidad": 23,
+            "solvencia": 18,
+            "crecimiento": 10
+          }
+        },
+        {
+          "fecha": "2026-05-03",
+          "pe": 24.77,
+          "ev_ebitda": 32.44,
+          "score_mediano": 58,
+          "bloques": {
+            "valuacion": 10.0,
+            "calidad": 23.0,
+            "solvencia": 17.5,
+            "crecimiento": 11.0
+          }
+        }
+      ],
+      "telecom": [
+        {
+          "fecha": "2026-05-02",
+          "pe": 17.44,
+          "ev_ebitda": 12.45,
+          "score_mediano": 67,
+          "bloques": {
+            "valuacion": 9,
+            "calidad": 25,
+            "solvencia": 16,
+            "crecimiento": 13
+          }
+        },
+        {
+          "fecha": "2026-05-03",
+          "pe": 14.1,
+          "ev_ebitda": 12.12,
+          "score_mediano": 58,
+          "bloques": {
+            "valuacion": 9.5,
+            "calidad": 22.0,
+            "solvencia": 10.0,
+            "crecimiento": 7.0
+          }
+        }
+      ],
+      "consumo_discrecional": [
+        {
+          "fecha": "2026-05-02",
+          "pe": 25.5,
+          "ev_ebitda": 18.67,
+          "score_mediano": 45,
+          "bloques": {
+            "valuacion": 6.5,
+            "calidad": 16.0,
+            "solvencia": 12.0,
+            "crecimiento": 9.0
+          }
+        },
+        {
+          "fecha": "2026-05-03",
+          "pe": 22.63,
+          "ev_ebitda": 18.44,
+          "score_mediano": 45,
+          "bloques": {
+            "valuacion": 6.5,
+            "calidad": 14.0,
+            "solvencia": 7.0,
+            "crecimiento": 9.0
+          }
+        }
+      ],
+      "bancos": [
+        {
+          "fecha": "2026-05-02",
+          "pe": 10.55,
+          "ev_ebitda": 20.74,
+          "score_mediano": 41,
+          "bloques": {
+            "valuacion": 7,
+            "calidad": 15,
+            "solvencia": 2,
+            "crecimiento": 11
+          }
+        },
+        {
+          "fecha": "2026-05-03",
+          "pe": 12.94,
+          "ev_ebitda": 19.78,
+          "score_mediano": 44,
+          "bloques": {
+            "valuacion": 7,
+            "calidad": 15,
+            "solvencia": 4,
+            "crecimiento": 11
+          }
+        }
+      ],
+      "consumo_defensivo": [
+        {
+          "fecha": "2026-05-02",
+          "pe": 21.68,
+          "ev_ebitda": 20.38,
+          "score_mediano": 47,
+          "bloques": {
+            "valuacion": 7.5,
+            "calidad": 17.0,
+            "solvencia": 8.0,
+            "crecimiento": 8.0
+          }
+        },
+        {
+          "fecha": "2026-05-03",
+          "pe": 21.68,
+          "ev_ebitda": 20.38,
+          "score_mediano": 47,
+          "bloques": {
+            "valuacion": 7.5,
+            "calidad": 17.0,
+            "solvencia": 8.0,
+            "crecimiento": 8.0
+          }
+        }
+      ],
+      "salud": [
+        {
+          "fecha": "2026-05-02",
+          "pe": 17.77,
+          "ev_ebitda": 13.45,
+          "score_mediano": 58,
+          "bloques": {
+            "valuacion": 11,
+            "calidad": 21,
+            "solvencia": 12,
+            "crecimiento": 6
+          }
+        },
+        {
+          "fecha": "2026-05-03",
+          "pe": 13.62,
+          "ev_ebitda": 14.24,
+          "score_mediano": 57,
+          "bloques": {
+            "valuacion": 13.0,
+            "calidad": 20.0,
+            "solvencia": 14.0,
+            "crecimiento": 7.0
+          }
+        }
+      ],
+      "energia": [
+        {
+          "fecha": "2026-05-02",
+          "pe": 10.66,
+          "ev_ebitda": 6.41,
+          "score_mediano": 46,
+          "bloques": {
+            "valuacion": 13,
+            "calidad": 11,
+            "solvencia": 14,
+            "crecimiento": 8
+          }
+        },
+        {
+          "fecha": "2026-05-03",
+          "pe": 15.04,
+          "ev_ebitda": 7.41,
+          "score_mediano": 46,
+          "bloques": {
+            "valuacion": 9.5,
+            "calidad": 15.0,
+            "solvencia": 14.0,
+            "crecimiento": 8.0
+          }
+        }
+      ],
+      "industriales": [
+        {
+          "fecha": "2026-05-02",
+          "pe": 30.63,
+          "ev_ebitda": 24.08,
+          "score_mediano": 52,
+          "bloques": {
+            "valuacion": 6.0,
+            "calidad": 19.0,
+            "solvencia": 9.0,
+            "crecimiento": 13.0
+          }
+        },
+        {
+          "fecha": "2026-05-03",
+          "pe": 20.68,
+          "ev_ebitda": 17.32,
+          "score_mediano": 52,
+          "bloques": {
+            "valuacion": 6,
+            "calidad": 19,
+            "solvencia": 10,
+            "crecimiento": 8
+          }
+        }
+      ],
+      "utilities": [
+        {
+          "fecha": "2026-05-02",
+          "pe": 16.79,
+          "ev_ebitda": 13.6,
+          "score_mediano": 40,
+          "bloques": {
+            "valuacion": 7,
+            "calidad": 17,
+            "solvencia": 8,
+            "crecimiento": 4
+          }
+        },
+        {
+          "fecha": "2026-05-03",
+          "pe": 16.79,
+          "ev_ebitda": 13.72,
+          "score_mediano": 38,
+          "bloques": {
+            "valuacion": 5.5,
+            "calidad": 18.0,
+            "solvencia": 8.0,
+            "crecimiento": 4.0
+          }
+        }
+      ],
+      "materiales": [
+        {
+          "fecha": "2026-05-02",
+          "pe": 18.62,
+          "ev_ebitda": 15.5,
+          "score_mediano": 54,
+          "bloques": {
+            "valuacion": 5.5,
+            "calidad": 21.0,
+            "solvencia": 12.0,
+            "crecimiento": 12.0
+          }
+        },
+        {
+          "fecha": "2026-05-03",
+          "pe": 18.62,
+          "ev_ebitda": 15.5,
+          "score_mediano": 54,
+          "bloques": {
+            "valuacion": 5.5,
+            "calidad": 21.0,
+            "solvencia": 12.0,
+            "crecimiento": 12.0
+          }
+        }
+      ],
+      "transporte": [
+        {
+          "fecha": "2026-05-02",
+          "pe": 17.4,
+          "ev_ebitda": 11.43,
+          "score_mediano": 50,
+          "bloques": {
+            "valuacion": 11,
+            "calidad": 19,
+            "solvencia": 8,
+            "crecimiento": 8
+          }
+        },
+        {
+          "fecha": "2026-05-03",
+          "pe": 17.4,
+          "ev_ebitda": 11.43,
+          "score_mediano": 50,
+          "bloques": {
+            "valuacion": 11,
+            "calidad": 19,
+            "solvencia": 8,
+            "crecimiento": 8
+          }
+        }
+      ]
+    }
+  },
+  "mercado_snapshot": [
+    {
+      "fecha": "2026-05-02",
+      "tipo": "screener",
+      "sectores_analizados": [
+        "Technology"
+      ],
+      "candidatos_encontrados": 0,
+      "excluidos": 0,
+      "parametros": {
+        "descuento_min": 12.0,
+        "score_min": 55
+      }
+    },
+    {
+      "fecha": "2026-05-02",
+      "tipo": "screener",
+      "sectores_analizados": [
+        "Technology"
+      ],
+      "candidatos_encontrados": 0,
+      "excluidos": 0,
+      "parametros": {
+        "descuento_min": 12.0,
+        "score_min": 55
+      }
+    },
+    {
+      "fecha": "2026-05-02",
+      "tipo": "screener",
+      "sectores_analizados": [
+        "Technology"
+      ],
+      "candidatos_encontrados": 5,
+      "excluidos": 346,
+      "parametros": {
+        "descuento_min": 12.0,
+        "score_min": 55
+      }
+    }
+  ],
+  "instrumentos_ar": {
+    "bonos": [],
+    "letras": [],
+    "fondos": [],
+    "cedears_seguimiento": []
+  }
+}
