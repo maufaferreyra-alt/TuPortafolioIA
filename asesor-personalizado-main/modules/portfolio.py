@@ -2670,8 +2670,25 @@ def _adjust_for_income_stability(allocs: dict, income: str) -> dict:
     return {k: v / total for k, v in adj.items()} if total > 0 else allocs
 
 
-def _apply_overlap_exclusion(allocations: dict) -> dict:
-    """Excluye activos que solapan con ETFs presentes en la cartera."""
+def _apply_overlap_exclusion(
+    allocations: dict,
+    risk: str | None = None,
+    eq_scores: dict | None = None,
+) -> dict:
+    """Excluye activos que solapan con ETFs presentes en la cartera.
+
+    Cuando hay activos eliminados por overlap (típicamente MSFT/AAPL/NVDA/etc
+    al haber SPY), redistribuye su peso a otros candidatos del bucket
+    equity_global del mismo perfil, no excluidos, ordenados por score Finviz
+    y respetando caps individuales (get_max_weight).
+
+    Esto evita que el peso del bucket equity_global "se escape" hacia bonos
+    y liquidez por renormalización proporcional (comportamiento legacy).
+
+    Si no se puede aplicar la nueva lógica (sin contexto risk/scores, sin
+    bucket equity_global, o sin candidatos válidos), cae al fallback de
+    renormalización proporcional.
+    """
     ids = set(allocations.keys())
     to_remove = set()
     for etf_id, rule in _OVERLAP_RULES.items():
@@ -2681,9 +2698,56 @@ def _apply_overlap_exclusion(allocations: dict) -> dict:
                     to_remove.add(conflicting)
     if not to_remove:
         return allocations
+
+    removed_weight = sum(allocations[k] for k in to_remove)
     filtered = {k: v for k, v in allocations.items() if k not in to_remove}
+
+    if risk is None or eq_scores is None:
+        total = sum(filtered.values())
+        return {k: v / total for k, v in filtered.items()} if total > 0 else filtered
+
+    bucket_global = next(
+        (b for b in _BUCKET_DEFS.get(risk, []) if b.get("id") == "equity_global"),
+        None,
+    )
+    if not bucket_global:
+        total = sum(filtered.values())
+        return {k: v / total for k, v in filtered.items()} if total > 0 else filtered
+
+    all_excludes = set()
+    for etf_id, rule in _OVERLAP_RULES.items():
+        if etf_id in filtered:
+            all_excludes.update(rule["excludes"])
+
+    min_eq = MIN_SCORE_BY_RISK.get(risk, 40)
+    candidates = [
+        c for c in bucket_global["candidates"]
+        if c not in all_excludes
+        and c not in filtered
+        and c in ASSET_INDEX
+        and eq_scores.get(c, 0) >= min_eq
+    ]
+    if not candidates:
+        total = sum(filtered.values())
+        return {k: v / total for k, v in filtered.items()} if total > 0 else filtered
+
+    candidates.sort(key=lambda c: eq_scores.get(c, 0), reverse=True)
+
+    max_pos = bucket_global.get("max_pos", 1)
+    horizon = max(3, max_pos * 2)
+    remaining = removed_weight
+    for c in candidates[:horizon]:
+        if remaining <= 1e-6:
+            break
+        max_w = get_max_weight(eq_scores.get(c), risk, c)
+        if max_w <= 0:
+            continue
+        w = min(remaining, max_w)
+        filtered[c] = w
+        remaining -= w
+
     total = sum(filtered.values())
-    return {k: v / total for k, v in filtered.items()}
+    return {k: v / total for k, v in filtered.items()} if total > 0 else filtered
 
 
 def _filter_by_liquidity(allocations: dict, risk: str, horizon: int) -> dict:
@@ -3309,7 +3373,7 @@ def build_portfolio(profile: dict) -> dict:
 
     # ── 6. Filtros estructurales ──────────────────────────────────────────────
     allocs = _filter_by_liquidity(allocs, risk, horizon)
-    allocs = _apply_overlap_exclusion(allocs)
+    allocs = _apply_overlap_exclusion(allocs, risk, eq_scores)
 
     # ── 6b. Caps por score/perfil — enforcement final post-Markowitz ──────────
     # Reemplaza el hard-cap fijo del 25%: ahora cada activo tiene su propio
