@@ -606,46 +606,6 @@ elif step == "results":
   Esta herramienta tiene fines educativos y no reemplaza el asesoramiento de un profesional regulado por la {tip("CNV")}.
 </div>
 </div>
-<div class="summary-grid summary-main-grid">
-<div class="summary-item">
-<div class="si-label">Capital a invertir</div>
-<div class="si-value">{_disp_prefix}{_disp_capital:,.0f}{_disp_suffix}</div>
-</div>
-<div class="summary-item">
-<div class="si-label">Horizonte</div>
-<div class="si-value">{profile['horizon']} años</div>
-</div>
-<div class="summary-item">
-<div class="si-label">Retorno estimado/año</div>
-<div class="si-value" style="color:#22c55e;">{portfolio['expected_cagr']*100:.1f}%</div>
-<div class="si-sub">{tip("rendimiento_estimado", "Rendimiento anual estimado")}</div>
-</div>
-</div>
-<details class="summary-detail">
-<summary class="summary-detail-btn">Ver detalle completo</summary>
-<div class="summary-grid summary-detail-grid">
-<div class="summary-item">
-<div class="si-label">Activos en la cartera</div>
-<div class="si-value">{len(portfolio['positions'])}</div>
-</div>
-<div class="summary-item">
-<div class="si-label">En pesos ARS</div>
-<div class="si-value" style="color:#a3e635;">{portfolio['pesos_pct']:.0f}%</div>
-</div>
-<div class="summary-item">
-<div class="si-label">En dólares USD</div>
-<div class="si-value" style="color:#38bdf8;">{portfolio['usd_pct']:.0f}%</div>
-</div>
-<div class="summary-item">
-<div class="si-label">Diversificación</div>
-<div class="si-value">{portfolio['diversification'].upper()}</div>
-</div>
-<div class="summary-item">
-<div class="si-label">{tip("volatilidad", "Volatilidad")} estimada</div>
-<div class="si-value" style="color:#f59e0b;">{portfolio['expected_volatility']*100:.1f}%</div>
-</div>
-</div>
-</details>
 <div class="summary-desc">{portfolio['summary']}</div>
 </div>""", unsafe_allow_html=True)
 
