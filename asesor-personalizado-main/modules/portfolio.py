@@ -3268,9 +3268,10 @@ def build_portfolio(profile: dict) -> dict:
                      or "6 meses" in profile.get("emergency_fund", "").lower())
     allocs = _adjust_for_emergency(allocs, has_emergency)
 
-    # ── 5. Ajustes por experiencia e ingresos ────────────────────────────────
+    # ── 5. Ajustes por experiencia ────────────────────────────────────────────
+    # NOTA: income_stability se aplica al FINAL del pipeline (post-caps),
+    # porque los caps individuales por score anulan el cut si va antes.
     allocs = _adjust_for_experience(allocs, profile.get("experience", ""))
-    allocs = _adjust_for_income_stability(allocs, profile.get("income_stability", ""))
 
     # ── 5b. Ajuste dinámico por valuación histórica de sector ─────────────────
     try:
@@ -3315,6 +3316,12 @@ def build_portfolio(profile: dict) -> dict:
     # límite basado en su score Finviz y el perfil del usuario.
     allocs = _apply_score_caps(allocs, risk, eq_scores)
     allocs = select_top_assets(allocs, risk, eq_scores)
+
+    # ── 6c. Rescue de liquidez por ingresos irregulares — ÚLTIMA palabra ──────
+    # Aplicado al final para que los caps de score no anulen el cut diferencial.
+    # Antes estaba antes de Markowitz/caps y el cut quedaba "reabsorbido" por
+    # los caps individuales (SPY/IAU pineados en 0.15 para perfil moderado).
+    allocs = _adjust_for_income_stability(allocs, profile.get("income_stability", ""))
 
     # Construir posiciones
     positions = []
