@@ -2536,6 +2536,113 @@ def get_max_weight(score: int | None, profile: str, asset_id: str) -> float:
     return 1.0
 
 
+# ============================================================
+# Matriz de correlaciones aproximada por categoría — usada para
+# calcular la volatilidad del portfolio como sqrt(wᵀΣw)
+# ============================================================
+# Valores entre 0 (descorrelacionados) y 1 (correlación perfecta).
+# Calibrados sobre la intuición financiera del mercado argentino:
+#   - Liquidez en pesos: descorrelacionada de USD/equity
+#   - MEP, Bonos USD, Fondos USD: comparten exposición al dólar
+#   - CEDEARs y ETFs equity: alta correlación (mismo subyacente)
+#   - Bonos CER y Pesos ARS: ambos ajustan a inflación local
+#   - Diagonal < 1 para reflejar diversificación intra-categoría
+#     (ej: dos CEDEARs distintos no son el mismo activo)
+# Default para pares no listados: 0.30 (conservador, asume algo de overlap)
+
+_CATEGORY_CORR: dict[str, dict[str, float]] = {
+    "Pesos ARS": {
+        "Pesos ARS": 1.00, "Dólar MEP": 0.05, "Bonos USD": 0.10,
+        "Bonos CER": 0.40, "CEDEARs": 0.05, "ETFs": 0.05,
+        "Acciones ARG": 0.10, "Fondos ARS": 0.50, "Fondos USD": 0.05,
+    },
+    "Dólar MEP": {
+        "Pesos ARS": 0.05, "Dólar MEP": 1.00, "Bonos USD": 0.40,
+        "Bonos CER": 0.10, "CEDEARs": 0.35, "ETFs": 0.35,
+        "Acciones ARG": 0.25, "Fondos ARS": 0.10, "Fondos USD": 0.40,
+    },
+    "Bonos USD": {
+        "Pesos ARS": 0.10, "Dólar MEP": 0.40, "Bonos USD": 0.65,
+        "Bonos CER": 0.20, "CEDEARs": 0.30, "ETFs": 0.30,
+        "Acciones ARG": 0.20, "Fondos ARS": 0.10, "Fondos USD": 0.70,
+    },
+    "Bonos CER": {
+        "Pesos ARS": 0.40, "Dólar MEP": 0.10, "Bonos USD": 0.20,
+        "Bonos CER": 0.75, "CEDEARs": 0.05, "ETFs": 0.05,
+        "Acciones ARG": 0.15, "Fondos ARS": 0.10, "Fondos USD": 0.05,
+    },
+    "CEDEARs": {
+        "Pesos ARS": 0.05, "Dólar MEP": 0.35, "Bonos USD": 0.30,
+        "Bonos CER": 0.05, "CEDEARs": 0.55, "ETFs": 0.75,
+        "Acciones ARG": 0.40, "Fondos ARS": 0.40, "Fondos USD": 0.60,
+    },
+    "ETFs": {
+        "Pesos ARS": 0.05, "Dólar MEP": 0.35, "Bonos USD": 0.30,
+        "Bonos CER": 0.05, "CEDEARs": 0.75, "ETFs": 0.50,
+        "Acciones ARG": 0.40, "Fondos ARS": 0.40, "Fondos USD": 0.60,
+    },
+    "Acciones ARG": {
+        "Pesos ARS": 0.10, "Dólar MEP": 0.25, "Bonos USD": 0.20,
+        "Bonos CER": 0.15, "CEDEARs": 0.40, "ETFs": 0.40,
+        "Acciones ARG": 0.65, "Fondos ARS": 0.75, "Fondos USD": 0.30,
+    },
+    "Fondos ARS": {
+        "Pesos ARS": 0.50, "Dólar MEP": 0.10, "Bonos USD": 0.10,
+        "Bonos CER": 0.10, "CEDEARs": 0.40, "ETFs": 0.40,
+        "Acciones ARG": 0.75, "Fondos ARS": 0.80, "Fondos USD": 0.20,
+    },
+    "Fondos USD": {
+        "Pesos ARS": 0.05, "Dólar MEP": 0.40, "Bonos USD": 0.70,
+        "Bonos CER": 0.05, "CEDEARs": 0.60, "ETFs": 0.60,
+        "Acciones ARG": 0.30, "Fondos ARS": 0.20, "Fondos USD": 0.80,
+    },
+}
+
+
+def _portfolio_volatility(positions: list) -> float:
+    """Calcula la volatilidad del portfolio como sqrt(wᵀΣw) usando la
+    matriz de correlaciones aproximada por categoría.
+
+    Reemplaza la suma ponderada legacy (sum(w_i * sigma_i)) que asumía
+    correlación = 1 entre todos los activos y sobrestimaba el riesgo
+    real de carteras diversificadas.
+
+    Formulación:
+        σ_p² = Σᵢ Σⱼ wᵢ × wⱼ × σᵢ × σⱼ × ρᵢⱼ
+        σ_p  = sqrt(σ_p²)
+
+    donde ρᵢⱼ = correlación entre categorías de los activos i, j
+          σᵢ  = volatilidad anual del activo i
+          wᵢ  = peso del activo i en el portfolio
+    """
+    n = len(positions)
+    if n == 0:
+        return 0.0
+    if n == 1:
+        return float(positions[0].get("volatility", 0))
+
+    variance = 0.0
+    for i, p_i in enumerate(positions):
+        w_i = float(p_i.get("weight", 0))
+        s_i = float(p_i.get("volatility", 0))
+        cat_i = p_i.get("category", "")
+        if w_i <= 0 or s_i <= 0:
+            continue
+        for j, p_j in enumerate(positions):
+            w_j = float(p_j.get("weight", 0))
+            s_j = float(p_j.get("volatility", 0))
+            cat_j = p_j.get("category", "")
+            if w_j <= 0 or s_j <= 0:
+                continue
+            if i == j:
+                rho = 1.0
+            else:
+                rho = _CATEGORY_CORR.get(cat_i, {}).get(cat_j, 0.30)
+            variance += w_i * w_j * s_i * s_j * rho
+
+    return float(max(0.0, variance) ** 0.5)
+
+
 def _apply_score_caps(allocs: dict, risk: str, eq_scores: dict) -> dict:
     """
     Enforcement final: recorta cada activo equity a su límite score/perfil.
@@ -3460,7 +3567,10 @@ def build_portfolio(profile: dict) -> dict:
 
     # ── Métricas base ─────────────────────────────────────────────────────────
     expected_cagr = sum(p["weight"] * p["expected_return"] for p in positions)
-    expected_vol  = sum(p["weight"] * p["volatility"]      for p in positions)
+    # Volatilidad correcta del portfolio: sqrt(wᵀΣw) con correlaciones
+    # por categoría. La suma ponderada legacy asumía ρ=1 y sobrestimaba el
+    # riesgo de carteras diversificadas. Ver _portfolio_volatility().
+    expected_vol  = _portfolio_volatility(positions)
 
     category_exposure: Dict[str, float] = {}
     sector_exposure:   Dict[str, float] = {}
