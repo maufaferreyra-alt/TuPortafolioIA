@@ -10,7 +10,7 @@ from modules.finviz_scorer import (
     load_asset_sectors,
     load_full_data as load_equity_full,
     return_factor, vol_factor, MIN_SCORE_BY_RISK,
-    apply_argentina_adjustment, SECTOR_MAP,
+    apply_argentina_adjustment,
 )
 from modules.bond_scorer import (
     load_scores as load_bond_scores,
@@ -2115,14 +2115,6 @@ _MAX_POSITIONS = {
     "agresivo":    12,
 }
 
-# Score mínimo para equity por perfil (bonos y liquidez siempre pasan)
-_MIN_SCORE_EQUITY = {
-    "conservador": 70,
-    "estable":     60,
-    "moderado":    50,
-    "agresivo":    40,
-}
-
 # Peso máximo global por activo individual (post-Markowitz, post-score-caps)
 _MAX_WEIGHT_GLOBAL = {
     "conservador": 0.30,
@@ -2634,7 +2626,7 @@ def _adjust_for_income_stability(allocs: dict, income: str) -> dict:
     Ingresos inestables: sube liquidez recortando los activos más volátiles.
     Irregulares → -25% de volátiles; Variables → -12%.
     """
-    if "Irregulares o sin ingreso fijo" in income:
+    if "Irregulares" in income:
         cut_pct = 0.25
     elif "Varían bastante" in income:
         cut_pct = 0.12
@@ -2763,7 +2755,7 @@ def select_top_assets(
     4. Se aplica el cap máximo por activo (_MAX_WEIGHT_GLOBAL) y renormaliza.
     """
     max_pos    = _MAX_POSITIONS.get(risk, 12)
-    min_score  = _MIN_SCORE_EQUITY.get(risk, 40)
+    min_score  = MIN_SCORE_BY_RISK.get(risk, 40)
     max_w      = _MAX_WEIGHT_GLOBAL.get(risk, 0.30)
 
     structural = {k: v for k, v in allocs.items() if k in _STRUCTURAL_IDS}
@@ -3238,8 +3230,7 @@ def build_portfolio(profile: dict) -> dict:
     # ── 2. Capa ARG: descuento regulatorio sobre scores de acciones locales ──
     if eq_scores:
         for asset_id, score_val in list(eq_scores.items()):
-            asset  = ASSET_INDEX.get(asset_id, {})
-            sector = SECTOR_MAP.get(asset.get("category", ""), "default")
+            sector = asset_sectors.get(asset_id, "default")
             adj    = apply_argentina_adjustment(score_val, asset_id, sector)
             if adj["descuento"] > 0:
                 eq_scores[asset_id] = adj["score_adj"]
