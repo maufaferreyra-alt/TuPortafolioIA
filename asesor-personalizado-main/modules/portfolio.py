@@ -2450,11 +2450,27 @@ def _detect_overlaps(positions: list) -> list:
     return warnings
 
 
-_VOLATILE_ASSETS = {
-    "nvda", "tsla", "amd", "tsm", "shop", "baba", "pypl",
-    "meta", "qqq", "cepu", "tgs", "galicia", "bma", "ypf",
-}
+# Universo de activos "volátiles" para el rescue de liquidez en
+# _adjust_for_income_stability. Definido por categoría para que se mantenga
+# coherente con el universo real del ASSET_INDEX (y no se desactualice cada
+# vez que se agrega un activo nuevo).
+_VOLATILE_CATEGORIES = {"Acciones ARG", "CEDEARs", "ETFs", "Fondos ARS"}
+# Excepciones puntuales: fci_latam está en "Fondos USD" pero es equity LATAM
+_VOLATILE_EXTRA_IDS = {"fci_latam"}
+
 _LIQUID_SAFE = ["money_market", "mep", "lecap"]
+
+
+def _is_volatile_for_rescue(asset_id: str) -> bool:
+    """Determina si un activo cuenta como 'volátil' a los efectos del rescue
+    de liquidez por ingresos irregulares.
+
+    Incluye todo el equity (acciones individuales locales/CEDEARs, ETFs equity,
+    FCI de acciones) más excepciones explícitas. Excluye renta fija, bonos,
+    money market y dólar MEP (que ya son refugios de liquidez).
+    """
+    cat = ASSET_INDEX.get(asset_id, {}).get("category", "")
+    return cat in _VOLATILE_CATEGORIES or asset_id in _VOLATILE_EXTRA_IDS
 _ETF_IDS     = {"spy", "qqq", "vti", "iau", "gld", "eem"}
 
 _ARG_INDIVIDUAL_IDS = {
@@ -2638,8 +2654,8 @@ def _adjust_for_income_stability(allocs: dict, income: str) -> dict:
 
     adj = dict(allocs)
     rescued = 0.0
-    for k in _VOLATILE_ASSETS:
-        if k in adj and adj[k] > 0.05:
+    for k in list(adj.keys()):
+        if _is_volatile_for_rescue(k) and adj[k] > 0.05:
             cut = adj[k] * cut_pct
             adj[k] -= cut
             rescued += cut
