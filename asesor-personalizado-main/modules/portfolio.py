@@ -3418,10 +3418,18 @@ def build_portfolio(profile: dict) -> dict:
     eq_full                = load_equity_full()            # bloques + ratios completos por activo
 
     # ── 2. Capa ARG: descuento regulatorio sobre scores de acciones locales ──
+    # Para acciones argentinas se pasa el 'sub' (Energía ARG, Financiero ARG,
+    # etc.) que apply_argentina_adjustment traduce al sector del haircut.
+    # Para el resto, se usa asset_sectors (sin haircut local — la función
+    # bail-outea temprano para non-ARG via _ARG_EQUITY_IDS).
     if eq_scores:
         for asset_id, score_val in list(eq_scores.items()):
-            sector = asset_sectors.get(asset_id, "default")
-            adj    = apply_argentina_adjustment(score_val, asset_id, sector)
+            asset = ASSET_INDEX.get(asset_id, {})
+            if asset.get("category") == "Acciones ARG":
+                sector = asset.get("sub", "")
+            else:
+                sector = asset_sectors.get(asset_id, "default")
+            adj = apply_argentina_adjustment(score_val, asset_id, sector)
             if adj["descuento"] > 0:
                 eq_scores[asset_id] = adj["score_adj"]
 

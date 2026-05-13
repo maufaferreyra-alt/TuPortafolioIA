@@ -39,12 +39,16 @@ _YF_MAP: dict = {
     "gld":  "GLD",  "eem":  "EEM",
 }
 
-# Límites de peso por activo según perfil (ningún activo individual supera el 25%)
+# Límites de peso por activo según perfil.
+# Conservador y estable: caps bajos para evitar concentración excesiva.
+# Moderado: cap medio (0.25), balanceado.
+# Agresivo: cap alto (0.35) para permitir concentración real, alineado con
+# la promesa "máximo Sharpe con concentración" de la pantalla 'Cómo funciona'.
 _BOUNDS = {
     "conservador": (0.05, 0.20),
     "estable":     (0.05, 0.22),
     "moderado":    (0.05, 0.25),
-    "agresivo":    (0.05, 0.25),
+    "agresivo":    (0.05, 0.35),
 }
 
 

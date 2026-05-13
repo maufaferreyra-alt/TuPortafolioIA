@@ -825,11 +825,13 @@ ARG_REGULATORY_DISCOUNT = {
 # Clasificación por perfil cambiario
 ARG_FX_PROFILE = {
     "exportadoras": {
-        "assets":  ["ypf", "vist", "pampa"],
+        "assets":  ["ypf", "vist", "pampa", "cres", "alua", "txar", "moli"],
         "nota":    "Cobertura cambiaria natural. Ingresos en USD, suben con devaluación.",
     },
     "mercado_interno": {
-        "assets":  ["galicia", "bbar", "loma", "teco2"],
+        "assets":  ["galicia", "bbar", "loma", "teco2",
+                    "bma", "supv", "tgs", "cepu", "edn",
+                    "metr", "cvh", "valo", "harg", "irsa", "come", "mirg"],
         "nota":    "Apuesta a normalización. Sufren en devaluaciones fuertes.",
     },
 }
@@ -837,6 +839,19 @@ ARG_FX_PROFILE = {
 # Activos argentinos que aplican el descuento regulatorio
 _ARG_EQUITY_IDS = {
     a for perfil in ARG_FX_PROFILE.values() for a in perfil["assets"]
+}
+
+# Traducción del sub-sector argentino (campo 'sub' en ASSET_INDEX) al sector
+# del haircut regulatorio. Sub-sectores sin entrada (Agro, Consumo, Holding,
+# Real Estate) no reciben descuento porque su exposición regulatoria es baja
+# o ambigua.
+_ARG_SUB_TO_HAIRCUT_SECTOR = {
+    "Energía ARG":              "energia",
+    "Financiero ARG":           "bancos",
+    "Utilities ARG":            "utilities",
+    "Telecomunicaciones ARG":   "telecom",
+    "Construcción ARG":         "materiales",
+    "Industria ARG":            "materiales",
 }
 
 # Escenarios de exit yield para bonos soberanos ARG
@@ -851,14 +866,17 @@ BOND_SCENARIOS = {
 ARG_CEDEAR_MIN_LIQUIDITY_USD = 500_000
 
 
-def apply_argentina_adjustment(score: int, asset_id: str, sector: str) -> dict:
+def apply_argentina_adjustment(score: int, asset_id: str, sector_or_sub: str) -> dict:
     """
     Aplica el descuento regulatorio argentino sobre el score estándar.
-    Solo afecta acciones ARG (YPF, GGAL, BBAR, PAMP, TECO2, LOMA, VIST).
+    Acepta tanto el sector del haircut directamente ('energia', 'bancos',
+    etc.) como el sub-sector argentino del ASSET_INDEX ('Energía ARG',
+    'Financiero ARG', etc.). Solo afecta acciones que están en _ARG_EQUITY_IDS.
     """
     if asset_id not in _ARG_EQUITY_IDS:
         return {"score_adj": score, "descuento": 0, "razon": None}
 
+    sector = _ARG_SUB_TO_HAIRCUT_SECTOR.get(sector_or_sub, sector_or_sub)
     descuento = ARG_REGULATORY_DISCOUNT.get(sector, 0)
     score_adj = max(0, score - descuento)
 
