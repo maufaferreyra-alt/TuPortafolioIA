@@ -1,10 +1,11 @@
 {
-  "as_of": "2026-05-02",
+  "as_of": "2026-05-13",
+  "generated_at": "2026-05-13T13:17:13.830000",
   "bond_scores": {
     "al30": {
       "score": 62,
       "rating": "HOLD",
-      "live": false,
+      "live": true,
       "label": "AL30 – Bono Global USD Ley Argentina",
       "breakdown": {
         "rendimiento": 26,
@@ -14,7 +15,7 @@
         "liquidez": 8
       },
       "inputs": {
-        "tir": 8.5,
+        "tir": 9.24,
         "duration": 3.5,
         "paridad": 47.0,
         "vol_m": 4.0
@@ -23,7 +24,7 @@
     "gd30": {
       "score": 63,
       "rating": "HOLD",
-      "live": false,
+      "live": true,
       "label": "GD30 – Bono Global USD Ley Nueva York",
       "breakdown": {
         "rendimiento": 26,
@@ -33,54 +34,92 @@
         "liquidez": 8
       },
       "inputs": {
-        "tir": 8.5,
+        "tir": 9.24,
         "duration": 4.0,
         "paridad": 47.0,
         "vol_m": 6.0
       }
     },
     "lecap": {
-      "score": 79,
-      "rating": "BUY",
-      "live": false,
-      "label": "LECAPs – Letras Capitalizables del Tesoro",
+      "score": 57,
+      "rating": "HOLD",
+      "live": true,
+      "label": "LECAP – Letra Capitalizable del Tesoro (activa)",
       "breakdown": {
-        "rendimiento": 26,
+        "rendimiento": 4,
         "duration": 20,
         "calidad": 18,
         "paridad": 5,
         "liquidez": 10
       },
       "inputs": {
-        "tir": 62.0,
-        "duration": 0.25,
+        "tir": 28.0,
+        "duration": 0.132,
         "paridad": 99.5,
         "vol_m": 10.0
       }
     },
-    "cer_bond": {
-      "score": 62,
+    "cer_tx26": {
+      "score": 63,
       "rating": "HOLD",
       "live": false,
-      "label": "Bono CER – Ajuste por Inflación",
+      "label": "Bono CER TX26 – Ajuste por Inflación (corto)",
+      "breakdown": {
+        "rendimiento": 16,
+        "duration": 20,
+        "calidad": 17,
+        "paridad": 5,
+        "liquidez": 5
+      },
+      "inputs": {
+        "tir": 2.0,
+        "duration": 0.5,
+        "paridad": 99.5,
+        "vol_m": 1.5
+      }
+    },
+    "cer_tx28": {
+      "score": 55,
+      "rating": "HOLD",
+      "live": false,
+      "label": "Bono CER TX28 – Ajuste por Inflación",
       "breakdown": {
         "rendimiento": 26,
-        "duration": 9,
+        "duration": 2,
         "calidad": 17,
         "paridad": 5,
         "liquidez": 5
       },
       "inputs": {
         "tir": 5.0,
-        "duration": 1.5,
+        "duration": 2.2,
         "paridad": 96.0,
         "vol_m": 2.5
+      }
+    },
+    "cer_dicp": {
+      "score": 68,
+      "rating": "BUY",
+      "live": false,
+      "label": "Bono DICP – CER Largo Plazo",
+      "breakdown": {
+        "rendimiento": 35,
+        "duration": 2,
+        "calidad": 15,
+        "paridad": 8,
+        "liquidez": 8
+      },
+      "inputs": {
+        "tir": 8.0,
+        "duration": 7.0,
+        "paridad": 80.0,
+        "vol_m": 8.0
       }
     },
     "on_ypf": {
       "score": 60,
       "rating": "HOLD",
-      "live": false,
+      "live": true,
       "label": "ON YPF USD",
       "breakdown": {
         "rendimiento": 26,
@@ -90,7 +129,7 @@
         "liquidez": 5
       },
       "inputs": {
-        "tir": 9.0,
+        "tir": 9.74,
         "duration": 2.5,
         "paridad": 98.0,
         "vol_m": 2.0
@@ -99,8 +138,8 @@
     "on_corp": {
       "score": 62,
       "rating": "HOLD",
-      "live": false,
-      "label": "ONs Corporativas Mix (Pampa / Arcor / MELI)",
+      "live": true,
+      "label": "ONs Corporativas Mix (YPF / TGS / Tecpetrol)",
       "breakdown": {
         "rendimiento": 26,
         "duration": 9,
@@ -109,35 +148,16 @@
         "liquidez": 5
       },
       "inputs": {
-        "tir": 8.5,
+        "tir": 8.74,
         "duration": 2.0,
         "paridad": 100.0,
         "vol_m": 2.0
       }
     },
-    "on_pampa": {
-      "score": 64,
-      "rating": "HOLD",
-      "live": false,
-      "label": "ON Pampa Energía USD",
-      "breakdown": {
-        "rendimiento": 26,
-        "duration": 9,
-        "calidad": 22,
-        "paridad": 2,
-        "liquidez": 5
-      },
-      "inputs": {
-        "tir": 8.0,
-        "duration": 2.0,
-        "paridad": 100.0,
-        "vol_m": 1.5
-      }
-    },
     "on_tecpetrol": {
       "score": 60,
       "rating": "HOLD",
-      "live": false,
+      "live": true,
       "label": "ON Tecpetrol USD",
       "breakdown": {
         "rendimiento": 26,
@@ -147,7 +167,7 @@
         "liquidez": 5
       },
       "inputs": {
-        "tir": 8.0,
+        "tir": 9.24,
         "duration": 2.5,
         "paridad": 99.0,
         "vol_m": 1.0
@@ -156,7 +176,7 @@
     "al35": {
       "score": 61,
       "rating": "HOLD",
-      "live": false,
+      "live": true,
       "label": "AL35 – Bono Global USD Ley Argentina 2035",
       "breakdown": {
         "rendimiento": 26,
@@ -166,7 +186,7 @@
         "liquidez": 8
       },
       "inputs": {
-        "tir": 9.0,
+        "tir": 9.58,
         "duration": 6.5,
         "paridad": 42.0,
         "vol_m": 3.0
@@ -175,7 +195,7 @@
     "gd35": {
       "score": 62,
       "rating": "HOLD",
-      "live": false,
+      "live": true,
       "label": "GD35 – Bono Global USD Ley Nueva York 2035",
       "breakdown": {
         "rendimiento": 26,
@@ -185,7 +205,7 @@
         "liquidez": 8
       },
       "inputs": {
-        "tir": 9.0,
+        "tir": 9.58,
         "duration": 6.5,
         "paridad": 42.0,
         "vol_m": 4.0
@@ -194,7 +214,7 @@
     "gd38": {
       "score": 62,
       "rating": "HOLD",
-      "live": false,
+      "live": true,
       "label": "GD38 – Bono Global USD Ley Nueva York 2038",
       "breakdown": {
         "rendimiento": 26,
@@ -204,7 +224,7 @@
         "liquidez": 8
       },
       "inputs": {
-        "tir": 9.5,
+        "tir": 9.58,
         "duration": 8.5,
         "paridad": 40.0,
         "vol_m": 3.0
@@ -213,7 +233,7 @@
     "on_tgs": {
       "score": 64,
       "rating": "HOLD",
-      "live": false,
+      "live": true,
       "label": "ON TGS USD (TGSU2O)",
       "breakdown": {
         "rendimiento": 26,
@@ -223,29 +243,352 @@
         "liquidez": 5
       },
       "inputs": {
-        "tir": 8.5,
+        "tir": 8.24,
         "duration": 2.0,
         "paridad": 100.0,
         "vol_m": 1.0
       }
     },
     "on_macro": {
-      "score": 55,
+      "score": 64,
       "rating": "HOLD",
-      "live": false,
+      "live": true,
       "label": "ON Banco Macro USD",
       "breakdown": {
-        "rendimiento": 26,
+        "rendimiento": 35,
         "duration": 2,
         "calidad": 20,
         "paridad": 5,
         "liquidez": 2
       },
       "inputs": {
-        "tir": 9.0,
+        "tir": 10.24,
         "duration": 2.5,
         "paridad": 99.0,
         "vol_m": 0.8
+      }
+    },
+    "on_tgs2": {
+      "score": 64,
+      "rating": "HOLD",
+      "live": true,
+      "label": "ON TGS USD Serie 2 (TGS2O)",
+      "breakdown": {
+        "rendimiento": 26,
+        "duration": 9,
+        "calidad": 22,
+        "paridad": 2,
+        "liquidez": 5
+      },
+      "inputs": {
+        "tir": 9.24,
+        "duration": 2.0,
+        "paridad": 100.0,
+        "vol_m": 1.0
+      }
+    },
+    "on_arcor": {
+      "score": 59,
+      "rating": "HOLD",
+      "live": true,
+      "label": "ON Arcor USD (RCCJO)",
+      "breakdown": {
+        "rendimiento": 26,
+        "duration": 2,
+        "calidad": 21,
+        "paridad": 5,
+        "liquidez": 5
+      },
+      "inputs": {
+        "tir": 9.24,
+        "duration": 2.5,
+        "paridad": 99.0,
+        "vol_m": 1.5
+      }
+    },
+    "on_telecom2": {
+      "score": 65,
+      "rating": "BUY",
+      "live": true,
+      "label": "ON Telecom Argentina USD (TLCMO)",
+      "breakdown": {
+        "rendimiento": 26,
+        "duration": 9,
+        "calidad": 20,
+        "paridad": 5,
+        "liquidez": 5
+      },
+      "inputs": {
+        "tir": 9.24,
+        "duration": 2.0,
+        "paridad": 98.0,
+        "vol_m": 1.5
+      }
+    },
+    "on_irsa": {
+      "score": 56,
+      "rating": "HOLD",
+      "live": true,
+      "label": "ON IRSA USD (IRCFO)",
+      "breakdown": {
+        "rendimiento": 26,
+        "duration": 2,
+        "calidad": 18,
+        "paridad": 5,
+        "liquidez": 5
+      },
+      "inputs": {
+        "tir": 9.24,
+        "duration": 2.5,
+        "paridad": 97.0,
+        "vol_m": 2.5
+      }
+    },
+    "on_cresud": {
+      "score": 65,
+      "rating": "BUY",
+      "live": true,
+      "label": "ON Cresud USD (CSDOO)",
+      "breakdown": {
+        "rendimiento": 26,
+        "duration": 9,
+        "calidad": 17,
+        "paridad": 5,
+        "liquidez": 8
+      },
+      "inputs": {
+        "tir": 9.24,
+        "duration": 2.0,
+        "paridad": 97.0,
+        "vol_m": 3.0
+      }
+    },
+    "dual_bond": {
+      "score": 64,
+      "rating": "HOLD",
+      "live": false,
+      "label": "Bono Dual TDA27 (max CER / devaluación)",
+      "breakdown": {
+        "rendimiento": 26,
+        "duration": 9,
+        "calidad": 19,
+        "paridad": 5,
+        "liquidez": 5
+      },
+      "inputs": {
+        "tir": 6.0,
+        "duration": 1.2,
+        "paridad": 98.0,
+        "vol_m": 2.0
+      }
+    },
+    "dollar_linked": {
+      "score": 59,
+      "rating": "HOLD",
+      "live": false,
+      "label": "Bono Dollar Linked TV26",
+      "breakdown": {
+        "rendimiento": 16,
+        "duration": 15,
+        "calidad": 18,
+        "paridad": 5,
+        "liquidez": 5
+      },
+      "inputs": {
+        "tir": 3.0,
+        "duration": 0.8,
+        "paridad": 99.0,
+        "vol_m": 2.5
+      }
+    },
+    "fci_usd_rf": {
+      "score": 50,
+      "rating": "HOLD",
+      "live": false,
+      "label": "FCI Renta Fija USD (Compass / Balanz)",
+      "breakdown": {
+        "rendimiento": 16,
+        "duration": 9,
+        "calidad": 21,
+        "paridad": 2,
+        "liquidez": 2
+      },
+      "inputs": {
+        "tir": 6.5,
+        "duration": 1.5,
+        "paridad": 100.0,
+        "vol_m": 0.5
+      }
+    },
+    "fci_usd_ahorro": {
+      "score": 63,
+      "rating": "HOLD",
+      "live": false,
+      "label": "FCI Ahorro USD Corto Plazo (Cohen / Quinquela)",
+      "breakdown": {
+        "rendimiento": 16,
+        "duration": 20,
+        "calidad": 23,
+        "paridad": 2,
+        "liquidez": 2
+      },
+      "inputs": {
+        "tir": 5.5,
+        "duration": 0.3,
+        "paridad": 100.0,
+        "vol_m": 0.2
+      }
+    },
+    "fci_latam": {
+      "score": 53,
+      "rating": "HOLD",
+      "live": false,
+      "label": "FCI Deuda Latinoamérica (SBS / OnCapital)",
+      "breakdown": {
+        "rendimiento": 26,
+        "duration": 2,
+        "calidad": 18,
+        "paridad": 2,
+        "liquidez": 5
+      },
+      "inputs": {
+        "tir": 7.5,
+        "duration": 3.0,
+        "paridad": 100.0,
+        "vol_m": 1.2
+      }
+    },
+    "on_meli": {
+      "score": 62,
+      "rating": "HOLD",
+      "live": true,
+      "label": "ON MercadoLibre USD (MLIUSD)",
+      "breakdown": {
+        "rendimiento": 26,
+        "duration": 2,
+        "calidad": 24,
+        "paridad": 5,
+        "liquidez": 5
+      },
+      "inputs": {
+        "tir": 9.24,
+        "duration": 2.5,
+        "paridad": 99.0,
+        "vol_m": 1.5
+      }
+    },
+    "on_telecom": {
+      "score": 65,
+      "rating": "BUY",
+      "live": true,
+      "label": "ON Telecom Argentina USD (TCOMD)",
+      "breakdown": {
+        "rendimiento": 26,
+        "duration": 9,
+        "calidad": 20,
+        "paridad": 5,
+        "liquidez": 5
+      },
+      "inputs": {
+        "tir": 9.24,
+        "duration": 2.0,
+        "paridad": 98.0,
+        "vol_m": 1.5
+      }
+    },
+    "on_genneia": {
+      "score": 57,
+      "rating": "HOLD",
+      "live": true,
+      "label": "ON Genneia USD (GNCXO)",
+      "breakdown": {
+        "rendimiento": 26,
+        "duration": 2,
+        "calidad": 19,
+        "paridad": 5,
+        "liquidez": 5
+      },
+      "inputs": {
+        "tir": 9.24,
+        "duration": 2.5,
+        "paridad": 97.0,
+        "vol_m": 2.0
+      }
+    },
+    "on_vista": {
+      "score": 63,
+      "rating": "HOLD",
+      "live": true,
+      "label": "ON Vista Oil & Gas USD (VSCOD)",
+      "breakdown": {
+        "rendimiento": 26,
+        "duration": 9,
+        "calidad": 18,
+        "paridad": 5,
+        "liquidez": 5
+      },
+      "inputs": {
+        "tir": 9.24,
+        "duration": 2.0,
+        "paridad": 97.0,
+        "vol_m": 2.5
+      }
+    },
+    "on_pampa": {
+      "score": 60,
+      "rating": "HOLD",
+      "live": true,
+      "label": "ON Pampa Energía USD (PGN2O)",
+      "breakdown": {
+        "rendimiento": 26,
+        "duration": 2,
+        "calidad": 22,
+        "paridad": 5,
+        "liquidez": 5
+      },
+      "inputs": {
+        "tir": 8.49,
+        "duration": 2.5,
+        "paridad": 99.0,
+        "vol_m": 1.5
+      }
+    },
+    "gd29": {
+      "score": 63,
+      "rating": "HOLD",
+      "live": true,
+      "label": "GD29 – Bono Global USD Ley Nueva York 2029",
+      "breakdown": {
+        "rendimiento": 26,
+        "duration": 2,
+        "calidad": 17,
+        "paridad": 10,
+        "liquidez": 8
+      },
+      "inputs": {
+        "tir": 9.24,
+        "duration": 3.5,
+        "paridad": 46.0,
+        "vol_m": 5.0
+      }
+    },
+    "gd41": {
+      "score": 61,
+      "rating": "HOLD",
+      "live": true,
+      "label": "GD41 – Bono Global USD Ley Nueva York 2041",
+      "breakdown": {
+        "rendimiento": 26,
+        "duration": 2,
+        "calidad": 15,
+        "paridad": 10,
+        "liquidez": 8
+      },
+      "inputs": {
+        "tir": 9.58,
+        "duration": 10.0,
+        "paridad": 38.0,
+        "vol_m": 5.5
       }
     }
   }
