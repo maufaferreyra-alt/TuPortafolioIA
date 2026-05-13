@@ -3202,6 +3202,38 @@ form[data-testid="stForm"] [data-baseweb="input"]:focus-within,
 @media (max-width: 768px) {
     .stPlotlyChart .legendtext { font-size: 11px !important; }
 }
+
+/* ── Simulador panel: fixes mobile focalizados ─────────────────── */
+@media (max-width: 640px) {
+    /* h4 (títulos de sub-paneles del simulador) — alinear con h3 */
+    .stMarkdown h4 { font-size: 1rem !important; line-height: 1.3; margin: 0.4rem 0 0.6rem; }
+
+    /* Override del inline gap:16px en .metrics-grid del simulador */
+    .metrics-grid[style*="1fr 1fr"] { gap: 8px !important; }
+
+    /* st.columns([1,2]) del aporte mensual: apilar en lugar de 33/67 */
+    [data-testid="stHorizontalBlock"]:has([data-testid="stNumberInput"]) {
+        flex-direction: column !important;
+        gap: 0.6rem !important;
+    }
+    [data-testid="stHorizontalBlock"]:has([data-testid="stNumberInput"]) > [data-testid="stColumn"] {
+        width: 100% !important; flex: 1 1 100% !important; min-width: 0 !important;
+    }
+
+    /* Expander summary: aliviar padding/min-height para títulos largos */
+    [data-testid="stExpander"] > details > summary {
+        padding: 14px 16px !important;
+        min-height: 56px !important;
+        font-size: 0.92rem !important;
+        line-height: 1.3 !important;
+    }
+    [data-testid="stExpander"] > details > summary > span,
+    [data-testid="stExpander"] > details > summary p { font-size: 0.92rem !important; }
+
+    /* Plotly: ajustar textfont outside y evitar overflow horizontal */
+    .stPlotlyChart { overflow-x: hidden !important; }
+    .stPlotlyChart .bartext, .stPlotlyChart text.bartext { font-size: 9px !important; }
+}
 </style>"""
 
 
