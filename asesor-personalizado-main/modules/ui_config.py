@@ -1063,9 +1063,24 @@ html, body, #root, .stApp {
     .stTabs [data-baseweb="tab-highlight"] { display: none !important; }
 
     /* ── Expander ─────────────────────────────────────────────────── */
-    .streamlit-expanderHeader,
-    [data-testid="stExpander"] > details > summary,
+    /* Streamlit 1.57+ pinta su propio border/background en MÚLTIPLES
+       wrappers anidados: [data-testid="stExpander"] + div intermedio +
+       <details>. Los neutralizamos todos para que el ÚNICO recuadro
+       visible sea el <summary>. Sin este reset, se ven 2-3 cuadros
+       superpuestos. La regla excluye explícitamente .streamlit-expanderContent
+       para que su styling propio (background, border) sobreviva cuando
+       el expander se abre. */
+    [data-testid="stExpander"],
+    [data-testid="stExpander"] > div:not(.streamlit-expanderContent),
     [data-testid="stExpander"] > details {
+        background: transparent !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+    .streamlit-expanderHeader,
+    [data-testid="stExpander"] > details > summary {
         background: var(--bg-2) !important;
         border: 1px solid var(--border) !important;
         border-radius: var(--radius-sm) !important;
