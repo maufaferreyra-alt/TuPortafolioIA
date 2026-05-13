@@ -458,19 +458,34 @@ elif step == "results":
     # está SIEMPRE visible al final del viewport. El FAB era redundante
     # y colisionaba con el chat_input en mobile.
 
-    # ── Aviso de scores actualizados en esta sesión ───────────────────────────
-    if st.session_state.scores_refreshed and not st.session_state.get("refresh_banner_dismissed"):
-        col_b1, col_b2 = st.columns([5, 1])
-        with col_b1:
-            st.info("Los datos de mercado fueron actualizados. Podés generar una nueva evaluación para reflejar los últimos fundamentals.")
-        with col_b2:
-            if st.button("Recalcular", key="recalc_btn", use_container_width=True):
-                st.session_state.refresh_banner_dismissed = True
-                keys_to_clear = ["portfolio", "simulation", "chat_history", "show_celebration"]
-                for k in keys_to_clear:
-                    st.session_state[k] = None if k != "chat_history" else []
-                st.session_state.step = "profiling"
-                st.rerun()
+    # ── Aviso de scores actualizados — DESHABILITADO para la demo ─────────────
+    # Razón: la app actual no tiene auth ni persistencia de carteras. Avisarle
+    # al usuario "los datos cambiaron, recalculá" rompe la ilusión de que
+    # ESA cartera es SUYA. Un cliente debe ver la misma cartera mientras dure
+    # su sesión, no recibir invitaciones automáticas a regenerarla.
+    #
+    # Cuando se implemente auth + persistencia (Frente 3 del roadmap):
+    # reactivar este bloque con UX correcta — cargar cartera guardada del
+    # user_id, comparar scores actuales vs los del momento del snapshot,
+    # mostrar DIFF ("estos 5 activos cambiaron de score") y dejar que el
+    # usuario decida si quiere actualizar su cartera. NO refresh automático.
+    #
+    # El hilo de fondo que actualiza scores cada 7 días sigue corriendo
+    # (es útil para nuevos usuarios). Solo se silencia la notificación al
+    # usuario actual.
+    #
+    # if st.session_state.scores_refreshed and not st.session_state.get("refresh_banner_dismissed"):
+    #     col_b1, col_b2 = st.columns([5, 1])
+    #     with col_b1:
+    #         st.info("Los datos de mercado fueron actualizados. Podés generar una nueva evaluación para reflejar los últimos fundamentals.")
+    #     with col_b2:
+    #         if st.button("Recalcular", key="recalc_btn", use_container_width=True):
+    #             st.session_state.refresh_banner_dismissed = True
+    #             keys_to_clear = ["portfolio", "simulation", "chat_history", "show_celebration"]
+    #             for k in keys_to_clear:
+    #                 st.session_state[k] = None if k != "chat_history" else []
+    #             st.session_state.step = "profiling"
+    #             st.rerun()
 
     # ── Pantalla de celebración (primera vez) ─────────────────────────────────
     if st.session_state.get("show_celebration"):
