@@ -618,7 +618,7 @@ elif step == "results":
 <div class="summary-item">
 <div class="si-label">Retorno estimado/año</div>
 <div class="si-value" style="color:#22c55e;">{portfolio['expected_cagr']*100:.1f}%</div>
-<div class="si-sub">Rendimiento histórico esperado (base USD)</div>
+<div class="si-sub">{tip("rendimiento_estimado", "Rendimiento anual estimado")}</div>
 </div>
 </div>
 <details class="summary-detail">
@@ -663,7 +663,7 @@ elif step == "results":
 
     gain_color = "#22c55e" if total_gain_disp >= 0 else "#ef4444"
     sign       = "+" if total_gain_disp >= 0 else ""
-    cagr_sub   = "Rendimiento histórico esperado (base USD)"
+    cagr_sub   = tip("rendimiento_estimado", "Rendimiento anual estimado")
 
     _horizon = profile['horizon']
     _results_timeline = "6 a 18 meses" if _horizon >= 3 else "3 a 6 meses"
