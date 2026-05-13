@@ -6,28 +6,52 @@ import streamlit as st
 import urllib.request
 import json as _json
 
-# ── Datos históricos hardcodeados ─────────────────────────────────────────────
+# ============================================================
+# DATOS HARDCODED — Última actualización: mayo 2026
+# ============================================================
+# IMPORTANTE: Revisar y actualizar TRIMESTRALMENTE.
+# Próxima revisión sugerida: agosto 2026.
+#
+# Fuentes verificadas:
+#   - Inflación: INDEC IPC oficial
+#       · 2024 anual: 117.8%
+#       · 2025 anual: 31.5%
+#       · 2026 ene-abr: 11.2% (Libertad y Progreso + Criteria)
+#   - Plazo fijo: BCRA TNA histórica capitalizada mensualmente
+#   - MEP histórico: ArgentinaDatos + dolarhistorico.com
+#       · Mayo 2024 (día 2): $1.064,56
+#       · Mayo 2025: $1.191,72
+#       · Hoy 12-may-2026: $1.428,66 (Cronista)
+#   - S&P 500: SPDR SPY total return — 11% anual promedio histórico
+#       (los últimos 10 años fueron 13-14% por outliers tech, usamos
+#       cifra conservadora de largo plazo)
+# ============================================================
 
+# Inflación acumulada por período (factor: 1.10 = +110%)
 INFLATION_ACUM = {
-    1: 1.17,    # 2024: 117%
-    2: 3.75,    # acumulada 2023-2024: 375%
-    5: 18.47,   # acumulada 2020-2024: 1847%
+    2:  1.10,    # mayo 2024 → mayo 2026: ~110% acumulado
+    5:  25.00,   # mayo 2021 → mayo 2026: ~2.500% acumulado
+    10: 143.00,  # mayo 2016 → mayo 2026: ~14.300% acumulado
 }
 
-# Plazo fijo: tasa nominal acumulada compuesta por período
+# Plazo fijo capitalizado mensualmente (factor acumulado)
 _PF_ACUM = {
-    1: 0.70,
-    2: (1 + 1.33) * (1 + 0.70) - 1,                                      # ≈ 296%
-    5: (1 + 0.36) * (1 + 0.37) * (1 + 0.75) * (1 + 1.33) * (1 + 0.70) - 1,  # ≈ 1192%
+    2:  1.15,    # ~115% en 2 años (TNAs reales positivas bajo Milei)
+    5:  9.50,    # ~950% en 5 años
+    10: 127.00,  # ~12.700% en 10 años (apenas pierde vs inflación)
 }
 
-# Dólar MEP aproximado al inicio de cada período (ARS/USD)
-_MEP_HIST = {1: 1_000.0, 2: 830.0, 5: 160.0}
-_MEP_FALLBACK = 1_200.0
+# Dólar MEP al inicio de cada período (ARS/USD)
+_MEP_HIST = {
+    2:  1_065.0,  # mayo 2024 — verificado: $1.064,56 (2-may-24)
+    5:  160.0,    # mayo 2021 — promedio mensual
+    10: 14.0,     # mayo 2016 — post-salida del cepo macrista
+}
+_MEP_FALLBACK = 1_400.0   # actualizado al rango actual (~$1.428 mayo 2026)
 
-# Rendimiento anual en USD de alternativas conservadoras y moderadas
-_ON_RATE  = 0.08   # ONs corporativas (Pampa, MercadoLibre, etc.)
-_SPY_RATE = 0.11   # S&P 500 via CEDEAR (promedio histórico)
+# Tasas anuales en USD de alternativas de inversión
+_SPY_RATE = 0.11   # CEDEAR S&P 500 — promedio histórico conservador 30+ años
+_ON_RATE  = 0.08   # ONs corporativas — secundario, usado para comparativas
 
 STORAGE_LABELS = {
     "caja_ahorro":     "Caja de ahorro bancaria",
@@ -36,7 +60,7 @@ STORAGE_LABELS = {
     "dolares_billete": "Dólares billete guardados",
 }
 
-PERIOD_LABELS = {1: "1 año", 2: "2 años", 5: "5 años"}
+PERIOD_LABELS = {2: "2 años", 5: "5 años", 10: "10 años"}
 
 
 # ── API en tiempo real ────────────────────────────────────────────────────────
@@ -62,37 +86,49 @@ def _get_mep() -> tuple[float, bool]:
 # ── Cálculos ──────────────────────────────────────────────────────────────────
 
 def _calc(amount: float, storage: str, years: int, mep_now: float) -> dict:
+    """Calcula los escenarios de inversión para la pantalla 'Costo de no invertir'.
+
+    Devuelve un dict con todos los campos necesarios para renderizar las
+    tres cards + el mensaje adaptativo, incluyendo el flag spy_gano_vs_pf
+    que indica si la narrativa "podrías tener más con SPY" es honesta.
+    """
     inf      = INFLATION_ACUM[years]
     pf_rate  = _PF_ACUM[years]
     mep_then = _MEP_HIST[years]
 
     if storage == "dolares_billete":
         usd_amount  = amount / mep_now
-        nominal_hoy = amount          # mismo USD al cambio actual
-        real_hoy    = amount          # dólar preservó vs ARS
-        perdida     = 0.0
+        nominal_hoy = amount
+        real_hoy    = amount
         on_ars  = usd_amount * (1 + _ON_RATE)  ** years * mep_now
         spy_ars = usd_amount * (1 + _SPY_RATE) ** years * mep_now
     else:
         nominal_hoy = amount * (1 + pf_rate) if storage == "plazo_fijo" else amount
         real_hoy    = nominal_hoy / (1 + inf)
-        perdida     = amount - real_hoy
-        usd_then    = amount / mep_then                          # cuántos USD al cambio histórico
+        usd_then    = amount / mep_then
         on_ars  = usd_then * (1 + _ON_RATE)  ** years * mep_now
         spy_ars = usd_then * (1 + _SPY_RATE) ** years * mep_now
 
+    base_actual          = nominal_hoy
+    ganancia_spy_vs_base = spy_ars - base_actual
+    ganancia_spy_pct     = (ganancia_spy_vs_base / base_actual * 100) if base_actual > 0 else 0
+    spy_gano_vs_pf       = spy_ars > nominal_hoy
+
     return {
-        "amount":       amount,
-        "nominal_hoy":  nominal_hoy,
-        "real_hoy":     real_hoy,
-        "perdida":      perdida,
-        "on_ars":       on_ars,
-        "spy_ars":      spy_ars,
-        "inf_pct":      inf * 100,
-        "pf_pct":       pf_rate * 100,
-        "mep_now":      mep_now,
-        "storage":      storage,
-        "years":        years,
+        "amount":               amount,
+        "nominal_hoy":          nominal_hoy,
+        "real_hoy":             real_hoy,
+        "perdida_vs_inflacion": amount - real_hoy,
+        "on_ars":               on_ars,
+        "spy_ars":              spy_ars,
+        "inf_pct":              inf * 100,
+        "pf_pct":               pf_rate * 100,
+        "mep_now":              mep_now,
+        "storage":              storage,
+        "years":                years,
+        "ganancia_spy_vs_base": ganancia_spy_vs_base,
+        "ganancia_spy_pct":     ganancia_spy_pct,
+        "spy_gano_vs_pf":       spy_gano_vs_pf,
     }
 
 
@@ -135,7 +171,7 @@ de guardar su dinero en opciones que no generan rendimiento.
 
         years = st.selectbox(
             "¿Hace cuánto tiempo lo tiene guardado?",
-            options=[1, 2, 5],
+            options=[2, 5, 10],
             format_func=lambda y: PERIOD_LABELS[y],
         )
 
@@ -166,9 +202,8 @@ def render_cost_results():
 
     amount    = r["amount"]
     real_hoy  = r["real_hoy"]
-    on_ars    = r["on_ars"]
     spy_ars   = r["spy_ars"]
-    perdida   = r["perdida"]
+    perdida   = r["perdida_vs_inflacion"]
     years     = r["years"]
     storage   = r["storage"]
     inf_pct   = r["inf_pct"]
@@ -230,43 +265,81 @@ def render_cost_results():
   </div>
 </div>""", unsafe_allow_html=True)
 
+    # ---- Card 3: CEDEAR S&P 500 (nuevo comparador principal) ----
     with c3:
-        gain   = on_ars - amount
-        pct_on = (gain / amount * 100) if amount else 0
-        st.markdown(f"""<div class="metric-card" style="border-color:rgba(16,217,138,0.35);">
-  <div class="metric-label">Lo que tendría si hubiera invertido</div>
-  <div class="metric-value" style="color:var(--green);">${on_ars:,.0f}</div>
+        gain_spy_vs_base = r["ganancia_spy_vs_base"]
+        pct_spy          = r["ganancia_spy_pct"]
+        is_positive      = gain_spy_vs_base > 0
+        color_acento     = "var(--green)" if is_positive else "var(--text-2)"
+        signo            = "+" if is_positive else ""
+        st.markdown(f"""<div class="metric-card" style="border-color:rgba(16,217,138,0.55);box-shadow:0 0 24px rgba(16,217,138,0.15);">
+  <div class="metric-label">💎 Lo que tendría con el CEDEAR del S&amp;P 500</div>
+  <div class="metric-value" style="color:var(--green);">${spy_ars:,.0f}</div>
   <div class="metric-sub" style="text-align:left;line-height:1.9;margin-top:0.9rem;">
-    Con ONs corporativas (8% anual USD)<br>
-    <span style="color:var(--green);font-weight:600;">+${gain:,.0f} ARS (+{pct_on:.0f}%)</span>
+    Las 500 mayores empresas de EE.UU.<br>
+    <span style="opacity:0.7;font-size:0.85rem;">(11% anual USD — promedio histórico)</span><br>
+    <span style="color:{color_acento};font-weight:600;">{signo}${gain_spy_vs_base:,.0f} ARS vs su escenario actual ({signo}{pct_spy:.0f}%)</span>
   </div>
 </div>""", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # ── Mensaje emocional ─────────────────────────────────────────────────────
+    # ---- Mensaje adaptativo según contexto real ----
     if storage == "dolares_billete":
-        usd_now = amount / mep_now
-        usd_on  = on_ars / mep_now
+        ganancia_ars = spy_ars - amount
+        ganancia_pct = (ganancia_ars / amount * 100) if amount > 0 else 0
+        usd_equiv    = amount / mep_now
         msg = (
-            f"Sus dólares le protegieron de la devaluación del peso — eso ya es un gran paso. "
-            f"Sin embargo, en {plabel} no generaron ningún rendimiento en dólares. "
-            f"Si los hubiera invertido en obligaciones negociables de empresas como Pampa Energía o MercadoLibre, "
-            f"hoy tendría <strong>USD {usd_on:,.0f}</strong> en lugar de <strong>USD {usd_now:,.0f}</strong>."
+            f"Sus dólares le protegieron del peso — eso ya es un gran paso. "
+            f"Pero en {plabel} no generaron rendimiento. "
+            f"Tiene <strong>USD {usd_equiv:,.0f}</strong> equivalentes a "
+            f"<strong>${amount:,.0f} ARS</strong> hoy. "
+            f"Si los hubiera invertido en el CEDEAR del S&P 500, "
+            f"hoy tendría <strong>${spy_ars:,.0f} ARS</strong> — un "
+            f"<strong>+{ganancia_pct:.0f}%</strong> que dejó pasar."
         )
     elif storage == "plazo_fijo":
-        msg = (
-            f"En {plabel} la inflación fue de <strong>{inf_pct:.0f}%</strong> "
-            f"y su plazo fijo rindió el <strong>{pf_pct:.0f}%</strong> acumulado. "
-            "En Argentina el plazo fijo <em>siempre</em> perdió contra la inflación. "
-            "Existe una alternativa más inteligente con riesgo similar y mayor rendimiento."
-        )
+        if r["spy_gano_vs_pf"]:
+            diff_inflacion = r["pf_pct"] - r["inf_pct"]
+            txt_inf = (
+                f"su plazo fijo perdió contra la inflación "
+                f"(PF: <strong>{r['pf_pct']:.0f}%</strong> vs inflación: <strong>{r['inf_pct']:.0f}%</strong>)"
+                if diff_inflacion < 0 else
+                f"su plazo fijo apenas empató la inflación "
+                f"(PF: <strong>{r['pf_pct']:.0f}%</strong> vs inflación: <strong>{r['inf_pct']:.0f}%</strong>)"
+            )
+            msg = (
+                f"En {plabel}, {txt_inf}. "
+                f"En ese mismo período, el CEDEAR del S&P 500 le hubiera dado "
+                f"<strong>${spy_ars:,.0f}</strong> — un "
+                f"<strong>+{r['ganancia_spy_pct']:.0f}%</strong> "
+                f"sobre lo que tiene hoy. <strong>Esa diferencia es el costo "
+                f"real de no invertir en activos productivos.</strong>"
+            )
+        else:
+            msg = (
+                f"En {plabel}, su plazo fijo se comportó bien gracias al contexto "
+                f"de desinflación reciente y un dólar relativamente estable "
+                f"(PF: <strong>+{r['pf_pct']:.0f}%</strong>, "
+                f"inflación: <strong>{r['inf_pct']:.0f}%</strong>). "
+                f"Pero este es un período atípico en la historia argentina. "
+                f"<strong>A plazos más largos (5 o 10 años) el CEDEAR del S&P 500 "
+                f"ha superado al plazo fijo argentino por amplio margen</strong>, "
+                f"porque captura el crecimiento de las empresas más importantes "
+                f"del mundo — no solo la tasa de interés local de coyuntura."
+            )
     else:
         msg = (
-            f"En {plabel} la inflación acumulada fue de <strong>{inf_pct:.0f}%</strong>. "
-            f"Sus <strong>${amount:,.0f} ARS</strong> guardados valen hoy el equivalente real de "
-            f"<strong>${real_hoy:,.0f} ARS</strong> en poder adquisitivo. "
-            "El dinero parado pierde valor todos los días en Argentina."
+            f"En {plabel}, la inflación acumulada fue de "
+            f"<strong>{r['inf_pct']:.0f}%</strong>. "
+            f"Sus <strong>${amount:,.0f} ARS</strong> guardados valen hoy el "
+            f"equivalente real de <strong>${real_hoy:,.0f} ARS</strong> en "
+            f"poder adquisitivo. "
+            f"Y si los hubiera invertido en el CEDEAR del S&P 500, hoy tendría "
+            f"<strong>${spy_ars:,.0f}</strong>. "
+            f"<strong>El dinero parado pierde valor todos los días en "
+            f"Argentina</strong> — y deja pasar el crecimiento que otros "
+            f"activos sí capturan."
         )
 
     st.markdown(f"""<div class="alert-card alert-medium">
@@ -274,8 +347,15 @@ def render_cost_results():
 <div style="line-height:1.85;font-size:0.93rem;color:var(--text-2);">
   {msg}<br><br>
   <strong style="color:var(--text-1);">No invertir también es una decisión financiera.</strong>
-  Y en Argentina, suele ser la más costosa.<br>
-  <span style="color:var(--green);">La buena noticia es que a partir de hoy puede cambiar esto.</span>
+  Y en Argentina, suele ser una de las más costosas — no tanto por lo que se
+  pierde contra la inflación, sino por lo que se deja de ganar contra activos
+  productivos a largo plazo.<br>
+  <span style="color:var(--green);">La buena noticia: a partir de hoy puede cambiar esto.</span>
+</div>
+<div style="margin-top:0.8rem;padding-top:0.8rem;border-top:1px solid rgba(255,255,255,0.06);font-size:0.78rem;opacity:0.55;line-height:1.5;">
+  Los rendimientos pasados no garantizan resultados futuros. El S&P 500 promedió
+  ~11% anual nominal en USD a largo plazo, pero atravesó caídas significativas
+  (-37% en 2008, -19% en 2022). Esta simulación es educativa.
 </div>
 </div>""", unsafe_allow_html=True)
 
@@ -287,7 +367,7 @@ def render_cost_results():
         unsafe_allow_html=True,
     )
     bar_sin = amount if storage == "dolares_billete" else real_hoy
-    _render_chart(bar_sin, on_ars, spy_ars, amount)
+    _render_chart(bar_sin, spy_ars, amount)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -339,17 +419,16 @@ def render_cost_results():
 
 # ── Gráfico de barras ─────────────────────────────────────────────────────────
 
-def _render_chart(sin_invertir: float, on_ars: float, spy_ars: float, original: float):
+def _render_chart(sin_invertir: float, spy_ars: float, original: float):
     try:
         import plotly.graph_objects as go
 
         labels = [
             "Sin invertir<br>(valor real hoy)",
-            "ONs corporativas<br>(8% anual USD)",
-            "S&P 500 via CEDEAR<br>(11% anual USD)",
+            "CEDEAR S&P 500<br>(11% anual USD)",
         ]
-        values = [sin_invertir, on_ars, spy_ars]
-        colors = ["#ff4d6a", "#10d98a", "#4fa3ff"]
+        values = [sin_invertir, spy_ars]
+        colors = ["#ff4d6a", "#10d98a"]
 
         fig = go.Figure()
         for lbl, val, col in zip(labels, values, colors):
@@ -375,17 +454,6 @@ def _render_chart(sin_invertir: float, on_ars: float, spy_ars: float, original: 
             annotation_position="bottom right",
         )
 
-        fig.add_annotation(
-            x="S&P 500 via CEDEAR<br>(11% anual USD)",
-            y=min(values) * 0.02,
-            text="Referencia histórica: rendimiento promedio<br>del índice global más conocido (2019–2024)",
-            showarrow=False,
-            font=dict(size=8, color="#64748b"),
-            align="center",
-            xanchor="center",
-            yanchor="bottom",
-            yref="y",
-        )
         fig.update_layout(
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
@@ -412,7 +480,7 @@ def _render_chart(sin_invertir: float, on_ars: float, spy_ars: float, original: 
     except ImportError:
         import pandas as pd
         df = pd.DataFrame({
-            "Escenario": ["Sin invertir", "ONs (8% USD)", "SPY (11% USD)"],
-            "Valor ARS": [sin_invertir, on_ars, spy_ars],
+            "Escenario": ["Sin invertir", "CEDEAR S&P 500 (11% USD)"],
+            "Valor ARS": [sin_invertir, spy_ars],
         }).set_index("Escenario")
         st.bar_chart(df)
