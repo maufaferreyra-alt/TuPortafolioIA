@@ -648,11 +648,17 @@ elif step == "results":
   <div class="metric-value" style="color:{gain_color};">{sign}{_disp_prefix}{abs(total_gain_disp):,.0f}{_disp_suffix}</div>
   <div class="metric-sub">Sobre el capital inicial</div>
 </div>
-</div>
-<div class="metric-card results-timeline-card">
-  <div class="metric-label">🕐 ¿Cuándo ver resultados?</div>
-  <div class="metric-sub results-timeline-text">Con un horizonte de <strong>{_horizon} años</strong>, los primeros resultados visibles suelen notarse entre <strong>{_results_timeline}</strong>. Las inversiones requieren paciencia — el tiempo es el principal aliado del inversor.</div>
 </div>""", unsafe_allow_html=True)
+
+    # Nota sutil sobre el horizonte (antes era una card grande amarilla,
+    # se baja a caption para no competir con las 4 métricas principales)
+    _year_word = "año" if _horizon == 1 else "años"
+    st.caption(
+        f"🕐 Con un horizonte de {_horizon} {_year_word}, los primeros "
+        f"resultados suelen notarse en {_results_timeline}. Las "
+        f"inversiones requieren paciencia — el tiempo es el principal "
+        f"aliado del inversor."
+    )
 
     if _currency_in == "ARS":
         st.markdown(
@@ -748,27 +754,17 @@ elif step == "results":
             unsafe_allow_html=True,
         )
 
-        # ── Nota positiva de diversificación geográfica ─────────────────────
-        _extra_msg = ""
-        if _arg_exposure > 0.70:
-            _extra_msg = (
-                "<br><span style='opacity:0.8;'>Considere consultar con un asesor "
-                "para evaluar si desea ampliar su diversificación internacional.</span>"
-            )
-        st.markdown(
-            f"""<div class="geo-diversification-note">
-  <span class="geo-icon">🌍</span>
-  <div class="geo-body">
-    <p>Su cartera incluye activos en Argentina y en mercados globales.
-    Esta diversificación geográfica reduce su dependencia de un solo país o economía.{_extra_msg}</p>
-    <p class="geo-breakdown">
-      Exposición local: <strong>{_arg_exposure*100:.0f}%</strong> ·
-      Internacional: <strong>{_intl_exposure*100:.0f}%</strong>
-    </p>
-  </div>
-</div>""",
-            unsafe_allow_html=True,
+        # Caption sutil con la distribución geográfica (antes era una card
+        # con icono globe + texto largo "Su cartera incluye activos en...
+        # esta diversificación geográfica reduce..." que duplicaba lo que
+        # el usuario ya ve en la composición de su cartera)
+        _geo_caption = (
+            f"🌍 Exposición geográfica: {_arg_exposure*100:.0f}% Argentina · "
+            f"{_intl_exposure*100:.0f}% internacional"
         )
+        if _arg_exposure > 0.70:
+            _geo_caption += " · Considere ampliar la diversificación internacional"
+        st.caption(_geo_caption)
 
     with col_evo:
         st.markdown('<div class="section-title">📈 Proyección de Crecimiento</div>', unsafe_allow_html=True)
