@@ -2370,22 +2370,25 @@ def _adjust_for_horizon(allocations: dict, horizon: int, risk: str) -> dict:
                 cut = adj[k] * 0.4
                 adj[k] -= cut
                 rescued += cut
-        # Repartir a liquidez
-        for k in safe:
-            if k in adj:
-                adj[k] += rescued / len([s for s in safe if s in adj])
-                break
+        safe_present = [k for k in safe if k in adj]
+        if safe_present and rescued > 0:
+            share = rescued / len(safe_present)
+            for k in safe_present:
+                adj[k] += share
 
     elif horizon >= 8:
         # Largo plazo: más equity, menos cash
+        growth = [g for g in ["spy", "qqq", "nvda"] if g in adj]
+        freed_total = 0.0
         for k in ["money_market", "plazo_fijo", "fci_t0", "lecap"]:
             if k in adj:
                 freed = adj[k] * 0.4
                 adj[k] -= freed
-                for g in ["spy", "qqq", "nvda"]:
-                    if g in adj:
-                        adj[g] += freed / len([x for x in ["spy", "qqq", "nvda"] if x in adj])
-                        break
+                freed_total += freed
+        if growth and freed_total > 0:
+            share = freed_total / len(growth)
+            for k in growth:
+                adj[k] += share
 
     total = sum(adj.values())
     return {k: v / total for k, v in adj.items() if v > 0.005}
