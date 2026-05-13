@@ -895,12 +895,23 @@ elif step == "results":
         # ── Panel 1: Sin invertir ──────────────────────────────────────
         st.markdown("#### 📉 ¿Qué pasa si no invierte?")
         with st.container():
-            _cagr      = portfolio["expected_cagr"]
-            _infl_anual = 0.025  # 2.5% inflación global anual en USD
+            _cagr = portfolio["expected_cagr"]
+
+            # Escenario "sin invertir" para el argentino retail:
+            # plazo fijo tradicional en pesos descontado por inflación ARS.
+            # Datos verificados mayo 2026:
+            #   - Inflación interanual ARG: 32% (INDEC abr 2026: CABA 32.4% i.a.)
+            #   - TEA plazo fijo bancos grandes: 18% (BCRA, ranking mayo 2026)
+            # Tasa real anual = (1+TEA)/(1+infl) - 1 ≈ -10.6% por año
+            # → pierde ~10.6% de poder adquisitivo cada año aunque el saldo
+            #   nominal en pesos crezca por los intereses.
+            _TEA_PLAZO_FIJO = 0.18
+            _INFL_ANUAL_ARS = 0.32
+            _factor_real_anual = (1 + _TEA_PLAZO_FIJO) / (1 + _INFL_ANUAL_ARS)
 
             # Proyección a 5 años
             _con_5y  = _capital_usd * (1 + _cagr) ** 5 * _disp_factor
-            _sin_5y  = _capital_usd * (1 - _infl_anual) ** 5 * _disp_factor
+            _sin_5y  = _capital_usd * (_factor_real_anual ** 5) * _disp_factor
             _dif_5y  = _con_5y - _sin_5y
             _dif_sign = "+" if _dif_5y >= 0 else ""
 
@@ -909,12 +920,12 @@ elif step == "results":
 <div class="metric-card" style="border-left:3px solid #22c55e;">
   <div class="metric-label">CON ESTA CARTERA EN 5 AÑOS</div>
   <div class="metric-value" style="color:#22c55e;">{_disp_prefix}{_con_5y:,.0f}{_disp_suffix}</div>
-  <div class="metric-sub">Estimación basada en retorno histórico</div>
+  <div class="metric-sub">Proyección basada en retornos históricos</div>
 </div>
 <div class="metric-card" style="border-left:3px solid #ef4444;">
-  <div class="metric-label">SIN INVERTIR EN 5 AÑOS</div>
+  <div class="metric-label">EN PLAZO FIJO EN 5 AÑOS</div>
   <div class="metric-value" style="color:#ef4444;">{_disp_prefix}{_sin_5y:,.0f}{_disp_suffix}</div>
-  <div class="metric-sub">Perdiendo poder adquisitivo cada año</div>
+  <div class="metric-sub">Poder adquisitivo en pesos de hoy</div>
 </div>
 </div>""", unsafe_allow_html=True)
 
@@ -923,7 +934,7 @@ elif step == "results":
 border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
   <span style="font-size:0.95rem;color:#e2e8f0;">La diferencia estimada:
   <strong style="color:#22c55e;font-size:1.05rem;">&nbsp;{_dif_sign}{_disp_prefix}{_dif_5y:,.0f}{_disp_suffix}</strong>
-  a su favor si invierte vs si no hace nada.</span>
+  a su favor invirtiendo vs dejar la plata en plazo fijo tradicional.</span>
 </div>""", unsafe_allow_html=True)
 
             # Gráfico de barras: 1, 3, 5 años — dos barras por punto
@@ -932,7 +943,7 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
                 _yr_labels = ["1 año", "3 años", "5 años"]
                 _yr_nums   = [1, 3, 5]
                 _vals_con  = [_capital_usd * (1 + _cagr) ** y * _disp_factor for y in _yr_nums]
-                _vals_sin  = [_capital_usd * (1 - _infl_anual) ** y * _disp_factor for y in _yr_nums]
+                _vals_sin  = [_capital_usd * (_factor_real_anual ** y) * _disp_factor for y in _yr_nums]
                 _fig_sim   = _go.Figure()
                 _fig_sim.add_trace(_go.Bar(
                     name="Con esta cartera", x=_yr_labels, y=_vals_con,
@@ -942,11 +953,11 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
                     hovertemplate=f"{_disp_prefix}%{{y:,.0f}}{_disp_suffix}<extra>Con cartera</extra>",
                 ))
                 _fig_sim.add_trace(_go.Bar(
-                    name="Sin invertir", x=_yr_labels, y=_vals_sin,
+                    name="En plazo fijo", x=_yr_labels, y=_vals_sin,
                     marker_color="#ef4444", opacity=0.7,
                     text=[f"{_disp_prefix}{v:,.0f}" for v in _vals_sin],
                     textposition="outside", textfont=dict(size=11, color="#ef4444"),
-                    hovertemplate=f"{_disp_prefix}%{{y:,.0f}}{_disp_suffix}<extra>Sin invertir</extra>",
+                    hovertemplate=f"{_disp_prefix}%{{y:,.0f}}{_disp_suffix}<extra>Plazo fijo (pesos de hoy)</extra>",
                 ))
                 _y_max_sim = max(_vals_con) * 1.18
                 _fig_sim.update_layout(
@@ -964,7 +975,12 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
             except Exception:
                 pass
 
-            st.caption("Proyección estimada basada en datos históricos. No garantiza rendimientos futuros.")
+            st.caption(
+                "Plazo fijo: TEA 18% (promedio bancos grandes mayo 2026, BCRA) descontado "
+                "por inflación interanual 32% (INDEC, abr 2026). Las cifras representan "
+                "poder adquisitivo en pesos de hoy. Proyección estimada — no garantiza "
+                "rendimientos futuros."
+            )
 
         st.markdown("<div style='margin: 24px 0; border-top: 1px solid rgba(255,255,255,0.06);'></div>", unsafe_allow_html=True)
 
