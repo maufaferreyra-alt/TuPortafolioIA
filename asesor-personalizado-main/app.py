@@ -867,10 +867,19 @@ elif step == "results":
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Simulaciones ─────────────────────────────────────────────────────────
-    with st.expander("📊 Simulaciones: ¿qué pasa con su dinero?", expanded=False):
-        _sim_tab1, _sim_tab2 = st.tabs(["📉 Sin invertir", "💰 Aporte mensual"])
+    # Ambos paneles ("Sin invertir" y "Aporte mensual") se muestran apilados.
+    # El expander arranca CERRADO para no saturar. Streamlit fuerza expanded=
+    # en cada rerun, así que sin la lógica de session_state + on_change abajo,
+    # cualquier interacción con el number_input cerraría el expander.
+    def _keep_sim_expanded():
+        st.session_state.sim_expanded = True
 
-        with _sim_tab1:
+    with st.expander("📊 Simulaciones: ¿qué pasa con su dinero?",
+                     expanded=st.session_state.get("sim_expanded", False)):
+
+        # ── Panel 1: Sin invertir ──────────────────────────────────────
+        st.markdown("#### 📉 ¿Qué pasa si no invierte?")
+        with st.container():
             _cagr      = portfolio["expected_cagr"]
             _infl_anual = 0.025  # 2.5% inflación global anual en USD
 
@@ -942,17 +951,31 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
 
             st.caption("Proyección estimada basada en datos históricos. No garantiza rendimientos futuros.")
 
-        with _sim_tab2:
+        st.markdown("<div style='margin: 24px 0; border-top: 1px solid rgba(255,255,255,0.06);'></div>", unsafe_allow_html=True)
+
+        # ── Panel 2: Aporte mensual ────────────────────────────────────
+        st.markdown("#### 💰 ¿Y si además aporta todos los meses?")
+        with st.container():
             st.caption("No hace falta tener mucho para empezar. Si además de su inversión inicial aparta una pequeña cantidad cada mes, el resultado a largo plazo cambia enormemente. Pruebe con distintos montos y vea la diferencia.")
 
             _aporte_key = "aporte_mensual_usd"
+            # Inicializar valores en session_state SOLO si no existen.
+            # Después de esto el widget se controla 100% por su key, sin
+            # pasar value= (que generaba conflicto y reseteos esporádicos).
+            if _aporte_key + "_ars" not in st.session_state:
+                st.session_state[_aporte_key + "_ars"] = 50_000
+            if _aporte_key not in st.session_state:
+                st.session_state[_aporte_key] = 100
+
             _col_aporte, _col_slider = st.columns([1, 2])
             with _col_aporte:
                 if _currency_in == "ARS":
                     _aporte_ars = st.number_input(
-                        "¿Cuánto podría apartar por mes? (en pesos)", min_value=0, max_value=50_000_000,
-                        value=st.session_state.get(_aporte_key + "_ars", 50_000),
-                        step=50_000, key=_aporte_key + "_ars",
+                        "¿Cuánto podría apartar por mes? (en pesos)",
+                        min_value=0, max_value=50_000_000,
+                        step=50_000,
+                        key=_aporte_key + "_ars",
+                        on_change=_keep_sim_expanded,
                     )
                     if _aporte_ars > 0:
                         _fmt_ars = f"${_aporte_ars:,.0f}".replace(",", ".")
@@ -960,9 +983,11 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
                     _aporte_usd_val = _aporte_ars / _MEP_RATE
                 else:
                     _aporte_usd_val = st.number_input(
-                        "¿Cuánto podría apartar por mes? (en USD)", min_value=0, max_value=500_000,
-                        value=st.session_state.get(_aporte_key, 100),
-                        step=100, key=_aporte_key,
+                        "¿Cuánto podría apartar por mes? (en USD)",
+                        min_value=0, max_value=500_000,
+                        step=100,
+                        key=_aporte_key,
+                        on_change=_keep_sim_expanded,
                     )
 
             _proy     = proyectar_con_aportes(_capital_usd, _aporte_usd_val, profile["horizon"], portfolio["expected_cagr"])
