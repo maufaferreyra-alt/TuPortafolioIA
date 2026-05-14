@@ -536,25 +536,47 @@ elif step == "results":
     _was_burned = "Los saco de inmediato" in _loss_answer or "Saco la mitad" in _loss_answer
     _wants_protection = "La inflación me come" in _mot_answer
 
+    # Promesas de cartera adaptadas al perfil real calculado por el cuestionario.
+    # Antes el mensaje "burned_novice" decía "Va a ser conservadora" hardcoded,
+    # pero el perfil puede ser cualquiera según el resto de respuestas. Esto
+    # genera inconsistencia visual entre el mensaje empático y la cartera real.
+    _PROFILE_PROMISE = {
+        "burned_novice": {
+            "conservador": "Va a ser conservadora porque tu prioridad ahora es no volver a sentir esa frustración.",
+            "estable":     "Va a ser balanceada — protegiendo capital pero permitiendo algo de crecimiento — porque queremos que recuperes confianza paso a paso.",
+            "moderado":    "Va a buscar crecimiento controlado, dándole prioridad a la tranquilidad — para que después de lo que viviste, puedas mantener la calma cuando las cosas se muevan.",
+            "agresivo":    "Tus respuestas muestran que estás dispuesto a tomar más riesgo, pero vamos paso a paso — cada activo tiene su explicación para que entiendas qué esperar antes de avanzar.",
+        },
+        "burned": {
+            "conservador": "La cartera prioriza estabilidad sobre rendimiento máximo.",
+            "estable":     "La cartera prioriza estabilidad pero te permite participar del crecimiento.",
+            "moderado":    "La cartera busca crecimiento pero está armada para que las caídas sean manejables.",
+            "agresivo":    "La cartera tiene orientación al crecimiento — vale la pena que mires con atención la sección 'Qué pasó en crisis reales' para entender qué esperar.",
+        },
+    }
+    _risk = profile.get("risk_profile", "estable")
+
     _personal_msg = None
     if _was_burned and _is_novice:
+        _promise = _PROFILE_PROMISE["burned_novice"].get(_risk, _PROFILE_PROMISE["burned_novice"]["estable"])
         _personal_msg = {
             "icon": "🤝",
             "title": "Sabemos que ya intentaste y no salió como esperabas.",
             "body": (
                 "Esta cartera está diseñada para que entiendas cada decisión, "
-                "no para que confíes a ciegas. Va a ser conservadora porque "
-                "tu prioridad ahora es no volver a sentir esa frustración. "
+                "no para que confíes a ciegas. "
+                f"{_promise} "
                 "Cada activo tiene una explicación en lenguaje simple — "
                 "tomate el tiempo de leerlas."
             ),
         }
     elif _was_burned:
+        _promise = _PROFILE_PROMISE["burned"].get(_risk, _PROFILE_PROMISE["burned"]["conservador"])
         _personal_msg = {
             "icon": "🛡️",
             "title": "Notamos que las caídas te incomodan, y eso está bien.",
             "body": (
-                "La cartera prioriza estabilidad sobre rendimiento máximo. "
+                f"{_promise} "
                 "Vas a ver el bloque <strong>'¿Qué pasó en crisis reales?'</strong> "
                 "más abajo — todos los mercados se recuperaron. "
                 "El objetivo es que vos también puedas mantener la calma cuando pase."
