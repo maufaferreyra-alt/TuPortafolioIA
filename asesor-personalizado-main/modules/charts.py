@@ -324,10 +324,10 @@ def render_pie_chart(portfolio: dict):
     hovers = []
     for name, info in sorted_macro:
         lines = "<br>".join(
-            f"  · {a['name'].split('(')[0].split('—')[0].strip()} ({a['weight']*100:.0f}%)"
+            f"  · {a['name'].split('(')[0].split('—')[0].strip()} ({a['weight']*100:.1f}%)"
             for a in sorted(info["assets"], key=lambda x: -x["weight"])
         )
-        hovers.append(f"<b>{name}</b> — {info['weight']*100:.0f}%<br>{lines}")
+        hovers.append(f"<b>{name}</b> — {info['weight']*100:.1f}%<br>{lines}")
 
     fig = go.Figure(data=[go.Pie(
         labels=labels,
@@ -748,7 +748,7 @@ def _asset_card_html(p: dict, capital: float, amt_prefix: str, category_items: l
         f'      </div>'
         f'    </div>'
         f'    <div class="adc-right">'
-        f'      <div class="adc-pct">{a_pct:.0f}%</div>'
+        f'      <div class="adc-pct">{a_pct:.1f}%</div>'
         f'      <div class="adc-amt">{amt_prefix}{a_amt:,.0f}</div>'
         f'    </div>'
         f'  </div>'
