@@ -35,7 +35,7 @@ _YF_MAP: dict = {
     "teco2":"TEO",  "pampa":"PAM",  "bbar":  "BBAR",  "bma":  "BMA",
     "supv": "SUPV", "tgs":  "TGS",  "cepu":  "CEPU",  "irsa": "IRS",
     "cres": "CRESY",
-    "spy":  "SPY",  "qqq":  "QQQ",  "vti":   "VTI",   "iau":  "IAU",
+    "spy":  "SPY",  "qqq":  "QQQ",  "vti":   "VTI",
     "gld":  "GLD",  "eem":  "EEM",
 }
 

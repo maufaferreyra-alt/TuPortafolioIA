@@ -24,7 +24,7 @@ YEARS_BK = 5
 
 _USD_TICKERS: dict[str, str] = {
     "spy": "SPY",  "qqq": "QQQ",  "vti": "VTI",
-    "iau": "IAU",  "gld": "GLD",  "eem": "EEM",
+    "gld": "GLD",  "eem": "EEM",
     "aapl": "AAPL", "msft": "MSFT", "nvda": "NVDA",
     "amzn": "AMZN", "meta": "META", "googl": "GOOGL",
     "tsla": "TSLA", "nflx": "NFLX", "amd": "AMD",

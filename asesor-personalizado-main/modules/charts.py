@@ -110,7 +110,6 @@ _PLATFORMS = {
     "spy":             (_BROKERS_CEDEARS,                 "CEDEARs → SPY"),
     "qqq":             (_BROKERS_CEDEARS,                 "CEDEARs → QQQ"),
     "eem":             (_BROKERS_CEDEARS,                 "CEDEARs → EEM"),
-    "iau":             (_BROKERS_CEDEARS,                 "CEDEARs → IAU"),
     "vti":             (_BROKERS_CEDEARS,                 "CEDEARs → VTI"),
     "gld":             (_BROKERS_CEDEARS,                 "CEDEARs → GLD"),
     "aapl":            (_BROKERS_CEDEARS,                 "CEDEARs → AAPL"),

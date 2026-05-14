@@ -1216,22 +1216,6 @@ ASSET_UNIVERSE: List[Dict[str, Any]] = [
         "simple_desc": "Acceso a economías emergentes de todo el mundo",
     },
     {
-        "id": "iau",
-        "name": "ETF Oro (IAU)",
-        "category": "ETFs",
-        "sub": "Commodities",
-        "ticker": "IAU",
-        "color": "#d97706",
-        "expected_return": 0.06,
-        "volatility": 0.14,
-        "risk_level": "bajo-medio",
-        "description": "Fondo que replica el precio del oro. Reserva de valor histórica, protege en momentos de crisis. No paga dividendos.",
-        "currency": "USD",
-        "market": "BYMA/NYSE",
-        "simple_desc": "Invertir en oro sin necesidad de comprarlo físicamente",
-    },
-
-    {
         "id": "vti",
         "name": "ETF Mercado Total USA (VTI)",
         "category": "ETFs",
@@ -1256,10 +1240,10 @@ ASSET_UNIVERSE: List[Dict[str, Any]] = [
         "expected_return": 0.06,
         "volatility": 0.14,
         "risk_level": "bajo-medio",
-        "description": "El ETF de oro más grande del mundo. Reserva de valor clásica, descorrelacionado de acciones. Sube en momentos de crisis e incertidumbre.",
+        "description": "El ETF de oro más grande del mundo. Disponible como CEDEAR en BYMA desde diciembre 2024 (ratio 50:1). Reserva de valor clásica, descorrelacionado de acciones. Sube en momentos de crisis e incertidumbre.",
         "currency": "USD",
         "market": "BYMA/NYSE",
-        "simple_desc": "Oro físico respaldado, el refugio anti-crisis clásico",
+        "simple_desc": "Oro físico respaldado — el refugio anti-crisis clásico, ahora en pesos",
     },
 
     # ══ ACCIONES ARGENTINAS ════════════════════════════════════════════════════
@@ -2080,7 +2064,7 @@ _LIQUIDITY_LEVELS = {
         "fci_usd_rf","fci_usd_ahorro","fci_latam",
         "fci_acciones","fci_cedears","fci_mixto",
         # ETFs alternativos
-        "gld","iau","vti","eem",
+        "gld","vti","eem",
         # CEDEARs de volumen medio en BYMA
         "googl","amzn","meta","brk","jpm","bac","tsla","ko","wmt","jnj",
         "pfe","xom","dis","amd","nflx","orcl","crm","adbe","uber","glob",
@@ -2134,7 +2118,7 @@ PORTFOLIO_TEMPLATES = {
             "lecap":        0.07,   # pesos a tasa fija del Tesoro
             "mep":          0.18,   # dólares legales por la bolsa
             "on_corp":      0.18,   # bonos de empresas privadas en USD
-            "iau":          0.20,   # oro — cobertura global
+            "gld":          0.20,   # oro — cobertura global vía CEDEAR
             "spy":          0.25,   # mercado global
         },
     },
@@ -2149,7 +2133,7 @@ PORTFOLIO_TEMPLATES = {
             "money_market": 0.10,   # liquidez en pesos
             "lecap":        0.10,   # pesos a tasa fija
             "spy":          0.25,   # exposición al mercado global
-            "iau":          0.19,   # oro — cobertura global
+            "gld":          0.19,   # oro — cobertura global vía CEDEAR
         },
     },
     "moderado": {
@@ -2210,7 +2194,7 @@ _BUCKET_DEFS: Dict[str, list] = {
                          "al30", "gd30", "al35", "gd35",
                          "fci_usd_rf", "fci_usd_ahorro"]},
         {"id": "defensivo", "target": 0.22, "max_pos": 1, "score_src": "equity",
-         "candidates": ["iau", "gld"]},
+         "candidates": ["gld"]},
         {"id": "globales",  "target": 0.20, "max_pos": 1, "score_src": "equity",
          "candidates": ["spy", "vti"]},
     ],
@@ -2231,7 +2215,7 @@ _BUCKET_DEFS: Dict[str, list] = {
         {"id": "globales",  "target": 0.22, "max_pos": 1, "score_src": "equity",
          "candidates": ["spy", "vti", "qqq"]},
         {"id": "defensivo", "target": 0.12, "max_pos": 1, "score_src": "equity",
-         "candidates": ["iau", "gld"]},
+         "candidates": ["gld"]},
         {"id": "equity_g",  "target": 0.10, "max_pos": 1, "score_src": "equity",
          "candidates": ["msft", "nvda", "tsm", "meta", "googl", "avgo", "mu", "gild", "vrtx"]},
     ],
@@ -2471,7 +2455,7 @@ def _is_volatile_for_rescue(asset_id: str) -> bool:
     """
     cat = ASSET_INDEX.get(asset_id, {}).get("category", "")
     return cat in _VOLATILE_CATEGORIES or asset_id in _VOLATILE_EXTRA_IDS
-_ETF_IDS     = {"spy", "qqq", "vti", "iau", "gld", "eem"}
+_ETF_IDS     = {"spy", "qqq", "vti", "gld", "eem"}
 
 _ARG_INDIVIDUAL_IDS = {
     "ypf", "vist", "galicia", "bma", "bbar", "supv", "pampa",
@@ -3091,8 +3075,7 @@ def _razon_en_cartera(asset_id: str, risk: str, horizon: int) -> str:
         "spy":  "Las 500 empresas más grandes del mundo en una sola compra — Apple, Google, Amazon, todas juntas",
         "qqq":  "Las 100 empresas de tecnología más grandes: Microsoft, NVIDIA, Apple — el motor de la economía digital",
         "vti":  "Todo el mercado americano (4.000+ empresas) en un solo instrumento — la diversificación máxima",
-        "iau":  "Oro: sube cuando todo lo demás cae — es el ancla histórica de las carteras en épocas de crisis",
-        "gld":  "Oro físico en formato digital — la reserva de valor más antigua del mundo, protege contra la inflación global",
+        "gld":  "Oro: sube cuando todo lo demás cae — es el ancla histórica de las carteras en épocas de crisis. Disponible como CEDEAR en BYMA desde dic-2024",
         "eem":  "India, Brasil, Corea — los países que van a crecer más en los próximos 20 años, todos juntos",
         # CEDEARs tech
         "aapl":  "Apple: más de 2.000 millones de personas usan sus productos todos los días y renuevan cada 2 años",
