@@ -45,12 +45,9 @@ header[data-testid="stHeader"],
     display: none !important;
 }
 /* Altura mínima full viewport para que no aparezca blanco abajo */
-/* Escala tipográfica global +15%: el CSS es rem-based, así que subir el
-   root font-size escala todas las fuentes y el espaciado proporcionalmente.
-   Mejora la legibilidad al proyectar en pantallas compartidas / jurado. */
-html {
-    font-size: 18.4px;
-}
+/* root font-size dejado en default 16px para no escalar todo
+   uniformemente. Los bumps van selectivos en clases específicas de
+   texto chico (.metric-label, .metric-sub, captions, etc.). */
 html, body, #root, .stApp {
     min-height: 100vh;
     min-height: 100dvh;
@@ -415,7 +412,7 @@ html, body, #root, .stApp {
     
     .metric-card:hover { border-color: var(--border-glow); }
     .metric-label {
-        font-size: 0.78rem;
+        font-size: 0.95rem;
         font-weight: 500;
         letter-spacing: 0.06em;
         text-transform: uppercase;
@@ -1524,7 +1521,7 @@ html, body, #root, .stApp {
     }
     
     .si-label {
-        font-size: 0.72rem;
+        font-size: 0.90rem;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.07em;
@@ -1547,7 +1544,7 @@ html, body, #root, .stApp {
         color: var(--text-1);
     }
     .si-sub {
-        font-size: 0.65rem;
+        font-size: 0.82rem;
         color: var(--text-3);
         margin-top: 0.25rem;
         line-height: 1.3;
@@ -1667,7 +1664,7 @@ html, body, #root, .stApp {
 
     /* ── Metric card sub ──────────────────────────────────────── */
     .metric-sub {
-        font-size: 0.72rem;
+        font-size: 0.90rem;
         color: var(--text-3);
         margin-top: 0.3rem;
     }
@@ -2243,7 +2240,7 @@ html, body, #root, .stApp {
         border: 1px solid rgba(240,180,41,0.2);
         border-radius: var(--radius-sm);
         padding: 0.65rem 1rem;
-        font-size: 0.75rem;
+        font-size: 0.92rem;
         color: var(--text-3);
         margin-top: 0.9rem;
         line-height: 1.55;
@@ -3273,6 +3270,14 @@ form[data-testid="stForm"] [data-baseweb="input"]:focus-within,
     /* Plotly: ajustar textfont outside y evitar overflow horizontal */
     .stPlotlyChart { overflow-x: hidden !important; }
     .stPlotlyChart .bartext, .stPlotlyChart text.bartext { font-size: 9px !important; }
+}
+
+/* Captions de st.caption más legibles (bump selectivo de texto chico) */
+.stApp [data-testid="stCaptionContainer"],
+.stApp [data-testid="stCaption"],
+.stApp .stMarkdown small {
+    font-size: 0.95rem !important;
+    opacity: 0.85;
 }
 </style>"""
 
