@@ -45,6 +45,12 @@ header[data-testid="stHeader"],
     display: none !important;
 }
 /* Altura mínima full viewport para que no aparezca blanco abajo */
+/* Escala tipográfica global +15%: el CSS es rem-based, así que subir el
+   root font-size escala todas las fuentes y el espaciado proporcionalmente.
+   Mejora la legibilidad al proyectar en pantallas compartidas / jurado. */
+html {
+    font-size: 18.4px;
+}
 html, body, #root, .stApp {
     min-height: 100vh;
     min-height: 100dvh;
@@ -2652,13 +2658,32 @@ section.main > div[data-testid="block-container"] > div[data-testid="stVerticalB
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #4fa3ff, #38bdf8);
+    background: linear-gradient(135deg, #4fa3ff, #2563eb);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.4rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.02em;
     flex-shrink: 0;
-    box-shadow: 0 4px 14px rgba(79,163,255,0.25);
+    box-shadow: 0 4px 14px rgba(79,163,255,0.35);
+}
+/* Avatar mini para los mensajes del asistente en el chat */
+.chat-avatar-mini {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.15rem;
+    height: 1.15rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4fa3ff, #2563eb);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: -0.02em;
+    margin-right: 0.35rem;
+    vertical-align: middle;
 }
 .lucas-title-wrap { flex: 1; min-width: 0; }
 .lucas-title {
