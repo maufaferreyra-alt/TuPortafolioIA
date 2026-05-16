@@ -1,0 +1,141 @@
+"""
+Renderizado de la sección comparativa de ALyCs.
+Aparece al final del flujo, después de los próximos pasos.
+
+Cada broker es un st.expander colapsable — arranca cerrado para no
+saturar al usuario con información; se abre el que le interese. El
+header del expander ya muestra un preview escaneable (nombre, tagline,
+si tiene asesor humano).
+"""
+
+import streamlit as st
+from .alycs_data import ALYCS, generar_mensaje_para_asesor
+
+
+def _alyc_detail_html(alyc: dict) -> str:
+    """HTML del contenido interno de cada card (dentro del expander).
+
+    Se devuelve como string concatenado SIN indentación: si las líneas
+    arrancaran con 4+ espacios, Markdown lo trataría como bloque de
+    código y lo mostraría como texto crudo.
+    """
+    ventajas_html = "".join(f"<li>{v}</li>" for v in alyc["ventajas"])
+    desventajas_html = "".join(f"<li>{d}</li>" for d in alyc["desventajas"])
+
+    return (
+        '<div class="alyc-card-body">'
+        # ── Specs tipo tabla ──
+        '<div class="alyc-specs-table">'
+        '<div class="alyc-spec-row">'
+        '<span class="alyc-spec-label">Comisión CEDEARs</span>'
+        f'<span class="alyc-spec-value">{alyc["comision_cedears"]}</span></div>'
+        '<div class="alyc-spec-row">'
+        '<span class="alyc-spec-label">Comisión bonos</span>'
+        f'<span class="alyc-spec-value">{alyc["comision_bonos"]}</span></div>'
+        '<div class="alyc-spec-row">'
+        '<span class="alyc-spec-label">Custodia (lo que te cobran por tener tu plata ahí)</span>'
+        f'<span class="alyc-spec-value">{alyc["custodia"]}</span></div>'
+        '<div class="alyc-spec-row">'
+        '<span class="alyc-spec-label">Mínimo para empezar</span>'
+        f'<span class="alyc-spec-value">{alyc["minimo_apertura"]}</span></div>'
+        '<div class="alyc-spec-row">'
+        '<span class="alyc-spec-label">Plataforma</span>'
+        f'<span class="alyc-spec-value">{alyc["plataforma"]}</span></div>'
+        '</div>'
+        # ── Pros / Cons ──
+        '<div class="alyc-pros-cons-grid">'
+        '<div class="alyc-pros-box">'
+        '<div class="alyc-section-title alyc-pros-title">'
+        '<span class="alyc-section-icon">✓</span> Lo bueno</div>'
+        f'<ul>{ventajas_html}</ul></div>'
+        '<div class="alyc-cons-box">'
+        '<div class="alyc-section-title alyc-cons-title">'
+        '<span class="alyc-section-icon">!</span> A tener en cuenta</div>'
+        f'<ul>{desventajas_html}</ul></div>'
+        '</div>'
+        # ── Ideal para ──
+        '<div class="alyc-mejor-para">'
+        '<span class="alyc-mejor-para-label">💡 Ideal para</span>'
+        f'<span class="alyc-mejor-para-text">{alyc["mejor_para"]}</span></div>'
+        '</div>'
+    )
+
+
+def render_alycs_section(portfolio: dict, profile: dict):
+    """Renderiza la sección completa de comparación de brokers."""
+
+    st.markdown(
+        """<div class="section-header">
+<h2>🏦 ¿Dónde podés invertir tu cartera?</h2>
+<p class="section-subtitle">
+Sabemos que elegir un broker es confuso. Acá te mostramos las opciones más usadas
+en Argentina, con lo bueno y lo no tan bueno de cada una. No hay una mejor que
+otra — depende de qué te conviene a vos.
+</p>
+</div>""",
+        unsafe_allow_html=True,
+    )
+
+    # Disclaimer educativo
+    st.info(
+        "💡 **Importante:** los brokers también se llaman ALyCs (Agentes de Liquidación y "
+        "Compensación). Son las empresas autorizadas por la CNV donde abrís tu cuenta para "
+        "invertir. Todos los que mostramos están regulados y son seguros — la diferencia "
+        "está en cómo te atienden, qué te cobran y qué herramientas te dan."
+    )
+
+    # Un expander colapsable por broker — arrancan cerrados para no saturar.
+    # El indicador de asesor va SOLO en el header (no duplicado en el cuerpo).
+    for alyc in ALYCS:
+        asesor_indicator = (
+            "· 👤 con asesor" if alyc.get("tiene_asesor_humano") else "· 💬 solo chat"
+        )
+        header_label = (
+            f"{alyc['logo_emoji']} **{alyc['nombre']}** — "
+            f"{alyc['tagline']} {asesor_indicator}"
+        )
+        with st.expander(header_label):
+            st.markdown(_alyc_detail_html(alyc), unsafe_allow_html=True)
+
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.link_button(
+                    "🌐 Abrir cuenta",
+                    alyc["url_apertura"],
+                    use_container_width=True,
+                )
+            with col_b:
+                if st.button(
+                    "📋 Llevar mi cartera",
+                    key=f"llevar_cartera_{alyc['id']}",
+                    use_container_width=True,
+                ):
+                    st.session_state["alyc_seleccionada"] = alyc["id"]
+                    st.session_state["mostrar_mensaje_asesor"] = True
+
+    # Mostrar el mensaje pre-armado si se eligió una ALyC
+    if st.session_state.get("mostrar_mensaje_asesor"):
+        alyc_id = st.session_state.get("alyc_seleccionada")
+        alyc = next((a for a in ALYCS if a["id"] == alyc_id), None)
+
+        if alyc:
+            st.markdown("---")
+            st.markdown(
+                f"""<div class="mensaje-asesor-header">
+<h3>📨 Tu mensaje para el asesor de {alyc['nombre']}</h3>
+<p>
+Copiá este texto y pegalo cuando contactes al asesor del broker.
+Tiene toda la información de tu cartera para que puedan trabajar juntos.
+</p>
+</div>""",
+                unsafe_allow_html=True,
+            )
+
+            mensaje = generar_mensaje_para_asesor(portfolio, profile)
+            st.code(mensaje, language=None)
+
+            st.caption(
+                "Tip: usá el botoncito de copiar en la esquina derecha del recuadro. "
+                "Después abrí la cuenta en el broker, contactá al asesor y pegale este "
+                "mensaje. Te va a ahorrar tiempo a vos y al asesor."
+            )

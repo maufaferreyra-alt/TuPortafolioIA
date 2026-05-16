@@ -1269,6 +1269,11 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
 
     st.markdown("<br>", unsafe_allow_html=True)
 
+    # ── Comparador de ALyCs (brokers) ─────────────────────────────────────────
+    from modules.alycs_renderer import render_alycs_section
+    render_alycs_section(portfolio, profile)
+    st.markdown("<br>", unsafe_allow_html=True)
+
     # ── Disclaimer legal de cierre ────────────────────────────────────────────
     st.markdown(f"""<div class="portfolio-disclaimer">
   <div class="pd-icon">ℹ️</div>

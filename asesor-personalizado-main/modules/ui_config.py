@@ -2317,6 +2317,238 @@ html, body, #root, .stApp {
         padding: 2px 7px;
         border-radius: 4px;
     }
+
+/* ════════ Bloques que aplican SIEMPRE (dark mode incluido) ════════
+   Estos 3 bloques estuvieron por error dentro de _LIGHT_THEME_CSS
+   (solo se inyectaba en light mode). Movidos acá al bloque principal. */
+
+/* ── Simulador panel: fixes mobile focalizados ─────────────────── */
+@media (max-width: 640px) {
+    /* h4 (títulos de sub-paneles del simulador) — alinear con h3 */
+    .stMarkdown h4 { font-size: 1rem !important; line-height: 1.3; margin: 0.4rem 0 0.6rem; }
+
+    /* Override del inline gap:16px en .metrics-grid del simulador */
+    .metrics-grid[style*="1fr 1fr"] { gap: 8px !important; }
+
+    /* st.columns([1,2]) del aporte mensual: apilar en lugar de 33/67 */
+    [data-testid="stHorizontalBlock"]:has([data-testid="stNumberInput"]) {
+        flex-direction: column !important;
+        gap: 0.6rem !important;
+    }
+    [data-testid="stHorizontalBlock"]:has([data-testid="stNumberInput"]) > [data-testid="stColumn"] {
+        width: 100% !important; flex: 1 1 100% !important; min-width: 0 !important;
+    }
+
+    /* Expander summary: aliviar padding/min-height para títulos largos */
+    [data-testid="stExpander"] > details > summary {
+        padding: 14px 16px !important;
+        min-height: 56px !important;
+        font-size: 0.92rem !important;
+        line-height: 1.3 !important;
+    }
+    [data-testid="stExpander"] > details > summary > span,
+    [data-testid="stExpander"] > details > summary p { font-size: 0.92rem !important; }
+
+    /* Plotly: ajustar textfont outside y evitar overflow horizontal */
+    .stPlotlyChart { overflow-x: hidden !important; }
+    .stPlotlyChart .bartext, .stPlotlyChart text.bartext { font-size: 9px !important; }
+}
+
+/* === Captions de st.caption más legibles (bump de texto chico) === */
+.stApp [data-testid="stCaptionContainer"],
+.stApp [data-testid="stCaption"],
+.stApp .stMarkdown small {
+    font-size: 0.95rem !important;
+    opacity: 0.85;
+}
+
+/* === Comparador de ALyCs (brokers) === */
+
+.section-header {
+    margin: 3rem 0 1.5rem 0;
+    text-align: center;
+}
+
+.section-header h2 {
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-1, #f5f6fa);
+}
+
+.section-subtitle {
+    font-size: 1rem;
+    color: rgba(245, 246, 250, 0.75);
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.55;
+}
+
+/* Contenido interno de cada broker (dentro del st.expander).
+   El expander de Streamlit ya aporta el "card" — acá solo se tunea
+   el contenido. */
+.alyc-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 0.5rem 0;
+}
+
+/* ─── Specs tipo tabla limpia ─── */
+.alyc-specs-table {
+    background: rgba(15, 20, 35, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 0.5rem 1rem;
+}
+
+.alyc-spec-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+    font-size: 0.93rem;
+}
+
+.alyc-spec-row:last-child {
+    border-bottom: none;
+}
+
+.alyc-spec-label {
+    color: rgba(245, 246, 250, 0.65);
+    font-weight: 500;
+    flex: 1;
+}
+
+.alyc-spec-value {
+    color: var(--text-1, #f5f6fa);
+    font-weight: 600;
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* ─── Grid pros/cons en 2 columnas (1 en mobile) ─── */
+.alyc-pros-cons-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .alyc-pros-cons-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.alyc-pros-box,
+.alyc-cons-box {
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.alyc-pros-box {
+    background: rgba(34, 197, 94, 0.06);
+    border-color: rgba(34, 197, 94, 0.18);
+}
+
+.alyc-cons-box {
+    background: rgba(245, 158, 11, 0.06);
+    border-color: rgba(245, 158, 11, 0.18);
+}
+
+.alyc-section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.alyc-pros-title {
+    color: #22c55e;
+}
+
+.alyc-cons-title {
+    color: #f59e0b;
+}
+
+.alyc-section-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+.alyc-pros-title .alyc-section-icon {
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+}
+
+.alyc-cons-title .alyc-section-icon {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+}
+
+.alyc-pros-box ul,
+.alyc-cons-box ul {
+    padding-left: 1.1rem;
+    margin: 0;
+}
+
+.alyc-pros-box li,
+.alyc-cons-box li {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    margin-bottom: 5px;
+    color: rgba(245, 246, 250, 0.88);
+}
+
+/* ─── Caja "Ideal para..." destacada ─── */
+.alyc-mejor-para {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    background: linear-gradient(
+        135deg,
+        rgba(79, 163, 255, 0.12) 0%,
+        rgba(79, 163, 255, 0.05) 100%
+    );
+    border-left: 3px solid #4fa3ff;
+    padding: 0.85rem 1rem;
+    border-radius: 8px;
+    font-size: 0.93rem;
+    line-height: 1.55;
+}
+
+.alyc-mejor-para-label {
+    font-weight: 700;
+    color: #4fa3ff;
+    white-space: nowrap;
+}
+
+.alyc-mejor-para-text {
+    color: rgba(245, 246, 250, 0.92);
+    flex: 1;
+}
+
+.mensaje-asesor-header h3 {
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+}
+
+.mensaje-asesor-header p {
+    font-size: 0.95rem;
+    color: rgba(245, 246, 250, 0.75);
+    line-height: 1.55;
+    margin-bottom: 1rem;
+}
     </style>
     """, unsafe_allow_html=True)
 
@@ -2325,6 +2557,12 @@ html, body, #root, .stApp {
 
 
 _LIGHT_THEME_CSS = """<style>
+/* ─────────────────────────────────────────────────────────────
+   ⚠️ ATENCIÓN: este bloque SOLO se inyecta si theme == "light".
+   NO agregar CSS general acá. Si necesitás agregar CSS que
+   aplique en dark mode (el default), va en el bloque <style>
+   PRINCIPAL más arriba (antes del </style> de la línea ~2320).
+   ───────────────────────────────────────────────────────────── */
 /* ── Tema claro: variables ───────────────────────────────────────────── */
 :root {
     --bg-0:        #f8fafc;
@@ -3240,45 +3478,6 @@ form[data-testid="stForm"] [data-baseweb="input"]:focus-within,
     .stPlotlyChart .legendtext { font-size: 11px !important; }
 }
 
-/* ── Simulador panel: fixes mobile focalizados ─────────────────── */
-@media (max-width: 640px) {
-    /* h4 (títulos de sub-paneles del simulador) — alinear con h3 */
-    .stMarkdown h4 { font-size: 1rem !important; line-height: 1.3; margin: 0.4rem 0 0.6rem; }
-
-    /* Override del inline gap:16px en .metrics-grid del simulador */
-    .metrics-grid[style*="1fr 1fr"] { gap: 8px !important; }
-
-    /* st.columns([1,2]) del aporte mensual: apilar en lugar de 33/67 */
-    [data-testid="stHorizontalBlock"]:has([data-testid="stNumberInput"]) {
-        flex-direction: column !important;
-        gap: 0.6rem !important;
-    }
-    [data-testid="stHorizontalBlock"]:has([data-testid="stNumberInput"]) > [data-testid="stColumn"] {
-        width: 100% !important; flex: 1 1 100% !important; min-width: 0 !important;
-    }
-
-    /* Expander summary: aliviar padding/min-height para títulos largos */
-    [data-testid="stExpander"] > details > summary {
-        padding: 14px 16px !important;
-        min-height: 56px !important;
-        font-size: 0.92rem !important;
-        line-height: 1.3 !important;
-    }
-    [data-testid="stExpander"] > details > summary > span,
-    [data-testid="stExpander"] > details > summary p { font-size: 0.92rem !important; }
-
-    /* Plotly: ajustar textfont outside y evitar overflow horizontal */
-    .stPlotlyChart { overflow-x: hidden !important; }
-    .stPlotlyChart .bartext, .stPlotlyChart text.bartext { font-size: 9px !important; }
-}
-
-/* Captions de st.caption más legibles (bump selectivo de texto chico) */
-.stApp [data-testid="stCaptionContainer"],
-.stApp [data-testid="stCaption"],
-.stApp .stMarkdown small {
-    font-size: 0.95rem !important;
-    opacity: 0.85;
-}
 </style>"""
 
 
