@@ -759,22 +759,6 @@ elif step == "results":
     with col_pie:
         st.markdown('<div class="section-title">📊 Distribución de la Cartera</div>', unsafe_allow_html=True)
         render_pie_chart(portfolio)
-        _n_pos = len(portfolio["positions"])
-        _profile_labels = {
-            "conservador": "conservador (máx. 5)",
-            "estable": "balanceado (máx. 7)",
-            "moderado": "moderado (máx. 8)",
-            "agresivo": "agresivo (máx. 12)",
-        }
-        _plabel = _profile_labels.get(profile.get("risk_profile", ""), profile.get("risk_profile", ""))
-        st.markdown(
-            f'<p style="font-size:0.78rem;color:#94a3b8;margin:0 0 0.5rem;line-height:1.55;">'
-            f'Su cartera está compuesta por <strong>{_n_pos} instrumentos</strong>, '
-            f'número óptimo para su perfil {_plabel} según principios de '
-            f'diversificación eficiente ({tip("Evans & Archer", "Evans & Archer, 1968")}).'
-            f'</p>',
-            unsafe_allow_html=True,
-        )
 
         # Caption sutil con la distribución geográfica (antes era una card
         # con icono globe + texto largo "Su cartera incluye activos en...
