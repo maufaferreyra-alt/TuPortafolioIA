@@ -491,7 +491,9 @@ def render_evolution_chart(simulation: dict, initial_capital: float, years: int)
 
 def render_bar_simulation(portfolio: dict, initial_capital: float,
                           currency: str = "USD", capital_original: float = None):
-    cagr = portfolio["expected_cagr"]
+    # Usar el CAGR neto (descontado el haircut de costos reales). Fallback
+    # defensivo al bruto si por alguna razón no está el neto.
+    cagr = portfolio.get("expected_cagr_neto", portfolio["expected_cagr"])
     vol  = portfolio["expected_volatility"]
 
     cagr_opt  = cagr + vol * 0.5

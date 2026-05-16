@@ -49,6 +49,7 @@ TOOLTIPS: dict[str, str] = {
     "diversificación":"Combinar activos distintos (acciones, bonos, monedas) para que cuando uno baja, otro pueda subir.",
     "renta fija":    "Bonos y letras: pagan intereses conocidos en plazos definidos. Más predecible que las acciones.",
     "renta variable":"Acciones: su valor cambia con el mercado. Mayor potencial de ganancia pero también de pérdida.",
+    "haircut":       "Descuento estimado anual sobre el rendimiento bruto: comisiones del broker, spread bid/ask al operar e impuestos 2026 (cedular suspendido, retención marginal en ONs y dividendos CEDEAR). No es asesoramiento fiscal — consultá con tu contador.",
 }
 
 

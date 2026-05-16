@@ -634,26 +634,27 @@ elif step == "results":
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Métricas de simulación ────────────────────────────────────────────────
-    sim_data       = simulation["scenarios"]["base"]
-    total_end_usd  = sim_data[-1]
-    total_gain_usd = total_end_usd - _capital_usd
-    cagr           = portfolio["expected_cagr"]
-    vol            = portfolio["expected_volatility"]
+    cagr        = portfolio["expected_cagr"]
+    _cagr_neto  = portfolio.get("expected_cagr_neto", cagr)
+    vol         = portfolio["expected_volatility"]
+    _horizon    = profile['horizon']
 
+    # Proyección NETA: descuenta el haircut de costos reales (comisiones,
+    # spread, impuestos). Reemplaza el escenario base bruto de la simulación
+    # para que las 4 cards y el bar chart muestren cifras coherentes entre sí.
+    total_end_usd   = _capital_usd * (1 + _cagr_neto) ** _horizon
+    total_gain_usd  = total_end_usd - _capital_usd
     total_end_disp  = total_end_usd  * _disp_factor
     total_gain_disp = total_gain_usd * _disp_factor
 
     gain_color = "#22c55e" if total_gain_disp >= 0 else "#ef4444"
     sign       = "+" if total_gain_disp >= 0 else ""
-    cagr_sub   = tip("rendimiento_estimado", "Rendimiento anual estimado")
-
-    _horizon = profile['horizon']
     _results_timeline = "6 a 18 meses" if _horizon >= 3 else "3 a 6 meses"
     st.markdown(f"""<div class="metrics-grid">
 <div class="metric-card">
   <div class="metric-label">Retorno anual estimado</div>
-  <div class="metric-value" style="color:#22c55e;">{cagr*100:.1f}%</div>
-  <div class="metric-sub">{cagr_sub}</div>
+  <div class="metric-value" style="color:#22c55e;">{_cagr_neto*100:.1f}%</div>
+  <div class="metric-sub">Neto estimado · bruto {cagr*100:.1f}%</div>
 </div>
 <div class="metric-card">
   <div class="metric-label">¿Cuánto puede bajar?</div>
@@ -663,14 +664,28 @@ elif step == "results":
 <div class="metric-card">
   <div class="metric-label">Capital proyectado en {_horizon}a</div>
   <div class="metric-value" style="color:#60a5fa;">{_disp_prefix}{total_end_disp:,.0f}{_disp_suffix}</div>
-  <div class="metric-sub">Escenario base</div>
+  <div class="metric-sub">Neto · escenario base</div>
 </div>
 <div class="metric-card">
   <div class="metric-label">Ganancia estimada</div>
   <div class="metric-value" style="color:{gain_color};">{sign}{_disp_prefix}{abs(total_gain_disp):,.0f}{_disp_suffix}</div>
-  <div class="metric-sub">Sobre el capital inicial</div>
+  <div class="metric-sub">Neta, sobre el capital inicial</div>
 </div>
 </div>""", unsafe_allow_html=True)
+
+    # Caption educativo: desglose del haircut de costos reales
+    _haircut_info = portfolio.get("haircut_info")
+    if _haircut_info:
+        _haircut_pct = _haircut_info["haircut_total"] * 100
+        _desglose    = _haircut_info["desglose"]
+        st.caption(
+            f"💡 Las cifras netas descuentan ~{_haircut_pct:.1f}% anual estimado por "
+            f"costos reales: comisiones del broker ({_desglose['comisiones_rebalanceo']*100:.1f}% al año), "
+            f"spread bid/ask ({_desglose['spread']*100:.1f}%), e impuestos vigentes 2026. "
+            f"El impuesto cedular sobre ganancias está suspendido. Estimación promedio para "
+            f"retail típico; tu situación particular puede variar. Para análisis fiscal "
+            f"personalizado consultá con tu contador."
+        )
 
     # Nota sutil sobre el horizonte (antes era una card grande amarilla,
     # se baja a caption para no competir con las 4 métricas principales)
@@ -775,6 +790,11 @@ elif step == "results":
     with col_evo:
         st.markdown('<div class="section-title">📈 Proyección de Crecimiento</div>', unsafe_allow_html=True)
         st.markdown('<h3 class="chart-headline">¿Cuánto podría valer su dinero con el tiempo?</h3>', unsafe_allow_html=True)
+        st.markdown(
+            '<p style="font-size:0.85rem;opacity:0.7;text-align:center;margin-top:-8px;">'
+            'Cifras netas de comisiones e impuestos estimados</p>',
+            unsafe_allow_html=True,
+        )
         # Pasar capital_original según la moneda seleccionada en el toggle
         _bar_cap_orig = _disp_capital if _disp_curr != _currency_in else profile.get("capital_original", _capital_usd)
         render_bar_simulation(portfolio, _capital_usd,

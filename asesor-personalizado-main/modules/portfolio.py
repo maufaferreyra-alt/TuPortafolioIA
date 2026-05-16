@@ -3617,10 +3617,33 @@ def build_portfolio(profile: dict) -> dict:
     eq_weight_total = sum(p["weight"] for p in positions if p.get("score", 0) > 0)
     avg_score = round(eq_score_total / eq_weight_total) if eq_weight_total > 0 else None
 
+    # ── Haircut: costos reales (comisiones, spread, impuestos 2026) ───────────
+    # Las tablas del haircut están calibradas en ARS; el capital interno está
+    # en USD, así que se deriva el capital en pesos según la moneda elegida.
+    from modules.tax_calculator import calcular_haircut_anual
+
+    if profile.get("currency") == "ARS":
+        _capital_ars = profile.get("capital_original") or profile.get("capital", 0)
+    else:
+        try:
+            from modules.market_data import get_mep_rate
+            _capital_ars = profile.get("capital", 0) * get_mep_rate()
+        except Exception:
+            _capital_ars = profile.get("capital", 0) * 1400.0  # fallback MEP
+
+    _haircut_info = calcular_haircut_anual(
+        portfolio={"positions": positions},
+        capital_inicial=_capital_ars,
+        aporte_mensual=profile.get("aporte_mensual", 0.0),
+    )
+    expected_cagr_neto = max(0.0, expected_cagr - _haircut_info["haircut_total"])
+
     return {
         "risk_profile":        risk,
         "positions":           positions,
         "expected_cagr":       round(expected_cagr, 4),
+        "expected_cagr_neto":  round(expected_cagr_neto, 4),
+        "haircut_info":        _haircut_info,
         "expected_volatility": round(expected_vol, 4),
         "category_exposure":   category_exposure,
         "sector_exposure":     sector_exposure,
