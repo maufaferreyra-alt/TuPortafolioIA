@@ -2549,6 +2549,31 @@ html, body, #root, .stApp {
     line-height: 1.55;
     margin-bottom: 1rem;
 }
+
+/* ── ALyCs: ajustes mobile (iOS Safari / Android Chrome) ──────── */
+@media (max-width: 640px) {
+    .section-header { margin: 2rem 0 1rem 0; }
+    .section-header h2 { font-size: 1.25rem; line-height: 1.3; }
+    .section-subtitle { font-size: 0.92rem; }
+
+    /* Specs: filas más compactas en pantallas chicas */
+    .alyc-spec-row { font-size: 0.88rem; gap: 0.5rem; padding: 0.55rem 0; }
+    .alyc-spec-value { font-size: 0.88rem; }
+
+    /* Botones de acción del broker: apilar full-width — mejor tap
+       target en touch (iOS/Android) que dos botones angostos. */
+    [data-testid="stHorizontalBlock"]:has([data-testid="stLinkButton"]) {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+    [data-testid="stHorizontalBlock"]:has([data-testid="stLinkButton"]) > [data-testid="stColumn"] {
+        width: 100% !important; flex: 1 1 100% !important; min-width: 0 !important;
+    }
+
+    .alyc-card-body { gap: 1rem; }
+    .alyc-mejor-para { font-size: 0.88rem; }
+    .mensaje-asesor-header h3 { font-size: 1.15rem; }
+}
     </style>
     """, unsafe_allow_html=True)
 
