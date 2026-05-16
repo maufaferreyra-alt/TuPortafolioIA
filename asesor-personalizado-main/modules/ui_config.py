@@ -2626,6 +2626,270 @@ html, body, #root, .stApp {
     .returning-user-title { font-size: 1rem; }
     .returning-user-subtitle { font-size: 0.88rem; }
 }
+
+/* === Página de carga de portafolio del usuario === */
+
+/* ── CTA card en la pantalla de resultados ── */
+.upf-cta-card {
+    background: linear-gradient(
+        135deg,
+        rgba(79, 163, 255, 0.10) 0%,
+        rgba(34, 197, 94, 0.06) 100%
+    );
+    border: 1px solid rgba(79, 163, 255, 0.2);
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.upf-cta-icon {
+    font-size: 2rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.upf-cta-content {
+    flex: 1;
+}
+
+.upf-cta-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-color, #f5f6fa);
+    margin-bottom: 0.3rem;
+}
+
+.upf-cta-content p {
+    font-size: 0.93rem;
+    color: rgba(245, 246, 250, 0.78);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* ── Pantalla de intro ── */
+.upf-intro-container {
+    max-width: 720px;
+    margin: 2rem auto;
+    text-align: center;
+    padding: 2rem;
+}
+
+.upf-intro-icon {
+    font-size: 5rem;
+    margin-bottom: 1rem;
+}
+
+.upf-intro-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-color, #f5f6fa);
+    margin-bottom: 1.25rem;
+    line-height: 1.25;
+}
+
+.upf-intro-subtitle {
+    font-size: 1.1rem;
+    color: rgba(245, 246, 250, 0.78);
+    line-height: 1.6;
+    max-width: 580px;
+    margin: 0 auto 2rem auto;
+}
+
+.upf-intro-bullets {
+    background: rgba(26, 31, 51, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    padding: 1.5rem 2rem;
+    margin: 2rem 0;
+    text-align: left;
+}
+
+.upf-intro-bullet {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.65rem 0;
+    font-size: 1rem;
+    color: rgba(245, 246, 250, 0.92);
+}
+
+.upf-intro-bullet-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    width: 32px;
+    text-align: center;
+}
+
+/* ── Header de página de carga ── */
+.upf-header {
+    margin: 1.5rem 0;
+}
+
+.upf-header h2 {
+    font-size: 1.75rem;
+    margin-bottom: 0.4rem;
+}
+
+.upf-header p {
+    font-size: 0.97rem;
+    color: rgba(245, 246, 250, 0.75);
+    line-height: 1.5;
+}
+
+/* ── Card de totales ── */
+.upf-totals-card {
+    background: rgba(26, 31, 51, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.upf-totals-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .upf-totals-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+}
+
+.upf-total-item {
+    text-align: center;
+}
+
+.upf-total-label {
+    font-size: 0.85rem;
+    color: rgba(245, 246, 250, 0.6);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 0.3rem;
+}
+
+.upf-total-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-color, #f5f6fa);
+    line-height: 1.1;
+}
+
+.upf-total-value-actual {
+    color: #4fa3ff;
+}
+
+.upf-total-pnl-positive {
+    color: #22c55e;
+}
+
+.upf-total-pnl-negative {
+    color: #ef4444;
+}
+
+.upf-total-sub {
+    font-size: 0.82rem;
+    color: rgba(245, 246, 250, 0.6);
+    margin-top: 0.2rem;
+}
+
+/* ── Empty state ── */
+.upf-empty-state {
+    background: rgba(15, 20, 35, 0.4);
+    border: 1px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 3rem 2rem;
+    text-align: center;
+    margin: 1.5rem 0;
+}
+
+.upf-empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.6;
+}
+
+.upf-empty-text {
+    font-size: 1rem;
+    color: rgba(245, 246, 250, 0.65);
+    line-height: 1.55;
+}
+
+/* ── Card de activo individual ── */
+.upf-activo-card {
+    background: rgba(26, 31, 51, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.upf-activo-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 0.6rem;
+}
+
+.upf-activo-icono {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.upf-activo-titles {
+    flex: 1;
+}
+
+.upf-activo-nombre {
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: var(--text-color, #f5f6fa);
+}
+
+.upf-activo-ticker {
+    font-size: 0.82rem;
+    color: rgba(245, 246, 250, 0.55);
+    margin-top: 1px;
+}
+
+.upf-activo-numbers {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    padding-top: 0.6rem;
+    border-top: 1px dashed rgba(255, 255, 255, 0.06);
+}
+
+.upf-activo-num {
+    display: flex;
+    flex-direction: column;
+}
+
+.upf-activo-num-label {
+    font-size: 0.78rem;
+    color: rgba(245, 246, 250, 0.55);
+    margin-bottom: 2px;
+}
+
+.upf-activo-num-value {
+    font-size: 0.98rem;
+    font-weight: 600;
+    color: var(--text-color, #f5f6fa);
+}
+
+.upf-pnl-positive {
+    color: #22c55e;
+}
+
+.upf-pnl-negative {
+    color: #ef4444;
+}
     </style>
     """, unsafe_allow_html=True)
 

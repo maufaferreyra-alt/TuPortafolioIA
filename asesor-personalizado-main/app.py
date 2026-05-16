@@ -369,6 +369,9 @@ Podés verla nuevamente o armar una nueva con datos actualizados.{_nota_vieja}
                 st.session_state.answers          = _estado_guardado["answers"]
                 st.session_state.profile          = _estado_guardado["profile"]
                 st.session_state.portfolio        = _estado_guardado["portfolio"]
+                st.session_state["user_portfolio_activos"] = _estado_guardado.get(
+                    "user_portfolio_activos", []
+                )
                 st.session_state.show_celebration = False
                 st.session_state.step             = "results"
                 st.rerun()
@@ -698,6 +701,9 @@ elif step == "results":
                     answers=st.session_state.get("answers", {}),
                     profile=profile,
                     portfolio=_new_pf,
+                    user_portfolio_activos=st.session_state.get(
+                        "user_portfolio_activos", []
+                    ),
                 )
                 st.success("✅ Cartera actualizada con datos de hoy")
                 st.rerun()
@@ -1404,6 +1410,38 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
             st.session_state.step = "como_funciona"
             st.rerun()
 
+    # ── Botón para cargar portafolio del usuario ──
+    st.markdown("---")
+
+    col_load1, col_load2, col_load3 = st.columns([1, 2, 1])
+    with col_load2:
+        st.markdown(
+            """
+            <div class="upf-cta-card">
+                <div class="upf-cta-icon">💼</div>
+                <div class="upf-cta-content">
+                    <div class="upf-cta-title">¿Querés ver tu portafolio actual?</div>
+                    <p>
+                        Cargá los activos que tenés hoy y comparalos con la cartera sugerida.
+                        Sin compromiso — es solo para verlo lado a lado.
+                    </p>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        if st.button(
+            "💼 Cargar mi portafolio actual",
+            use_container_width=True,
+            type="secondary",
+            key="results_load_portfolio_btn",
+        ):
+            st.session_state["step"] = "user_portfolio"
+            # Reset al estado inicial de la página de carga
+            st.session_state["user_portfolio_step"] = "intro"
+            st.rerun()
+
     # ── Empezar de cero (wipe completo: localStorage + sesión) ────────────────
     st.markdown("---")
     _, _col_reset, _ = st.columns([1, 2, 1])
@@ -1440,5 +1478,12 @@ elif step == "metodologia":
 # ══════════════════════════════════════════════════════════════════════════════
 elif step == "como_funciona":
     render_how_it_works()
+
+# ══════════════════════════════════════════════════════════════════════════════
+# CARGA DE PORTAFOLIO DEL USUARIO (Bloque 6A)
+# ══════════════════════════════════════════════════════════════════════════════
+elif step == "user_portfolio":
+    from modules.user_portfolio_renderer import render_user_portfolio_page
+    render_user_portfolio_page()
 
 render_footer()

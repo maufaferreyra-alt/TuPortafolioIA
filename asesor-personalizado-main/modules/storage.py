@@ -25,7 +25,12 @@ STORAGE_KEY = "tuportafolioia_data_v1"
 DIAS_EXPIRACION = 30
 
 
-def guardar_estado(answers: dict, profile: dict, portfolio: dict) -> bool:
+def guardar_estado(
+    answers: dict,
+    profile: dict,
+    portfolio: dict,
+    user_portfolio_activos: list | None = None,
+) -> bool:
     """Guarda en localStorage las respuestas + cartera generada."""
     try:
         data = {
@@ -34,6 +39,7 @@ def guardar_estado(answers: dict, profile: dict, portfolio: dict) -> bool:
             "answers": _serialize(answers),
             "profile": _serialize(profile),
             "portfolio": _serialize(portfolio),
+            "user_portfolio_activos": _serialize(user_portfolio_activos or []),
         }
 
         data_str = json.dumps(data, default=str, ensure_ascii=False)
@@ -79,6 +85,7 @@ def cargar_estado() -> dict | None:
             "answers":     data.get("answers", {}),
             "profile":     data.get("profile", {}),
             "portfolio":   data.get("portfolio", {}),
+            "user_portfolio_activos": data.get("user_portfolio_activos", []),
             "guardado_en": data.get("guardado_en"),
         }
 
