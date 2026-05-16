@@ -2890,6 +2890,81 @@ html, body, #root, .stApp {
 .upf-pnl-negative {
     color: #ef4444;
 }
+
+/* === Hints y helpers del form de carga simplificado === */
+
+.upf-form-hint {
+    font-size: 0.92rem;
+    color: rgba(245, 246, 250, 0.7);
+    line-height: 1.5;
+    margin: 0.5rem 0 1rem 0;
+    padding: 0.6rem 0.9rem;
+    background: rgba(79, 163, 255, 0.06);
+    border-left: 3px solid rgba(79, 163, 255, 0.35);
+    border-radius: 6px;
+}
+
+.upf-monto-calculado {
+    background: linear-gradient(
+        135deg,
+        rgba(34, 197, 94, 0.10) 0%,
+        rgba(34, 197, 94, 0.05) 100%
+    );
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    margin: 1rem 0;
+    font-size: 0.98rem;
+    color: rgba(245, 246, 250, 0.95);
+}
+
+.upf-monto-calculado strong {
+    color: #22c55e;
+}
+
+.upf-monto-calc-detail {
+    font-size: 0.85rem;
+    color: rgba(245, 246, 250, 0.6);
+    margin-left: 4px;
+}
+
+/* === Bullets de intro simplificados === */
+
+.upf-intro-header {
+    text-align: center;
+    max-width: 700px;
+    margin: 2rem auto 1.5rem auto;
+}
+
+.upf-intro-bullets {
+    max-width: 600px;
+    margin: 1.5rem auto 2rem auto;
+    background: rgba(26, 31, 51, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+}
+
+.upf-intro-bullet {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.6rem 0;
+    font-size: 1rem;
+    color: rgba(245, 246, 250, 0.92);
+    line-height: 1.5;
+}
+
+.upf-intro-bullet-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    width: 32px;
+    text-align: center;
+}
+
+.upf-intro-bullet-text {
+    flex: 1;
+}
     </style>
     """, unsafe_allow_html=True)
 

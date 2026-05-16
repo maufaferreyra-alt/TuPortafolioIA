@@ -54,42 +54,43 @@ def render_user_portfolio_page():
 def _render_intro():
     """Pantalla de bienvenida a la carga del portafolio."""
 
+    # Header centrado
     st.markdown(
-        """
-        <div class="upf-intro-container">
-            <div class="upf-intro-icon">💼</div>
-            <h1 class="upf-intro-title">
-                ¿Estás listo para armar tu primer portafolio?
-            </h1>
-            <p class="upf-intro-subtitle">
-                Sabemos que da nervios. Por eso te vamos a acompañar paso por paso.
-                No hay apuro, no hay decisiones definitivas — solo estamos viendo
-                qué tenés hoy.
-            </p>
-
-            <div class="upf-intro-bullets">
-                <div class="upf-intro-bullet">
-                    <span class="upf-intro-bullet-icon">⏱️</span>
-                    <span>Te va a tomar menos de 5 minutos</span>
-                </div>
-                <div class="upf-intro-bullet">
-                    <span class="upf-intro-bullet-icon">🔓</span>
-                    <span>Podés cargar cuando quieras, en cualquier momento</span>
-                </div>
-                <div class="upf-intro-bullet">
-                    <span class="upf-intro-bullet-icon">🔒</span>
-                    <span>Lo que cargues queda solo en tu navegador, nadie más lo ve</span>
-                </div>
-                <div class="upf-intro-bullet">
-                    <span class="upf-intro-bullet-icon">💪</span>
-                    <span>No es una decisión final — es ver qué tenés para hablarlo con tu asesor</span>
-                </div>
-            </div>
-        </div>
-        """,
+        '<div class="upf-intro-header">'
+        '<div class="upf-intro-icon">💼</div>'
+        '<h1 class="upf-intro-title">¿Estás listo para armar tu primer portafolio?</h1>'
+        '<p class="upf-intro-subtitle">'
+        'Sabemos que da nervios. Por eso te vamos a acompañar paso por paso. '
+        'No hay apuro, no hay decisiones definitivas — solo estamos viendo qué tenés hoy.'
+        '</p>'
+        '</div>',
         unsafe_allow_html=True,
     )
 
+    # Bullets en bloque separado, HTML simple
+    st.markdown(
+        '<div class="upf-intro-bullets">'
+        '<div class="upf-intro-bullet">'
+        '<span class="upf-intro-bullet-icon">⏱️</span>'
+        '<span class="upf-intro-bullet-text">Te va a tomar menos de 5 minutos</span>'
+        '</div>'
+        '<div class="upf-intro-bullet">'
+        '<span class="upf-intro-bullet-icon">🔓</span>'
+        '<span class="upf-intro-bullet-text">Podés cargar cuando quieras, en cualquier momento</span>'
+        '</div>'
+        '<div class="upf-intro-bullet">'
+        '<span class="upf-intro-bullet-icon">🔒</span>'
+        '<span class="upf-intro-bullet-text">Lo que cargues queda solo en tu navegador, nadie más lo ve</span>'
+        '</div>'
+        '<div class="upf-intro-bullet">'
+        '<span class="upf-intro-bullet-icon">💪</span>'
+        '<span class="upf-intro-bullet-text">No es decisión definitiva — es ver qué tenés para hablarlo con tu asesor</span>'
+        '</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    # Botones
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         if st.button(
@@ -216,7 +217,7 @@ def _render_loading():
     # PASO 2: Buscar activo del universo filtrado
     query = st.text_input(
         "Buscar activo (por ticker o nombre)",
-        key="upf_query_input",
+        key=f"upf_query_input_{tipo_seleccionado['id']}",  # ← key dinámica
         placeholder="Ej: AAPL, Apple, AL30...",
     )
 
@@ -236,85 +237,177 @@ def _render_loading():
         "Elegí el activo",
         range(len(activo_options)),
         format_func=lambda i: activo_options[i],
-        key="upf_activo_selectbox",
+        key=f"upf_activo_selectbox_{tipo_seleccionado['id']}",  # ← key dinámica
     )
 
     activo_elegido = matches[activo_idx]
 
-    # PASO 3: Montos
-    col1, col2, col3 = st.columns(3)
+    # ─── PASO 3: ¿Cómo sabe el usuario cuánto tiene? ───
+    st.markdown("---")
+    st.markdown("##### 💰 ¿Cómo querés cargar lo que tenés?")
 
-    with col1:
+    modo_carga = st.radio(
+        "Elegí la opción que mejor te resulte:",
+        options=[
+            "💵 Sé cuánta plata tengo en este activo",
+            "📊 Sé cuántas unidades tengo (lo veo en mi broker)",
+        ],
+        key=f"upf_modo_{tipo_seleccionado['id']}_{activo_elegido['ticker']}",
+        help="Si dudás, elegí la primera — es la más común.",
+    )
+
+    monto_invertido = 0.0
+    precio_actual = 0.0
+    cantidad_unidades = 0.0
+
+    if modo_carga.startswith("💵"):
+        # Modo simple: solo monto
+        st.markdown(
+            '<p class="upf-form-hint">'
+            'Ingresá cuánta plata (en pesos) tenés en este activo hoy. '
+            'Lo encontrás en tu cuenta del broker como "valor actual" o "tenencia".'
+            '</p>',
+            unsafe_allow_html=True,
+        )
+
         monto_invertido = st.number_input(
-            "Monto invertido (ARS)",
+            "💵 Plata que tenés en este activo (ARS)",
             min_value=0.0,
             step=1000.0,
             value=0.0,
-            key="upf_monto_input",
-            help="Cuánto invertiste en pesos cuando compraste este activo",
+            key=f"upf_monto_simple_{activo_elegido['ticker']}",
+            help="Por ejemplo: si en tu broker dice 'Apple: $50.000', poné 50000",
         )
 
-    with col2:
-        precio_actual = st.number_input(
-            "Precio del día (ARS por unidad)",
-            min_value=0.0,
-            step=10.0,
-            value=0.0,
-            key="upf_precio_actual_input",
-            help="El precio actual al que cotiza hoy. Mirá tu broker o el panel del mercado.",
+        # Para el modo simple, asumimos que monto = valor actual
+        # No tenemos precio compra, así que P&L queda en None
+        precio_actual = 0.0  # Lo derivamos del monto, no lo pedimos
+
+    else:
+        # Modo con unidades: necesitamos precio del día también
+        st.markdown(
+            '<p class="upf-form-hint">'
+            'Si conocés cuántas unidades tenés y a qué precio cotiza hoy, '
+            'calculamos por vos cuánto vale.'
+            '</p>',
+            unsafe_allow_html=True,
         )
 
-    with col3:
-        precio_compra = st.number_input(
-            "Precio de compra (opcional, ARS)",
-            min_value=0.0,
-            step=10.0,
-            value=0.0,
-            key="upf_precio_compra_input",
-            help="A qué precio compraste. Si lo dejás en 0, no calculamos ganancia/pérdida.",
-        )
+        col_unid, col_precio = st.columns(2)
 
-    # ─── Validación: precio actual no puede estar muy abajo del supuesto ───
-    profile = st.session_state.get("profile", {})
-    supuesto_cae = False
-
-    if precio_actual > 0 and precio_compra > 0:
-        # Si el precio actual cayó más del 5% respecto al supuesto del test
-        diferencia_pct = ((precio_compra - precio_actual) / precio_compra) * 100
-        if diferencia_pct > 5:
-            supuesto_cae = True
-            st.warning(
-                f"⚠️ **Heads up:** el precio actual está {diferencia_pct:.1f}% por "
-                f"debajo del precio de compra. Las proyecciones de tu cartera "
-                f"sugerida estaban basadas en supuestos que ya no se cumplen — "
-                f"vale la pena hablar esto con tu asesor."
+        with col_unid:
+            cantidad_unidades = st.number_input(
+                "📊 Cantidad de unidades que tenés",
+                min_value=0.0,
+                step=1.0,
+                value=0.0,
+                key=f"upf_cantidad_{activo_elegido['ticker']}",
+                help="La cantidad exacta que dice tu broker",
             )
 
-    # Botón de agregar
+        with col_precio:
+            precio_actual = st.number_input(
+                "💲 Precio del día (ARS)",
+                min_value=0.0,
+                step=10.0,
+                value=0.0,
+                key=f"upf_precio_actual_{activo_elegido['ticker']}",
+                help="A qué precio cotiza hoy una unidad. Lo ves en tu broker o en BYMA.",
+            )
+
+        # Calculamos automáticamente el monto invertido
+        if cantidad_unidades > 0 and precio_actual > 0:
+            monto_invertido = cantidad_unidades * precio_actual
+            st.markdown(
+                f'<div class="upf-monto-calculado">'
+                f'💡 <strong>Valor actual estimado:</strong> '
+                f'${monto_invertido:,.0f} ARS '
+                f'<span class="upf-monto-calc-detail">'
+                f'({cantidad_unidades:.2f} unidades × ${precio_actual:,.2f})'
+                f'</span>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+    # ─── Toggle de modo avanzado (P&L con precio de compra) ───
+    with st.expander("🔧 Modo avanzado: quiero saber ganancia/pérdida"):
+        st.markdown(
+            '<p class="upf-form-hint">'
+            'Si recordás a qué precio compraste, podemos calcular cuánto ganaste o perdiste. '
+            'Si no lo recordás, no pasa nada — el resto funciona igual.'
+            '</p>',
+            unsafe_allow_html=True,
+        )
+
+        precio_compra = st.number_input(
+            "💼 Precio al que compraste (ARS, opcional)",
+            min_value=0.0,
+            step=10.0,
+            value=0.0,
+            key=f"upf_precio_compra_{activo_elegido['ticker']}",
+            help="Si no lo recordás, dejalo en 0",
+        )
+
+    # ─── Warning de supuesto cae ───
+    if precio_actual > 0 and precio_compra > 0:
+        diferencia_pct = ((precio_compra - precio_actual) / precio_compra) * 100
+        if diferencia_pct > 5:
+            st.warning(
+                f"⚠️ **Heads up:** el precio actual está {diferencia_pct:.1f}% por "
+                f"debajo de cuando compraste. La proyección de tu cartera sugerida "
+                f"estaba pensada con otros números — vale la pena hablar esto con "
+                f"tu asesor."
+            )
+
+    # ─── Botón de agregar ───
+    st.markdown("")
+
     if st.button(
         "➕ Agregar a mi portafolio",
         type="primary",
         use_container_width=True,
-        key="upf_add_btn",
+        key=f"upf_add_btn_{activo_elegido['ticker']}",
     ):
-        if monto_invertido <= 0:
-            st.error("Tenés que poner el monto invertido en pesos.")
-        elif precio_actual <= 0:
-            st.error("Tenés que poner el precio actual del activo.")
+        # Validación según modo
+        if modo_carga.startswith("💵"):
+            # Modo simple
+            if monto_invertido <= 0:
+                st.error("Tenés que poner cuánta plata tenés en este activo.")
+            else:
+                # En modo simple, asumimos precio_actual=monto y cantidad implícita=1
+                # Esto deja el activo sin posibilidad de P&L (a menos que después
+                # rellenen precio_compra)
+                nuevo_activo = crear_activo(
+                    tipo=tipo_seleccionado["id"],
+                    ticker=activo_elegido["ticker"],
+                    nombre=activo_elegido["nombre"],
+                    monto_invertido_ars=monto_invertido,
+                    precio_actual_ars=monto_invertido,  # 1 "unidad virtual" = monto total
+                    precio_compra_ars=precio_compra if precio_compra > 0 else None,
+                )
+                st.session_state["user_portfolio_activos"].append(nuevo_activo)
+                _persistir_portafolio()
+                st.success(f"✅ {activo_elegido['nombre']} agregado a tu cartera")
+                st.rerun()
         else:
-            nuevo_activo = crear_activo(
-                tipo=tipo_seleccionado["id"],
-                ticker=activo_elegido["ticker"],
-                nombre=activo_elegido["nombre"],
-                monto_invertido_ars=monto_invertido,
-                precio_actual_ars=precio_actual,
-                precio_compra_ars=precio_compra if precio_compra > 0 else None,
-            )
-
-            st.session_state["user_portfolio_activos"].append(nuevo_activo)
-            _persistir_portafolio()
-            st.success(f"✅ {activo_elegido['nombre']} agregado a tu cartera")
-            st.rerun()
+            # Modo con unidades
+            if cantidad_unidades <= 0:
+                st.error("Tenés que poner cuántas unidades tenés.")
+            elif precio_actual <= 0:
+                st.error("Tenés que poner el precio actual del activo.")
+            else:
+                nuevo_activo = crear_activo(
+                    tipo=tipo_seleccionado["id"],
+                    ticker=activo_elegido["ticker"],
+                    nombre=activo_elegido["nombre"],
+                    monto_invertido_ars=cantidad_unidades * precio_actual,
+                    precio_actual_ars=precio_actual,
+                    precio_compra_ars=precio_compra if precio_compra > 0 else None,
+                )
+                st.session_state["user_portfolio_activos"].append(nuevo_activo)
+                _persistir_portafolio()
+                st.success(f"✅ {activo_elegido['nombre']} agregado a tu cartera")
+                st.rerun()
 
     _render_action_buttons(activos)
 
