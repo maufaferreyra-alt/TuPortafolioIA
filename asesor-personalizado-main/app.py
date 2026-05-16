@@ -330,6 +330,64 @@ Usted decide si desea avanzar con un asesor real. Aquí solo comprende sus opcio
 </div>""", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
+
+    _disclaimer_html = """<p class="disclaimer">
+⚠️ Esta herramienta es de carácter educativo y no constituye asesoramiento financiero regulado por la CNV.
+Consulte siempre con un asesor habilitado antes de tomar decisiones de inversión.
+</p>"""
+
+    # ── Persistencia: si hay una cartera guardada, ofrecer 2 opciones ─────────
+    from modules.storage import cargar_estado, antiguedad_estado, datos_muy_viejos
+    _estado_guardado = cargar_estado()
+
+    if _estado_guardado is not None:
+        _antig = antiguedad_estado()
+        _antig_texto = _antig[0] if _antig else "anteriormente"
+        _es_viejo = datos_muy_viejos()
+        _nota_vieja = (
+            " <strong>Recomendamos armar una nueva</strong> porque pasó tiempo "
+            "y los datos del mercado pueden haber cambiado." if _es_viejo else ""
+        )
+        st.markdown(
+            f"""<div class="returning-user-card">
+<div class="returning-user-icon">📂</div>
+<div class="returning-user-info">
+<div class="returning-user-title">Tenés una cartera armada {_antig_texto}</div>
+<p class="returning-user-subtitle">
+Podés verla nuevamente o armar una nueva con datos actualizados.{_nota_vieja}
+</p>
+</div>
+</div>""",
+            unsafe_allow_html=True,
+        )
+
+        _col_ver, _col_nueva = st.columns(2)
+        with _col_ver:
+            if st.button("📂 Ver mi cartera anterior", key="ver_anterior_btn",
+                         use_container_width=True,
+                         type="secondary" if _es_viejo else "primary"):
+                st.session_state.answers          = _estado_guardado["answers"]
+                st.session_state.profile          = _estado_guardado["profile"]
+                st.session_state.portfolio        = _estado_guardado["portfolio"]
+                st.session_state.show_celebration = False
+                st.session_state.step             = "results"
+                st.rerun()
+        with _col_nueva:
+            if st.button("✨ Armar una cartera nueva", key="armar_nueva_btn",
+                         use_container_width=True,
+                         type="primary" if _es_viejo else "secondary"):
+                # No se borra el localStorage — se sobrescribe al generar la
+                # nueva cartera. Solo se limpia la sesión.
+                for _k in list(st.session_state.keys()):
+                    if _k != "theme":
+                        del st.session_state[_k]
+                st.session_state.step = "profiling"
+                st.rerun()
+
+        st.markdown(_disclaimer_html, unsafe_allow_html=True)
+        st.stop()
+
+    # ── Sin cartera guardada — flujo normal ──────────────────────────────────
     if st.button("¿Cuánto perdí por no invertir?", key="cost_btn", use_container_width=True):
         st.session_state.step = "costo_no_invertir"
         st.rerun()
@@ -339,10 +397,7 @@ Usted decide si desea avanzar con un asesor real. Aquí solo comprende sus opcio
         st.session_state.step = "profiling"
         st.rerun()
 
-    st.markdown("""<p class="disclaimer">
-⚠️ Esta herramienta es de carácter educativo y no constituye asesoramiento financiero regulado por la CNV.
-Consulte siempre con un asesor habilitado antes de tomar decisiones de inversión.
-</p>""", unsafe_allow_html=True)
+    st.markdown(_disclaimer_html, unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # COSTO DE NO INVERTIR
@@ -370,6 +425,14 @@ elif step == "profiling":
             )
             st.session_state.portfolio  = portfolio
             st.session_state.simulation = simulation
+
+        # Persistir en localStorage para que el usuario pueda volver
+        from modules.storage import guardar_estado
+        guardar_estado(
+            answers=st.session_state.get("answers", {}),
+            profile=profile_data,
+            portfolio=portfolio,
+        )
 
         st.session_state.step             = "results"
         st.session_state.show_celebration = True
@@ -613,6 +676,33 @@ elif step == "results":
     <p>{_personal_msg['body']}</p>
   </div>
 </div>""", unsafe_allow_html=True)
+
+    # ── Banner de cartera vieja (si se restauró una de 15+ días) ──────────────
+    from modules.storage import datos_muy_viejos as _datos_viejos, antiguedad_estado as _antig_estado
+    if _datos_viejos():
+        _av = _antig_estado()
+        _av_texto = _av[0] if _av else "hace tiempo"
+        st.warning(
+            f"📅 **Esta cartera la armaste {_av_texto}.** "
+            "Los datos del mercado (cotización del dólar, scoring de activos) "
+            "pueden haber cambiado. Si querés una cartera actualizada al día "
+            "de hoy, regenerala con el botón de abajo."
+        )
+        if st.button("✨ Regenerar mi cartera con datos actualizados",
+                     key="regen_cartera_btn", use_container_width=True, type="primary"):
+            from modules.storage import guardar_estado as _guardar
+            if profile:
+                _new_pf = build_portfolio(profile)
+                st.session_state.portfolio = _new_pf
+                _guardar(
+                    answers=st.session_state.get("answers", {}),
+                    profile=profile,
+                    portfolio=_new_pf,
+                )
+                st.success("✅ Cartera actualizada con datos de hoy")
+                st.rerun()
+            else:
+                st.error("No pudimos regenerar. Volvé al inicio y armá una nueva.")
 
     # ── Panel de resumen rápido ───────────────────────────────────────────────
     st.markdown(f"""<div class="summary-panel">
@@ -1313,6 +1403,25 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
             st.session_state._prev_step = "results"
             st.session_state.step = "como_funciona"
             st.rerun()
+
+    # ── Empezar de cero (wipe completo: localStorage + sesión) ────────────────
+    st.markdown("---")
+    _, _col_reset, _ = st.columns([1, 2, 1])
+    with _col_reset:
+        with st.expander("🔄 ¿Cambió tu situación? Empezá de nuevo"):
+            st.markdown(
+                "Si ahora tenés otro capital, otro horizonte o cambió tu "
+                "situación financiera, podés rehacer el cuestionario desde "
+                "cero. Borramos todo lo guardado y arrancás limpio."
+            )
+            if st.button("Borrar todo y empezar de nuevo", key="wipe_todo_btn",
+                         type="secondary", use_container_width=True):
+                from modules.storage import limpiar_estado
+                limpiar_estado()
+                for _wk in list(st.session_state.keys()):
+                    if _wk not in ("auto_update_checked", "theme"):
+                        del st.session_state[_wk]
+                st.rerun()
 
 # ══════════════════════════════════════════════════════════════════════════════
 # GLOSARIO

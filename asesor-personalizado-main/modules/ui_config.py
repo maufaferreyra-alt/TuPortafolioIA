@@ -2574,6 +2574,58 @@ html, body, #root, .stApp {
     .alyc-mejor-para { font-size: 0.88rem; }
     .mensaje-asesor-header h3 { font-size: 1.15rem; }
 }
+
+/* === Card de usuario que vuelve (persistencia localStorage) === */
+.returning-user-card {
+    background: linear-gradient(
+        135deg,
+        rgba(79, 163, 255, 0.12) 0%,
+        rgba(34, 197, 94, 0.08) 100%
+    );
+    border: 1px solid rgba(79, 163, 255, 0.25);
+    border-radius: 14px;
+    padding: 1.5rem 1.75rem;
+    margin: 1.5rem 0 1.25rem 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.returning-user-icon {
+    font-size: 2.2rem;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.returning-user-info {
+    flex: 1;
+}
+
+.returning-user-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-1, #f5f6fa);
+    margin-bottom: 0.4rem;
+}
+
+.returning-user-subtitle {
+    font-size: 0.95rem;
+    color: rgba(245, 246, 250, 0.82);
+    line-height: 1.55;
+    margin: 0;
+}
+
+.returning-user-subtitle strong {
+    color: #4fa3ff;
+}
+
+@media (max-width: 640px) {
+    .returning-user-card { padding: 1.1rem 1.2rem; gap: 0.75rem; }
+    .returning-user-icon { font-size: 1.8rem; }
+    .returning-user-title { font-size: 1rem; }
+    .returning-user-subtitle { font-size: 0.88rem; }
+}
     </style>
     """, unsafe_allow_html=True)
 
