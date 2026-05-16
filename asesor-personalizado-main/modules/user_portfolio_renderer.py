@@ -6,6 +6,8 @@ Estados:
 - "loading": form de carga + lista de activos
 """
 
+from textwrap import dedent
+
 import streamlit as st
 from .user_portfolio import (
     TIPOS_INSTRUMENTO,
@@ -119,16 +121,20 @@ def _render_loading():
     activos = st.session_state.get("user_portfolio_activos", [])
 
     # ─── Header ──────────────────────────────────────────
+    # NOTA: usar dedent() porque Streamlit (Mistune) interpreta líneas con
+    # 4+ espacios al inicio como bloque de código markdown e ignora el HTML
+    # aunque pases unsafe_allow_html=True. Este patrón se replica abajo
+    # en las cards de totales y en el empty state.
     st.markdown(
-        """
-        <div class="upf-header">
-            <h2>💼 Tu portafolio actual</h2>
-            <p>
-                Agregá cada activo que tenés. Podés cargar de a uno y ver cómo
-                queda armado todo junto.
-            </p>
-        </div>
-        """,
+        dedent("""
+            <div class="upf-header">
+                <h2>💼 Tu portafolio actual</h2>
+                <p>
+                    Agregá cada activo que tenés. Podés cargar de a uno y ver cómo
+                    queda armado todo junto.
+                </p>
+            </div>
+        """),
         unsafe_allow_html=True,
     )
 
@@ -136,37 +142,44 @@ def _render_loading():
     if activos:
         totales = total_portafolio(activos)
 
+        pnl_class_total = (
+            'upf-total-pnl-positive' if totales['pnl_total_ars'] >= 0
+            else 'upf-total-pnl-negative'
+        )
+        signo_pnl = '+' if totales['pnl_total_ars'] >= 0 else ''
+        signo_pct = '+' if totales['pnl_total_pct'] >= 0 else ''
+
         st.markdown(
-            f"""
-            <div class="upf-totals-card">
-                <div class="upf-totals-row">
-                    <div class="upf-total-item">
-                        <div class="upf-total-label">Total invertido</div>
-                        <div class="upf-total-value">${totales['total_invertido']:,.0f}</div>
-                        <div class="upf-total-sub">ARS</div>
-                    </div>
-                    <div class="upf-total-item upf-total-item-highlight">
-                        <div class="upf-total-label">Valor actual</div>
-                        <div class="upf-total-value upf-total-value-actual">${totales['valor_total_actual']:,.0f}</div>
-                        <div class="upf-total-sub">ARS</div>
-                    </div>
-                    <div class="upf-total-item">
-                        <div class="upf-total-label">Ganancia / Pérdida</div>
-                        <div class="upf-total-value {'upf-total-pnl-positive' if totales['pnl_total_ars'] >= 0 else 'upf-total-pnl-negative'}">
-                            {'+' if totales['pnl_total_ars'] >= 0 else ''}${totales['pnl_total_ars']:,.0f}
+            dedent(f"""
+                <div class="upf-totals-card">
+                    <div class="upf-totals-row">
+                        <div class="upf-total-item">
+                            <div class="upf-total-label">Total invertido</div>
+                            <div class="upf-total-value">${totales['total_invertido']:,.0f}</div>
+                            <div class="upf-total-sub">ARS</div>
                         </div>
-                        <div class="upf-total-sub">
-                            {'+' if totales['pnl_total_pct'] >= 0 else ''}{totales['pnl_total_pct']:.2f}%
+                        <div class="upf-total-item upf-total-item-highlight">
+                            <div class="upf-total-label">Valor actual</div>
+                            <div class="upf-total-value upf-total-value-actual">${totales['valor_total_actual']:,.0f}</div>
+                            <div class="upf-total-sub">ARS</div>
                         </div>
-                    </div>
-                    <div class="upf-total-item">
-                        <div class="upf-total-label">Activos cargados</div>
-                        <div class="upf-total-value">{totales['cantidad_activos']}</div>
-                        <div class="upf-total-sub">en cartera</div>
+                        <div class="upf-total-item">
+                            <div class="upf-total-label">Ganancia / Pérdida</div>
+                            <div class="upf-total-value {pnl_class_total}">
+                                {signo_pnl}${totales['pnl_total_ars']:,.0f}
+                            </div>
+                            <div class="upf-total-sub">
+                                {signo_pct}{totales['pnl_total_pct']:.2f}%
+                            </div>
+                        </div>
+                        <div class="upf-total-item">
+                            <div class="upf-total-label">Activos cargados</div>
+                            <div class="upf-total-value">{totales['cantidad_activos']}</div>
+                            <div class="upf-total-sub">en cartera</div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            """,
+            """),
             unsafe_allow_html=True,
         )
 
@@ -190,15 +203,15 @@ def _render_loading():
             _render_activo_card(activo)
     else:
         st.markdown(
-            """
-            <div class="upf-empty-state">
-                <div class="upf-empty-icon">📥</div>
-                <div class="upf-empty-text">
-                    Todavía no cargaste ningún activo.<br>
-                    Empezá agregando el primero abajo.
+            dedent("""
+                <div class="upf-empty-state">
+                    <div class="upf-empty-icon">📥</div>
+                    <div class="upf-empty-text">
+                        Todavía no cargaste ningún activo.<br>
+                        Empezá agregando el primero abajo.
+                    </div>
                 </div>
-            </div>
-            """,
+            """),
             unsafe_allow_html=True,
         )
 
