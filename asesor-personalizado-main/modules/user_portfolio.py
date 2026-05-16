@@ -11,12 +11,20 @@ Estructura de cada activo cargado:
     "tipo": "cedear",              # filtro del universo
     "ticker": "AAPL",
     "nombre": "Apple Inc.",
-    "monto_invertido_ars": 50000,  # cuánto puso en pesos
-    "precio_compra_ars": None,     # opcional
-    "precio_actual_ars": 580,      # precio del día (manual en 6A,
-                                   # API en 6B)
+    "monto_invertido_ars": 50000,  # cuánto PUSO en pesos (costo)
+    "precio_compra_ars": None,     # opcional (modo unidades)
+    "precio_actual_ars": 580,      # precio del día (modo unidades)
+    "valor_actual_directo": None,  # FCIs: valor hoy sin cuotapartes
     "agregado_en": "2026-05-16T...",
 }
+
+Tres formas de cargar un activo:
+1. Modo simple: solo monto_invertido. valor_actual = monto. Sin P&L.
+2. Modo unidades (CEDEARs, acciones, bonos, ONs, letras, MEP):
+   cantidad × precio. monto_invertido = cantidad × precio_actual;
+   costo se reconstruye con precio_compra si está disponible.
+3. Modo FCI: monto_invertido (lo que entregó) + valor_actual_directo
+   opcional (lo que vale hoy, lo lee del broker). Sin cuotapartes.
 """
 
 import uuid
@@ -77,6 +85,7 @@ def crear_activo(
     monto_invertido_ars: float,
     precio_actual_ars: float | None = None,
     precio_compra_ars: float | None = None,
+    valor_actual_directo: float | None = None,
 ) -> dict:
     """Crea el dict de un activo nuevo para agregar al portafolio."""
     return {
@@ -87,6 +96,7 @@ def crear_activo(
         "monto_invertido_ars": float(monto_invertido_ars),
         "precio_compra_ars": float(precio_compra_ars) if precio_compra_ars else None,
         "precio_actual_ars": float(precio_actual_ars) if precio_actual_ars else None,
+        "valor_actual_directo": float(valor_actual_directo) if valor_actual_directo else None,
         "agregado_en": datetime.now().isoformat(),
     }
 
@@ -96,15 +106,22 @@ def calcular_valor_actual(activo: dict) -> float:
     Calcula el valor actual de un activo.
 
     Casos:
+    0. FCI con valor_actual_directo cargado: valor = valor_actual_directo
     1. Modo simple (precio_actual=None): valor = monto_invertido (sin P&L)
     2. Modo unidades sin compra: valor = monto_invertido = unidades × precio_actual
        (ya están multiplicados en monto_invertido al guardarse)
     3. Modo unidades con compra: valor = unidades × precio_actual = monto_invertido
        (el P&L se calcula aparte en calcular_pnl)
     """
+    monto_invertido = activo.get("monto_invertido_ars", 0)
+
+    # Caso 0: FCI cargó valor actual directo (sin cuotapartes)
+    valor_directo = activo.get("valor_actual_directo")
+    if valor_directo is not None and valor_directo > 0:
+        return float(valor_directo)
+
     precio_actual = activo.get("precio_actual_ars")
     precio_compra = activo.get("precio_compra_ars")
-    monto_invertido = activo.get("monto_invertido_ars", 0)
 
     # Caso 1: modo simple, no se puede calcular valor distinto
     if precio_actual is None:
@@ -124,14 +141,27 @@ def calcular_pnl(activo: dict) -> dict:
     """
     Calcula ganancia/pérdida del activo.
 
-    Modo simple (precio_actual=None): pnl es None (no se puede calcular).
-    Modo unidades sin compra: pnl es None.
+    Modo FCI con valor_actual_directo: pnl = valor_directo - monto_invertido.
+    Modo simple (precio_actual=None y sin valor_directo): pnl = None.
+    Modo unidades sin compra: pnl = None.
     Modo unidades con compra: pnl = (precio_actual - precio_compra) × cantidad
     """
     valor_actual = calcular_valor_actual(activo)
     monto_invertido = activo.get("monto_invertido_ars", 0)
     precio_actual = activo.get("precio_actual_ars")
     precio_compra = activo.get("precio_compra_ars")
+    valor_directo = activo.get("valor_actual_directo")
+
+    # Caso FCI: P&L directo = valor_directo - monto_invertido
+    if valor_directo is not None and valor_directo > 0 and monto_invertido > 0:
+        pnl_ars = valor_directo - monto_invertido
+        pnl_pct = (pnl_ars / monto_invertido) * 100
+        return {
+            "valor_actual": valor_actual,
+            "monto_invertido": monto_invertido,
+            "pnl_ars": pnl_ars,
+            "pnl_pct": pnl_pct,
+        }
 
     # Sin precio_actual (modo simple) → no se calcula P&L
     if precio_actual is None:
@@ -185,9 +215,13 @@ def total_portafolio(activos: list[dict]) -> dict:
 
         precio_actual = a.get("precio_actual_ars")
         precio_compra = a.get("precio_compra_ars")
+        valor_directo = a.get("valor_actual_directo")
         monto = a.get("monto_invertido_ars", 0)
 
-        if precio_actual is None or precio_compra is None or precio_compra <= 0:
+        # FCI con valor directo: costo = monto invertido (lo que puso)
+        if valor_directo is not None and valor_directo > 0:
+            total_invertido_costo += monto
+        elif precio_actual is None or precio_compra is None or precio_compra <= 0:
             # No hay precio compra: el "invertido" es el monto que puso
             total_invertido_costo += monto
         else:

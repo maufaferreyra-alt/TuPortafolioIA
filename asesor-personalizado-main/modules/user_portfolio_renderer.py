@@ -251,135 +251,174 @@ def _render_loading():
 
     # ─── PASO 3: ¿Cómo sabe el usuario cuánto tiene? ───
     st.markdown("---")
-    st.markdown("##### 💰 ¿Cómo querés cargar lo que tenés?")
 
-    modo_carga = st.radio(
-        "Elegí la opción que mejor te resulte:",
-        options=[
-            "💵 Sé cuánta plata tengo en este activo",
-            "📊 Sé cuántas unidades tengo (lo veo en mi broker)",
-        ],
-        key=f"upf_modo_{tipo_seleccionado['id']}_{activo_elegido['ticker']}",
-        help="Si dudás, elegí la primera — es la más común.",
-    )
+    es_fci = tipo_seleccionado["id"] == "fci"
 
-    es_modo_simple = modo_carga.startswith("💵")
-
+    # Variables del form (defaults según corresponda)
     monto_simple = 0.0
     cantidad_unidades = 0.0
     precio_actual = 0.0
     precio_compra = 0.0
+    fci_monto_puesto = 0.0
+    fci_valor_hoy = 0.0
+    es_modo_simple = True  # FCI siempre es modo simple-like
 
-    if es_modo_simple:
-        # ──── MODO SIMPLE: solo monto, sin ganancia/pérdida ────
-        st.markdown(
-            '<p class="upf-form-hint">'
-            'Ingresá cuánta plata (en pesos) tenés hoy en este activo. '
-            'Lo encontrás en tu broker como "valor actual" o "tenencia".'
-            '</p>',
-            unsafe_allow_html=True,
+    if es_fci:
+        # ─────────── FORM PARA FCIs ───────────
+        # Los FCIs no se cargan por cuotapartes. El broker te muestra
+        # directamente cuánto vale tu posición en pesos.
+        st.markdown("##### 💰 ¿Cuánto tenés en este fondo?")
+        st.caption(
+            "En los FCIs el broker te muestra directo cuánto vale tu "
+            "posición — no hace falta calcular nada."
         )
 
-        monto_simple = st.number_input(
-            "💵 Plata que tenés en este activo (ARS)",
-            min_value=0.0,
-            step=1000.0,
-            value=0.0,
-            key=f"upf_monto_simple_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
-            help="Por ejemplo: si en tu broker dice 'Apple: $50.000', poné 50000",
-        )
+        col_pusiste, col_hoy = st.columns(2)
 
-        # En modo simple NO hay manera de calcular ganancia/pérdida.
-        # Mensaje explícito al usuario.
-        st.markdown(
-            '<p class="upf-form-note">'
-            '⓵ En este modo no calculamos ganancia o pérdida — solo registramos '
-            'el valor que pusiste. Si querés saber tu ganancia, elegí el modo '
-            '"sé cuántas unidades tengo".'
-            '</p>',
-            unsafe_allow_html=True,
-        )
-
-        # NO mostrar expander "Modo avanzado" en modo simple
-
-    else:
-        # ──── MODO UNIDADES: cantidad + precio del día ────
-        st.markdown(
-            '<p class="upf-form-hint">'
-            'Si conocés cuántas unidades tenés y a qué precio cotiza hoy, '
-            'calculamos por vos cuánto vale.'
-            '</p>',
-            unsafe_allow_html=True,
-        )
-
-        col_unid, col_precio = st.columns(2)
-
-        with col_unid:
-            cantidad_unidades = st.number_input(
-                "📊 Cantidad de unidades que tenés",
+        with col_pusiste:
+            fci_monto_puesto = st.number_input(
+                "💵 ¿Cuánto pusiste? (ARS)",
                 min_value=0.0,
-                step=1.0,
+                step=1000.0,
                 value=0.0,
-                key=f"upf_cantidad_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
-                help="La cantidad exacta que dice tu broker",
+                key=f"upf_fci_puesto_{activo_elegido['ticker']}",
+                help="Lo que entregaste cuando suscribiste el fondo.",
             )
 
-        with col_precio:
-            precio_actual = st.number_input(
-                "💲 Precio del día (ARS)",
+        with col_hoy:
+            fci_valor_hoy = st.number_input(
+                "💎 ¿Cuánto vale hoy? (ARS, opcional)",
                 min_value=0.0,
-                step=10.0,
+                step=1000.0,
                 value=0.0,
-                key=f"upf_precio_actual_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
-                help="A qué precio cotiza hoy una unidad. Lo ves en tu broker o en BYMA.",
+                key=f"upf_fci_hoy_{activo_elegido['ticker']}",
+                help=(
+                    "Lo que ves en tu broker como 'valor actual' o 'tenencia'. "
+                    "Si no lo sabés, dejalo en 0 — asumimos que vale lo que pusiste."
+                ),
             )
 
-        # Calculo automático en vivo
-        if cantidad_unidades > 0 and precio_actual > 0:
-            valor_calc = cantidad_unidades * precio_actual
-            st.markdown(
-                f'<div class="upf-monto-calculado">'
-                f'💡 <strong>Valor actual estimado:</strong> '
-                f'${valor_calc:,.0f} ARS '
-                f'<span class="upf-monto-calc-detail">'
-                f'({cantidad_unidades:.2f} unidades × ${precio_actual:,.2f})'
-                f'</span>'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
-
-        # SOLO en modo unidades aparece el modo avanzado
-        with st.expander("🔧 Modo avanzado: quiero saber ganancia/pérdida"):
-            st.markdown(
-                '<p class="upf-form-hint">'
-                'Si recordás a qué precio compraste una unidad, podemos '
-                'calcular cuánto ganaste o perdiste. Si no lo recordás, '
-                'no pasa nada — el resto funciona igual.'
-                '</p>',
-                unsafe_allow_html=True,
-            )
-
-            precio_compra = st.number_input(
-                "💼 Precio al que compraste una unidad (ARS, opcional)",
-                min_value=0.0,
-                step=10.0,
-                value=0.0,
-                key=f"upf_precio_compra_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
-                help="Si no lo recordás, dejalo en 0",
-            )
-
-        # Warning de supuesto cae (solo en modo unidades)
-        if precio_actual > 0 and precio_compra > 0:
-            diferencia_pct = ((precio_compra - precio_actual) / precio_compra) * 100
-            if diferencia_pct > 5:
-                st.warning(
-                    f"⚠️ **Heads up:** el precio actual está {diferencia_pct:.1f}% por "
-                    f"debajo de cuando compraste. La proyección de tu cartera "
-                    f"sugerida estaba pensada con otros números — vale la pena "
-                    f"hablar esto con tu asesor."
+        # Si cargó ambos, mostrar P&L proyectado en vivo
+        if fci_monto_puesto > 0 and fci_valor_hoy > 0:
+            pnl_proy = fci_valor_hoy - fci_monto_puesto
+            pnl_pct_proy = (pnl_proy / fci_monto_puesto) * 100
+            signo = '+' if pnl_proy >= 0 else ''
+            if pnl_proy >= 0:
+                st.success(
+                    f"💡 **Ganancia / pérdida proyectada:** "
+                    f"{signo}${pnl_proy:,.0f} ({signo}{pnl_pct_proy:.2f}%)"
+                )
+            else:
+                st.error(
+                    f"💡 **Ganancia / pérdida proyectada:** "
+                    f"${pnl_proy:,.0f} ({pnl_pct_proy:.2f}%)"
                 )
 
-    # ─── Botón de agregar ───
+    else:
+        # ─────────── FORM PARA RESTO DE TIPOS ───────────
+        st.markdown("##### 💰 ¿Cómo querés cargar lo que tenés?")
+
+        modo_carga = st.radio(
+            "Elegí la opción que mejor te resulte:",
+            options=[
+                "💵 Sé cuánta plata tengo en este activo",
+                "📊 Sé cuántas unidades tengo (lo veo en mi broker)",
+            ],
+            key=f"upf_modo_{tipo_seleccionado['id']}_{activo_elegido['ticker']}",
+            help="Si dudás, elegí la primera — es la más común.",
+        )
+
+        es_modo_simple = modo_carga.startswith("💵")
+
+        if es_modo_simple:
+            # ──── MODO SIMPLE: solo monto, sin ganancia/pérdida ────
+            st.caption(
+                "Ingresá cuánta plata (en pesos) tenés hoy en este activo. "
+                "Lo encontrás en tu broker como \"valor actual\" o \"tenencia\"."
+            )
+
+            monto_simple = st.number_input(
+                "💵 Plata que tenés en este activo (ARS)",
+                min_value=0.0,
+                step=1000.0,
+                value=0.0,
+                key=f"upf_monto_simple_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
+                help="Por ejemplo: si en tu broker dice 'Apple: $50.000', poné 50000",
+            )
+
+            # En modo simple NO hay manera de calcular ganancia/pérdida.
+            st.info(
+                "⓵ En este modo no calculamos ganancia o pérdida — solo "
+                "registramos el valor que pusiste. Si querés saber tu "
+                "ganancia, elegí el modo \"sé cuántas unidades tengo\"."
+            )
+
+        else:
+            # ──── MODO UNIDADES: cantidad + precio del día ────
+            st.caption(
+                "Si conocés cuántas unidades tenés y a qué precio cotiza hoy, "
+                "calculamos por vos cuánto vale."
+            )
+
+            col_unid, col_precio = st.columns(2)
+
+            with col_unid:
+                cantidad_unidades = st.number_input(
+                    "📊 Cantidad de unidades que tenés",
+                    min_value=0.0,
+                    step=1.0,
+                    value=0.0,
+                    key=f"upf_cantidad_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
+                    help="La cantidad exacta que dice tu broker",
+                )
+
+            with col_precio:
+                precio_actual = st.number_input(
+                    "💲 Precio del día (ARS)",
+                    min_value=0.0,
+                    step=10.0,
+                    value=0.0,
+                    key=f"upf_precio_actual_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
+                    help="A qué precio cotiza hoy una unidad. Lo ves en tu broker o en BYMA.",
+                )
+
+            # Cálculo automático en vivo con componente nativo
+            if cantidad_unidades > 0 and precio_actual > 0:
+                valor_calc = cantidad_unidades * precio_actual
+                st.success(
+                    f"💡 **Valor actual estimado:** ${valor_calc:,.0f} ARS  "
+                    f"_({cantidad_unidades:.2f} unidades × ${precio_actual:,.2f})_"
+                )
+
+            # SOLO en modo unidades aparece el modo avanzado
+            with st.expander("🔧 Modo avanzado: quiero saber ganancia/pérdida"):
+                st.caption(
+                    "Si recordás a qué precio compraste una unidad, podemos "
+                    "calcular cuánto ganaste o perdiste. Si no lo recordás, "
+                    "no pasa nada — el resto funciona igual."
+                )
+
+                precio_compra = st.number_input(
+                    "💼 Precio al que compraste una unidad (ARS, opcional)",
+                    min_value=0.0,
+                    step=10.0,
+                    value=0.0,
+                    key=f"upf_precio_compra_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
+                    help="Si no lo recordás, dejalo en 0",
+                )
+
+            # Banner del supuesto cae — copy NEUTRO (Bug 4)
+            if precio_actual > 0 and precio_compra > 0:
+                diferencia_pct = ((precio_compra - precio_actual) / precio_compra) * 100
+                if diferencia_pct > 5:
+                    st.warning(
+                        f"⚠️ **Heads up:** el precio actual está "
+                        f"{diferencia_pct:.1f}% por debajo de cuando compraste. "
+                        f"Puede ser pérdida real, o que cargaste algún número "
+                        f"raro — vale la pena revisarlo antes de agregar."
+                    )
+
+    # ─── Botón de agregar ────────────────────────────────────────
     st.markdown("")
 
     if st.button(
@@ -388,8 +427,26 @@ def _render_loading():
         use_container_width=True,
         key=f"upf_add_btn_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
     ):
-        if es_modo_simple:
-            # Modo simple: SOLO monto, sin precio_actual ni precio_compra
+        if es_fci:
+            # FCI: monto_invertido obligatorio, valor_actual_directo opcional
+            if fci_monto_puesto <= 0:
+                st.error("Tenés que poner cuánto pusiste en este fondo.")
+            else:
+                nuevo_activo = crear_activo(
+                    tipo=tipo_seleccionado["id"],
+                    ticker=activo_elegido["ticker"],
+                    nombre=activo_elegido["nombre"],
+                    monto_invertido_ars=fci_monto_puesto,
+                    precio_actual_ars=None,
+                    precio_compra_ars=None,
+                    valor_actual_directo=fci_valor_hoy if fci_valor_hoy > 0 else None,
+                )
+                st.session_state["user_portfolio_activos"].append(nuevo_activo)
+                _persistir_portafolio()
+                st.success(f"✅ {activo_elegido['nombre']} agregado a tu cartera")
+                st.rerun()
+        elif es_modo_simple:
+            # Modo simple: SOLO monto
             if monto_simple <= 0:
                 st.error("Tenés que poner cuánta plata tenés en este activo.")
             else:
@@ -398,15 +455,15 @@ def _render_loading():
                     ticker=activo_elegido["ticker"],
                     nombre=activo_elegido["nombre"],
                     monto_invertido_ars=monto_simple,
-                    precio_actual_ars=None,    # ← CLAVE: None en modo simple
-                    precio_compra_ars=None,    # ← CLAVE: None en modo simple
+                    precio_actual_ars=None,
+                    precio_compra_ars=None,
                 )
                 st.session_state["user_portfolio_activos"].append(nuevo_activo)
                 _persistir_portafolio()
                 st.success(f"✅ {activo_elegido['nombre']} agregado a tu cartera")
                 st.rerun()
         else:
-            # Modo unidades: validación de cantidad y precio_actual
+            # Modo unidades: cantidad + precio_actual obligatorios
             if cantidad_unidades <= 0:
                 st.error("Tenés que poner cuántas unidades tenés.")
             elif precio_actual <= 0:
