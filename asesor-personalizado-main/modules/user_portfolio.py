@@ -31,6 +31,17 @@ import uuid
 from datetime import datetime
 
 
+# ── Umbrales de sanity check de magnitud ───────────────────────────
+# Soft warning: aviso amarillo, NO bloquea. Pensado para usuarios con
+# mucha plata genuinamente.
+# Hard block: bloquea el botón "Agregar". Pensado para typos.
+# Ratio max: en modo unidades con compra, valor_actual no puede ser
+# >10x el costo invertido (señal de error de coma en algún precio).
+SOFT_WARNING_ARS      = 500_000_000     # $500M ARS por activo individual
+HARD_BLOCK_ARS        = 5_000_000_000   # $5.000M ARS por activo individual
+RATIO_VALOR_MONTO_MAX = 10              # valor_actual / costo_invertido
+
+
 # Tipos de instrumentos disponibles (con labels human-friendly)
 TIPOS_INSTRUMENTO = [
     {

@@ -14,6 +14,9 @@ from .user_portfolio import (
     total_portafolio,
     costo_invertido,
     get_tipo_info,
+    SOFT_WARNING_ARS,
+    HARD_BLOCK_ARS,
+    RATIO_VALOR_MONTO_MAX,
 )
 from .universo_instrumentos import (
     buscar_activos,
@@ -418,6 +421,51 @@ def _render_loading():
                         f"raro — vale la pena revisarlo antes de agregar."
                     )
 
+    # ─── SANITY CHECK DE MAGNITUD (Bug 3) ────────────────────────
+    # Se calcula sobre el valor "más reciente" (lo que vale hoy o lo
+    # que puso). Bloquea agregar si supera HARD_BLOCK_ARS o si el
+    # ratio valor/costo es absurdo en modo unidades con compra.
+    if es_fci:
+        valor_para_check = fci_valor_hoy if fci_valor_hoy > 0 else fci_monto_puesto
+    elif es_modo_simple:
+        valor_para_check = monto_simple
+    else:
+        valor_para_check = cantidad_unidades * precio_actual
+
+    bloqueado_por_sanity = False
+    mensaje_bloqueo = ""
+
+    if valor_para_check > HARD_BLOCK_ARS:
+        bloqueado_por_sanity = True
+        mensaje_bloqueo = (
+            f"🚫 Estás cargando ${valor_para_check:,.0f} ARS en un solo activo. "
+            f"Valores arriba de ${HARD_BLOCK_ARS:,.0f} ARS son muy raros — "
+            f"revisá si se te corrió la coma en cantidad o precio."
+        )
+    elif valor_para_check > SOFT_WARNING_ARS:
+        st.warning(
+            f"⚠️ **Ojo:** estás cargando ${valor_para_check:,.0f} ARS en este "
+            f"activo. Si es correcto, seguí — si no, revisá los números."
+        )
+
+    # Ratio check (solo modo unidades con compra)
+    if (not es_fci and not es_modo_simple
+            and precio_actual > 0 and precio_compra > 0
+            and cantidad_unidades > 0):
+        costo_real = cantidad_unidades * precio_compra
+        valor_real = cantidad_unidades * precio_actual
+        if costo_real > 0 and valor_real / costo_real > RATIO_VALOR_MONTO_MAX:
+            bloqueado_por_sanity = True
+            multiplicador = valor_real / costo_real
+            mensaje_bloqueo = (
+                f"🚫 Estás cargando que este activo multiplicó por "
+                f"{multiplicador:.0f}x desde que lo compraste. Eso es muy raro — "
+                f"revisá precio de compra y precio del día."
+            )
+
+    if bloqueado_por_sanity:
+        st.error(mensaje_bloqueo)
+
     # ─── Botón de agregar ────────────────────────────────────────
     st.markdown("")
 
@@ -426,6 +474,7 @@ def _render_loading():
         type="primary",
         use_container_width=True,
         key=f"upf_add_btn_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
+        disabled=bloqueado_por_sanity,
     ):
         if es_fci:
             # FCI: monto_invertido obligatorio, valor_actual_directo opcional
