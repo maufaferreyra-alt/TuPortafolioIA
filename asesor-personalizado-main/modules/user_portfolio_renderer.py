@@ -12,6 +12,7 @@ from .user_portfolio import (
     crear_activo,
     calcular_pnl,
     total_portafolio,
+    costo_invertido,
     get_tipo_info,
 )
 from .universo_instrumentos import (
@@ -169,11 +170,10 @@ def _render_loading():
             unsafe_allow_html=True,
         )
 
-        # Detectar si algún activo está en modo simple (sin valuación de mercado)
+        # Detectar si algún activo está en modo simple (sin valuación de mercado).
+        # En modo simple precio_actual_ars queda en None.
         activos_sin_precio_dia = [
-            a for a in activos
-            if a.get("precio_compra_ars") is None
-            and abs(a.get("precio_actual_ars", 0) - a.get("monto_invertido_ars", 0)) < 0.01
+            a for a in activos if a.get("precio_actual_ars") is None
         ]
 
         if activos_sin_precio_dia:
@@ -286,35 +286,47 @@ def _render_loading():
         help="Si dudás, elegí la primera — es la más común.",
     )
 
-    monto_invertido = 0.0
-    precio_actual = 0.0
-    cantidad_unidades = 0.0
+    es_modo_simple = modo_carga.startswith("💵")
 
-    if modo_carga.startswith("💵"):
-        # Modo simple: solo monto
+    monto_simple = 0.0
+    cantidad_unidades = 0.0
+    precio_actual = 0.0
+    precio_compra = 0.0
+
+    if es_modo_simple:
+        # ──── MODO SIMPLE: solo monto, sin ganancia/pérdida ────
         st.markdown(
             '<p class="upf-form-hint">'
-            'Ingresá cuánta plata (en pesos) tenés en este activo hoy. '
-            'Lo encontrás en tu cuenta del broker como "valor actual" o "tenencia".'
+            'Ingresá cuánta plata (en pesos) tenés hoy en este activo. '
+            'Lo encontrás en tu broker como "valor actual" o "tenencia".'
             '</p>',
             unsafe_allow_html=True,
         )
 
-        monto_invertido = st.number_input(
+        monto_simple = st.number_input(
             "💵 Plata que tenés en este activo (ARS)",
             min_value=0.0,
             step=1000.0,
             value=0.0,
-            key=f"upf_monto_simple_{activo_elegido['ticker']}",
+            key=f"upf_monto_simple_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
             help="Por ejemplo: si en tu broker dice 'Apple: $50.000', poné 50000",
         )
 
-        # Para el modo simple, asumimos que monto = valor actual
-        # No tenemos precio compra, así que P&L queda en None
-        precio_actual = 0.0  # Lo derivamos del monto, no lo pedimos
+        # En modo simple NO hay manera de calcular ganancia/pérdida.
+        # Mensaje explícito al usuario.
+        st.markdown(
+            '<p class="upf-form-note">'
+            '⓵ En este modo no calculamos ganancia o pérdida — solo registramos '
+            'el valor que pusiste. Si querés saber tu ganancia, elegí el modo '
+            '"sé cuántas unidades tengo".'
+            '</p>',
+            unsafe_allow_html=True,
+        )
+
+        # NO mostrar expander "Modo avanzado" en modo simple
 
     else:
-        # Modo con unidades: necesitamos precio del día también
+        # ──── MODO UNIDADES: cantidad + precio del día ────
         st.markdown(
             '<p class="upf-form-hint">'
             'Si conocés cuántas unidades tenés y a qué precio cotiza hoy, '
@@ -331,7 +343,7 @@ def _render_loading():
                 min_value=0.0,
                 step=1.0,
                 value=0.0,
-                key=f"upf_cantidad_{activo_elegido['ticker']}",
+                key=f"upf_cantidad_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
                 help="La cantidad exacta que dice tu broker",
             )
 
@@ -341,17 +353,17 @@ def _render_loading():
                 min_value=0.0,
                 step=10.0,
                 value=0.0,
-                key=f"upf_precio_actual_{activo_elegido['ticker']}",
+                key=f"upf_precio_actual_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
                 help="A qué precio cotiza hoy una unidad. Lo ves en tu broker o en BYMA.",
             )
 
-        # Calculamos automáticamente el monto invertido
+        # Calculo automático en vivo
         if cantidad_unidades > 0 and precio_actual > 0:
-            monto_invertido = cantidad_unidades * precio_actual
+            valor_calc = cantidad_unidades * precio_actual
             st.markdown(
                 f'<div class="upf-monto-calculado">'
                 f'💡 <strong>Valor actual estimado:</strong> '
-                f'${monto_invertido:,.0f} ARS '
+                f'${valor_calc:,.0f} ARS '
                 f'<span class="upf-monto-calc-detail">'
                 f'({cantidad_unidades:.2f} unidades × ${precio_actual:,.2f})'
                 f'</span>'
@@ -359,35 +371,36 @@ def _render_loading():
                 unsafe_allow_html=True,
             )
 
-    # ─── Toggle de modo avanzado (P&L con precio de compra) ───
-    with st.expander("🔧 Modo avanzado: quiero saber ganancia/pérdida"):
-        st.markdown(
-            '<p class="upf-form-hint">'
-            'Si recordás a qué precio compraste, podemos calcular cuánto ganaste o perdiste. '
-            'Si no lo recordás, no pasa nada — el resto funciona igual.'
-            '</p>',
-            unsafe_allow_html=True,
-        )
-
-        precio_compra = st.number_input(
-            "💼 Precio al que compraste (ARS, opcional)",
-            min_value=0.0,
-            step=10.0,
-            value=0.0,
-            key=f"upf_precio_compra_{activo_elegido['ticker']}",
-            help="Si no lo recordás, dejalo en 0",
-        )
-
-    # ─── Warning de supuesto cae ───
-    if precio_actual > 0 and precio_compra > 0:
-        diferencia_pct = ((precio_compra - precio_actual) / precio_compra) * 100
-        if diferencia_pct > 5:
-            st.warning(
-                f"⚠️ **Heads up:** el precio actual está {diferencia_pct:.1f}% por "
-                f"debajo de cuando compraste. La proyección de tu cartera sugerida "
-                f"estaba pensada con otros números — vale la pena hablar esto con "
-                f"tu asesor."
+        # SOLO en modo unidades aparece el modo avanzado
+        with st.expander("🔧 Modo avanzado: quiero saber ganancia/pérdida"):
+            st.markdown(
+                '<p class="upf-form-hint">'
+                'Si recordás a qué precio compraste una unidad, podemos '
+                'calcular cuánto ganaste o perdiste. Si no lo recordás, '
+                'no pasa nada — el resto funciona igual.'
+                '</p>',
+                unsafe_allow_html=True,
             )
+
+            precio_compra = st.number_input(
+                "💼 Precio al que compraste una unidad (ARS, opcional)",
+                min_value=0.0,
+                step=10.0,
+                value=0.0,
+                key=f"upf_precio_compra_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
+                help="Si no lo recordás, dejalo en 0",
+            )
+
+        # Warning de supuesto cae (solo en modo unidades)
+        if precio_actual > 0 and precio_compra > 0:
+            diferencia_pct = ((precio_compra - precio_actual) / precio_compra) * 100
+            if diferencia_pct > 5:
+                st.warning(
+                    f"⚠️ **Heads up:** el precio actual está {diferencia_pct:.1f}% por "
+                    f"debajo de cuando compraste. La proyección de tu cartera "
+                    f"sugerida estaba pensada con otros números — vale la pena "
+                    f"hablar esto con tu asesor."
+                )
 
     # ─── Botón de agregar ───
     st.markdown("")
@@ -396,31 +409,27 @@ def _render_loading():
         "➕ Agregar a mi portafolio",
         type="primary",
         use_container_width=True,
-        key=f"upf_add_btn_{activo_elegido['ticker']}",
+        key=f"upf_add_btn_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
     ):
-        # Validación según modo
-        if modo_carga.startswith("💵"):
-            # Modo simple
-            if monto_invertido <= 0:
+        if es_modo_simple:
+            # Modo simple: SOLO monto, sin precio_actual ni precio_compra
+            if monto_simple <= 0:
                 st.error("Tenés que poner cuánta plata tenés en este activo.")
             else:
-                # En modo simple, asumimos precio_actual=monto y cantidad implícita=1
-                # Esto deja el activo sin posibilidad de P&L (a menos que después
-                # rellenen precio_compra)
                 nuevo_activo = crear_activo(
                     tipo=tipo_seleccionado["id"],
                     ticker=activo_elegido["ticker"],
                     nombre=activo_elegido["nombre"],
-                    monto_invertido_ars=monto_invertido,
-                    precio_actual_ars=monto_invertido,  # 1 "unidad virtual" = monto total
-                    precio_compra_ars=precio_compra if precio_compra > 0 else None,
+                    monto_invertido_ars=monto_simple,
+                    precio_actual_ars=None,    # ← CLAVE: None en modo simple
+                    precio_compra_ars=None,    # ← CLAVE: None en modo simple
                 )
                 st.session_state["user_portfolio_activos"].append(nuevo_activo)
                 _persistir_portafolio()
                 st.success(f"✅ {activo_elegido['nombre']} agregado a tu cartera")
                 st.rerun()
         else:
-            # Modo con unidades
+            # Modo unidades: validación de cantidad y precio_actual
             if cantidad_unidades <= 0:
                 st.error("Tenés que poner cuántas unidades tenés.")
             elif precio_actual <= 0:
@@ -457,6 +466,10 @@ def _render_activo_card(activo: dict):
     icono = tipo_info['icono'] if tipo_info else '📊'
     tipo_label = tipo_info['label'] if tipo_info else activo['tipo']
 
+    # "Invertido" = lo que el usuario realmente puso. En modo unidades con
+    # compra, monto_invertido_ars guarda el valor actual, no el costo.
+    invertido = costo_invertido(activo)
+
     # Toda la card como un solo bloque con el botón delete absoluto adentro
     card_html = (
         f'<div class="upf-activo-card">'
@@ -473,7 +486,7 @@ def _render_activo_card(activo: dict):
             f'<div class="upf-activo-numbers">'
                 f'<div class="upf-activo-num">'
                     f'<span class="upf-activo-num-label">Invertido</span>'
-                    f'<span class="upf-activo-num-value">${activo["monto_invertido_ars"]:,.0f}</span>'
+                    f'<span class="upf-activo-num-value">${invertido:,.0f}</span>'
                 f'</div>'
                 f'<div class="upf-activo-num">'
                     f'<span class="upf-activo-num-label">Valor actual</span>'

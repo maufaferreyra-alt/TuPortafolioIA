@@ -2985,6 +2985,19 @@ html, body, #root, .stApp {
     border-radius: 6px;
 }
 
+/* Nota informativa del modo simple */
+.upf-form-note {
+    font-size: 0.88rem;
+    color: rgba(245, 246, 250, 0.65);
+    line-height: 1.55;
+    margin: 0.5rem 0 1rem 0;
+    padding: 0.7rem 1rem;
+    background: rgba(168, 162, 158, 0.06);
+    border-left: 3px solid rgba(168, 162, 158, 0.3);
+    border-radius: 6px;
+    font-style: italic;
+}
+
 .upf-monto-calculado {
     background: linear-gradient(
         135deg,
