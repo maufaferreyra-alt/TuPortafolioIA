@@ -1052,7 +1052,7 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
 
     # Header con avatar + título
     st.markdown("""<div class="lucas-header">
-  <div class="lucas-avatar">L</div>
+  <div class="lucas-avatar">💬</div>
   <div class="lucas-title-wrap">
     <h3 class="lucas-title">Hablá con Lucas</h3>
     <p class="lucas-subtitle">Tu asesor financiero IA</p>
@@ -1115,13 +1115,11 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
             is_user  = msg["role"] == "user"
             align    = "chat-user" if is_user else "chat-advisor"
             label    = "Usted" if is_user else "Lucas · Asesor IA"
-            # Avatar mini "L" en el label de los mensajes de Lucas
-            label_html = label if is_user else f'<span class="chat-avatar-mini">L</span>{label}'
             safe_content = _html.escape(msg["content"]).replace("\n", "<br>")
             id_attr = ' id="last-message-anchor"' if is_last else ''
             st.markdown(
                 f'<div class="chat-bubble {align}"{id_attr}>'
-                f'<div class="chat-label">{label_html}</div>'
+                f'<div class="chat-label">{label}</div>'
                 f'<div class="chat-text">{safe_content}</div></div>',
                 unsafe_allow_html=True,
             )
