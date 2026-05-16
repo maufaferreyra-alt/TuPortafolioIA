@@ -2741,17 +2741,23 @@ html, body, #root, .stApp {
 
 /* ── Card de totales ── */
 .upf-totals-card {
-    background: rgba(26, 31, 51, 0.7);
+    background: linear-gradient(
+        135deg,
+        rgba(26, 31, 51, 0.85) 0%,
+        rgba(15, 20, 35, 0.85) 100%
+    );
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 14px;
-    padding: 1.5rem;
+    border-radius: 16px;
+    padding: 1.75rem 1.5rem;
     margin: 1.5rem 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .upf-totals-row {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: 1fr 1.4fr 1fr 1fr;
     gap: 1rem;
+    align-items: center;
 }
 
 @media (max-width: 768px) {
@@ -2763,26 +2769,42 @@ html, body, #root, .stApp {
 
 .upf-total-item {
     text-align: center;
+    padding: 0 0.5rem;
+}
+
+/* Destacar "Valor actual" como el principal */
+.upf-total-item-highlight {
+    background: rgba(79, 163, 255, 0.06);
+    border: 1px solid rgba(79, 163, 255, 0.2);
+    border-radius: 12px;
+    padding: 0.75rem 0.5rem;
 }
 
 .upf-total-label {
-    font-size: 0.85rem;
-    color: rgba(245, 246, 250, 0.6);
-    font-weight: 500;
+    font-size: 0.78rem;
+    color: rgba(245, 246, 250, 0.55);
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
-    margin-bottom: 0.3rem;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.4rem;
+}
+
+.upf-total-item-highlight .upf-total-label {
+    color: rgba(79, 163, 255, 0.85);
 }
 
 .upf-total-value {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     font-weight: 700;
-    color: var(--text-color, #f5f6fa);
+    color: rgba(245, 246, 250, 0.92);
     line-height: 1.1;
 }
 
+/* Valor actual destacado: más grande y azul */
 .upf-total-value-actual {
+    font-size: 1.85rem;
     color: #4fa3ff;
+    text-shadow: 0 0 20px rgba(79, 163, 255, 0.3);
 }
 
 .upf-total-pnl-positive {
@@ -2794,9 +2816,9 @@ html, body, #root, .stApp {
 }
 
 .upf-total-sub {
-    font-size: 0.82rem;
-    color: rgba(245, 246, 250, 0.6);
-    margin-top: 0.2rem;
+    font-size: 0.8rem;
+    color: rgba(245, 246, 250, 0.55);
+    margin-top: 0.25rem;
 }
 
 /* ── Empty state ── */
@@ -2823,23 +2845,37 @@ html, body, #root, .stApp {
 
 /* ── Card de activo individual ── */
 .upf-activo-card {
-    background: rgba(26, 31, 51, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 10px;
-    padding: 1rem 1.25rem;
-    margin-bottom: 0.5rem;
+    background: rgba(26, 31, 51, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 12px;
+    padding: 1.1rem 1.3rem;
+    margin-bottom: 0.6rem;
+    transition: border-color 0.2s, transform 0.15s;
+}
+
+.upf-activo-card:hover {
+    border-color: rgba(79, 163, 255, 0.25);
+    transform: translateY(-1px);
 }
 
 .upf-activo-header {
     display: flex;
     align-items: center;
-    gap: 0.8rem;
-    margin-bottom: 0.6rem;
+    gap: 0.9rem;
+    margin-bottom: 0.85rem;
 }
 
 .upf-activo-icono {
-    font-size: 1.5rem;
+    font-size: 1.65rem;
     line-height: 1;
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(79, 163, 255, 0.08);
+    border-radius: 8px;
+    flex-shrink: 0;
 }
 
 .upf-activo-titles {
@@ -2847,40 +2883,70 @@ html, body, #root, .stApp {
 }
 
 .upf-activo-nombre {
-    font-size: 1.02rem;
+    font-size: 1.05rem;
     font-weight: 700;
-    color: var(--text-color, #f5f6fa);
+    color: rgba(245, 246, 250, 0.95);
+    line-height: 1.2;
 }
 
 .upf-activo-ticker {
-    font-size: 0.82rem;
+    font-size: 0.85rem;
     color: rgba(245, 246, 250, 0.55);
-    margin-top: 1px;
+    margin-top: 3px;
+    font-weight: 500;
+}
+
+.upf-activo-sep {
+    opacity: 0.4;
+    margin: 0 4px;
+}
+
+.upf-activo-divider {
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.08) 50%,
+        transparent 100%
+    );
+    margin: 0 -0.3rem 0.85rem -0.3rem;
 }
 
 .upf-activo-numbers {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
-    padding-top: 0.6rem;
-    border-top: 1px dashed rgba(255, 255, 255, 0.06);
+    gap: 0.85rem;
+}
+
+@media (max-width: 600px) {
+    .upf-activo-numbers {
+        grid-template-columns: 1fr;
+        gap: 0.6rem;
+    }
 }
 
 .upf-activo-num {
     display: flex;
     flex-direction: column;
+    gap: 0.2rem;
 }
 
 .upf-activo-num-label {
     font-size: 0.78rem;
     color: rgba(245, 246, 250, 0.55);
-    margin-bottom: 2px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
 .upf-activo-num-value {
-    font-size: 0.98rem;
-    font-weight: 600;
-    color: var(--text-color, #f5f6fa);
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: rgba(245, 246, 250, 0.92);
+}
+
+.upf-activo-num-actual {
+    color: #4fa3ff;
 }
 
 .upf-pnl-positive {
@@ -2889,6 +2955,21 @@ html, body, #root, .stApp {
 
 .upf-pnl-negative {
     color: #ef4444;
+}
+
+.upf-pnl-neutral {
+    color: rgba(245, 246, 250, 0.5);
+    font-weight: 500;
+    font-size: 0.9rem !important;
+}
+
+/* Wrapper del botón delete para alinearlo verticalmente con la card */
+.upf-activo-delete-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding-top: 1.5rem;
 }
 
 /* === Hints y helpers del form de carga simplificado === */
@@ -2964,6 +3045,90 @@ html, body, #root, .stApp {
 
 .upf-intro-bullet-text {
     flex: 1;
+}
+
+/* === Override de color primary en botones (brand TuPortafolioIA) === */
+
+.stApp button[kind="primary"] {
+    background: linear-gradient(
+        135deg,
+        #4fa3ff 0%,
+        #3b82f6 100%
+    ) !important;
+    border-color: #4fa3ff !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+.stApp button[kind="primary"]:hover {
+    background: linear-gradient(
+        135deg,
+        #5fb3ff 0%,
+        #4b92f6 100%
+    ) !important;
+    border-color: #5fb3ff !important;
+    box-shadow: 0 4px 14px rgba(79, 163, 255, 0.3) !important;
+}
+
+.stApp button[kind="primary"]:active {
+    background: linear-gradient(
+        135deg,
+        #3f93ef 0%,
+        #2b72e6 100%
+    ) !important;
+}
+
+.stApp button[kind="primary"] p,
+.stApp button[kind="primary"] span {
+    color: #ffffff !important;
+}
+
+/* === Secciones del form de agregar activo (CSS preparado, opcional) === */
+
+.upf-form-section {
+    background: rgba(15, 20, 35, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.upf-form-section-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: rgba(79, 163, 255, 0.85);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.upf-form-section-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(79, 163, 255, 0.15);
+    color: #4fa3ff;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+/* === Expander modo avanzado: estilo secundario === */
+/* El selector :has(:contains()) no es CSS válido y descartaría toda la
+   regla; se aplica el atenuado general al header del expander. */
+
+.stApp .streamlit-expanderHeader {
+    opacity: 0.9;
+    transition: opacity 0.2s;
+}
+
+.stApp .streamlit-expanderHeader:hover {
+    opacity: 1;
 }
     </style>
     """, unsafe_allow_html=True)

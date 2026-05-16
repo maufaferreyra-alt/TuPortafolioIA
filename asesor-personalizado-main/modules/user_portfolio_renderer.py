@@ -144,7 +144,7 @@ def _render_loading():
                         <div class="upf-total-value">${totales['total_invertido']:,.0f}</div>
                         <div class="upf-total-sub">ARS</div>
                     </div>
-                    <div class="upf-total-item">
+                    <div class="upf-total-item upf-total-item-highlight">
                         <div class="upf-total-label">Valor actual</div>
                         <div class="upf-total-value upf-total-value-actual">${totales['valor_total_actual']:,.0f}</div>
                         <div class="upf-total-sub">ARS</div>
@@ -168,6 +168,21 @@ def _render_loading():
             """,
             unsafe_allow_html=True,
         )
+
+        # Detectar si algún activo está en modo simple (sin valuación de mercado)
+        activos_sin_precio_dia = [
+            a for a in activos
+            if a.get("precio_compra_ars") is None
+            and abs(a.get("precio_actual_ars", 0) - a.get("monto_invertido_ars", 0)) < 0.01
+        ]
+
+        if activos_sin_precio_dia:
+            st.caption(
+                "💡 **Valor actual = Total invertido**: para los activos que cargaste sin "
+                "precio del día, asumimos que valen lo mismo que pusiste. Cuando conectemos "
+                "con precios de mercado, vas a ver el valor real de hoy. "
+                "Si querés precisión ahora, recargá el activo con cantidad de unidades + precio del día."
+            )
 
         st.markdown("### Activos en tu cartera")
 
@@ -215,10 +230,25 @@ def _render_loading():
     st.caption(f"💡 {tipo_seleccionado['descripcion']}")
 
     # PASO 2: Buscar activo del universo filtrado
+    # Placeholder adaptado al tipo elegido
+    PLACEHOLDERS_POR_TIPO = {
+        "bono":       "Ej: AL30, GD30, AE38, Bonar...",
+        "cedear":     "Ej: AAPL, Apple, SPY, MELI...",
+        "accion_arg": "Ej: YPFD, GGAL, Pampa, Macro...",
+        "on":         "Ej: YPFDS, ON YPF, Pan American...",
+        "fci":        "Ej: Money Market, Cocos, Balanz...",
+        "letra":      "Ej: S30Y6, LECAP, BONCAP...",
+        "mep":        "Ej: MEP, AL30D, GD30D...",
+    }
+    placeholder_query = PLACEHOLDERS_POR_TIPO.get(
+        tipo_seleccionado["id"],
+        "Ej: ticker o nombre del activo...",
+    )
+
     query = st.text_input(
         "Buscar activo (por ticker o nombre)",
         key=f"upf_query_input_{tipo_seleccionado['id']}",  # ← key dinámica
-        placeholder="Ej: AAPL, Apple, AL30...",
+        placeholder=placeholder_query,
     )
 
     matches = buscar_activos(query, tipo=tipo_seleccionado["id"], limit=8)
@@ -417,46 +447,54 @@ def _render_activo_card(activo: dict):
     tipo_info = get_tipo_info(activo["tipo"])
     pnl = calcular_pnl(activo)
 
-    pnl_class = ""
+    pnl_class = "upf-pnl-neutral"
     pnl_text = "Sin datos de compra"
     if pnl["pnl_ars"] is not None:
         pnl_class = "upf-pnl-positive" if pnl["pnl_ars"] >= 0 else "upf-pnl-negative"
         signo = "+" if pnl["pnl_ars"] >= 0 else ""
         pnl_text = f"{signo}${pnl['pnl_ars']:,.0f} ({signo}{pnl['pnl_pct']:.2f}%)"
 
-    col_data, col_action = st.columns([5, 1])
+    icono = tipo_info['icono'] if tipo_info else '📊'
+    tipo_label = tipo_info['label'] if tipo_info else activo['tipo']
+
+    # Toda la card como un solo bloque con el botón delete absoluto adentro
+    card_html = (
+        f'<div class="upf-activo-card">'
+            f'<div class="upf-activo-header">'
+                f'<span class="upf-activo-icono">{icono}</span>'
+                f'<div class="upf-activo-titles">'
+                    f'<div class="upf-activo-nombre">{activo["nombre"]}</div>'
+                    f'<div class="upf-activo-ticker">'
+                        f'{activo["ticker"]} <span class="upf-activo-sep">·</span> {tipo_label}'
+                    f'</div>'
+                f'</div>'
+            f'</div>'
+            f'<div class="upf-activo-divider"></div>'
+            f'<div class="upf-activo-numbers">'
+                f'<div class="upf-activo-num">'
+                    f'<span class="upf-activo-num-label">Invertido</span>'
+                    f'<span class="upf-activo-num-value">${activo["monto_invertido_ars"]:,.0f}</span>'
+                f'</div>'
+                f'<div class="upf-activo-num">'
+                    f'<span class="upf-activo-num-label">Valor actual</span>'
+                    f'<span class="upf-activo-num-value upf-activo-num-actual">${pnl["valor_actual"]:,.0f}</span>'
+                f'</div>'
+                f'<div class="upf-activo-num">'
+                    f'<span class="upf-activo-num-label">Ganancia / Pérdida</span>'
+                    f'<span class="upf-activo-num-value {pnl_class}">{pnl_text}</span>'
+                f'</div>'
+            f'</div>'
+        f'</div>'
+    )
+
+    # Renderizar card + botón en una sola fila pero con el botón más alineado
+    col_data, col_action = st.columns([12, 1])
 
     with col_data:
-        st.markdown(
-            f"""
-            <div class="upf-activo-card">
-                <div class="upf-activo-header">
-                    <span class="upf-activo-icono">{tipo_info['icono'] if tipo_info else '📊'}</span>
-                    <div class="upf-activo-titles">
-                        <div class="upf-activo-nombre">{activo['nombre']}</div>
-                        <div class="upf-activo-ticker">{activo['ticker']} · {tipo_info['label'] if tipo_info else activo['tipo']}</div>
-                    </div>
-                </div>
-                <div class="upf-activo-numbers">
-                    <div class="upf-activo-num">
-                        <span class="upf-activo-num-label">Invertido</span>
-                        <span class="upf-activo-num-value">${activo['monto_invertido_ars']:,.0f}</span>
-                    </div>
-                    <div class="upf-activo-num">
-                        <span class="upf-activo-num-label">Valor actual</span>
-                        <span class="upf-activo-num-value">${pnl['valor_actual']:,.0f}</span>
-                    </div>
-                    <div class="upf-activo-num">
-                        <span class="upf-activo-num-label">Ganancia/Pérdida</span>
-                        <span class="upf-activo-num-value {pnl_class}">{pnl_text}</span>
-                    </div>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        st.markdown(card_html, unsafe_allow_html=True)
 
     with col_action:
+        st.markdown('<div class="upf-activo-delete-wrap">', unsafe_allow_html=True)
         if st.button("🗑️", key=f"upf_del_{activo['id']}", help="Eliminar activo"):
             st.session_state["user_portfolio_activos"] = [
                 a for a in st.session_state["user_portfolio_activos"]
@@ -464,6 +502,7 @@ def _render_activo_card(activo: dict):
             ]
             _persistir_portafolio()
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
 
 def _render_action_buttons(activos: list):
