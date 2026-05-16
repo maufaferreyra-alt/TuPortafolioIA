@@ -6,8 +6,6 @@ Estados:
 - "loading": form de carga + lista de activos
 """
 
-from textwrap import dedent
-
 import streamlit as st
 from .user_portfolio import (
     TIPOS_INSTRUMENTO,
@@ -121,67 +119,41 @@ def _render_loading():
     activos = st.session_state.get("user_portfolio_activos", [])
 
     # ─── Header ──────────────────────────────────────────
-    # NOTA: usar dedent() porque Streamlit (Mistune) interpreta líneas con
-    # 4+ espacios al inicio como bloque de código markdown e ignora el HTML
-    # aunque pases unsafe_allow_html=True. Este patrón se replica abajo
-    # en las cards de totales y en el empty state.
-    st.markdown(
-        dedent("""
-            <div class="upf-header">
-                <h2>💼 Tu portafolio actual</h2>
-                <p>
-                    Agregá cada activo que tenés. Podés cargar de a uno y ver cómo
-                    queda armado todo junto.
-                </p>
-            </div>
-        """),
-        unsafe_allow_html=True,
+    # NOTA: usamos componentes nativos de Streamlit (st.subheader, st.caption,
+    # st.container, st.columns, st.metric) en vez de HTML+CSS custom. El CSS
+    # del bloque global de ui_config.py no aplicaba de forma confiable a estas
+    # clases .upf-* y las cards salían como texto plano sin estilo. Los
+    # componentes nativos renderizan styleados garantizado.
+    st.subheader("💼 Tu portafolio actual")
+    st.caption(
+        "Agregá cada activo que tenés. Podés cargar de a uno y ver cómo "
+        "queda armado todo junto."
     )
 
     # ─── Lista de activos cargados (si los hay) ──────────
     if activos:
         totales = total_portafolio(activos)
 
-        pnl_class_total = (
-            'upf-total-pnl-positive' if totales['pnl_total_ars'] >= 0
-            else 'upf-total-pnl-negative'
-        )
-        signo_pnl = '+' if totales['pnl_total_ars'] >= 0 else ''
         signo_pct = '+' if totales['pnl_total_pct'] >= 0 else ''
 
-        st.markdown(
-            dedent(f"""
-                <div class="upf-totals-card">
-                    <div class="upf-totals-row">
-                        <div class="upf-total-item">
-                            <div class="upf-total-label">Total invertido</div>
-                            <div class="upf-total-value">${totales['total_invertido']:,.0f}</div>
-                            <div class="upf-total-sub">ARS</div>
-                        </div>
-                        <div class="upf-total-item upf-total-item-highlight">
-                            <div class="upf-total-label">Valor actual</div>
-                            <div class="upf-total-value upf-total-value-actual">${totales['valor_total_actual']:,.0f}</div>
-                            <div class="upf-total-sub">ARS</div>
-                        </div>
-                        <div class="upf-total-item">
-                            <div class="upf-total-label">Ganancia / Pérdida</div>
-                            <div class="upf-total-value {pnl_class_total}">
-                                {signo_pnl}${totales['pnl_total_ars']:,.0f}
-                            </div>
-                            <div class="upf-total-sub">
-                                {signo_pct}{totales['pnl_total_pct']:.2f}%
-                            </div>
-                        </div>
-                        <div class="upf-total-item">
-                            <div class="upf-total-label">Activos cargados</div>
-                            <div class="upf-total-value">{totales['cantidad_activos']}</div>
-                            <div class="upf-total-sub">en cartera</div>
-                        </div>
-                    </div>
-                </div>
-            """),
-            unsafe_allow_html=True,
-        )
+        with st.container(border=True):
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric(
+                "Total invertido",
+                f"${totales['total_invertido']:,.0f}",
+                help="Lo que realmente pusiste, en pesos.",
+            )
+            c2.metric(
+                "Valor actual",
+                f"${totales['valor_total_actual']:,.0f}",
+                help="Cuánto vale hoy tu cartera.",
+            )
+            c3.metric(
+                "Ganancia / Pérdida",
+                f"${totales['pnl_total_ars']:,.0f}",
+                delta=f"{signo_pct}{totales['pnl_total_pct']:.2f}%",
+            )
+            c4.metric("Activos cargados", str(totales['cantidad_activos']))
 
         # Detectar si algún activo está en modo simple (sin valuación de mercado).
         # En modo simple precio_actual_ars queda en None.
@@ -202,17 +174,9 @@ def _render_loading():
         for activo in activos:
             _render_activo_card(activo)
     else:
-        st.markdown(
-            dedent("""
-                <div class="upf-empty-state">
-                    <div class="upf-empty-icon">📥</div>
-                    <div class="upf-empty-text">
-                        Todavía no cargaste ningún activo.<br>
-                        Empezá agregando el primero abajo.
-                    </div>
-                </div>
-            """),
-            unsafe_allow_html=True,
+        st.info(
+            "📥 Todavía no cargaste ningún activo. "
+            "Empezá agregando el primero abajo."
         )
 
     st.markdown("---")
@@ -465,16 +429,9 @@ def _render_loading():
 
 
 def _render_activo_card(activo: dict):
-    """Card de un activo individual en la lista."""
+    """Card de un activo individual — componentes nativos de Streamlit."""
     tipo_info = get_tipo_info(activo["tipo"])
     pnl = calcular_pnl(activo)
-
-    pnl_class = "upf-pnl-neutral"
-    pnl_text = "Sin datos de compra"
-    if pnl["pnl_ars"] is not None:
-        pnl_class = "upf-pnl-positive" if pnl["pnl_ars"] >= 0 else "upf-pnl-negative"
-        signo = "+" if pnl["pnl_ars"] >= 0 else ""
-        pnl_text = f"{signo}${pnl['pnl_ars']:,.0f} ({signo}{pnl['pnl_pct']:.2f}%)"
 
     icono = tipo_info['icono'] if tipo_info else '📊'
     tipo_label = tipo_info['label'] if tipo_info else activo['tipo']
@@ -483,52 +440,39 @@ def _render_activo_card(activo: dict):
     # compra, monto_invertido_ars guarda el valor actual, no el costo.
     invertido = costo_invertido(activo)
 
-    # Toda la card como un solo bloque con el botón delete absoluto adentro
-    card_html = (
-        f'<div class="upf-activo-card">'
-            f'<div class="upf-activo-header">'
-                f'<span class="upf-activo-icono">{icono}</span>'
-                f'<div class="upf-activo-titles">'
-                    f'<div class="upf-activo-nombre">{activo["nombre"]}</div>'
-                    f'<div class="upf-activo-ticker">'
-                        f'{activo["ticker"]} <span class="upf-activo-sep">·</span> {tipo_label}'
-                    f'</div>'
-                f'</div>'
-            f'</div>'
-            f'<div class="upf-activo-divider"></div>'
-            f'<div class="upf-activo-numbers">'
-                f'<div class="upf-activo-num">'
-                    f'<span class="upf-activo-num-label">Invertido</span>'
-                    f'<span class="upf-activo-num-value">${invertido:,.0f}</span>'
-                f'</div>'
-                f'<div class="upf-activo-num">'
-                    f'<span class="upf-activo-num-label">Valor actual</span>'
-                    f'<span class="upf-activo-num-value upf-activo-num-actual">${pnl["valor_actual"]:,.0f}</span>'
-                f'</div>'
-                f'<div class="upf-activo-num">'
-                    f'<span class="upf-activo-num-label">Ganancia / Pérdida</span>'
-                    f'<span class="upf-activo-num-value {pnl_class}">{pnl_text}</span>'
-                f'</div>'
-            f'</div>'
-        f'</div>'
-    )
+    with st.container(border=True):
+        col_titulo, col_action = st.columns([8, 1])
 
-    # Renderizar card + botón en una sola fila pero con el botón más alineado
-    col_data, col_action = st.columns([12, 1])
+        with col_titulo:
+            st.markdown(f"**{icono}  {activo['nombre']}**")
+            st.caption(f"{activo['ticker']} · {tipo_label}")
 
-    with col_data:
-        st.markdown(card_html, unsafe_allow_html=True)
+        with col_action:
+            if st.button("🗑️", key=f"upf_del_{activo['id']}", help="Eliminar activo"):
+                st.session_state["user_portfolio_activos"] = [
+                    a for a in st.session_state["user_portfolio_activos"]
+                    if a["id"] != activo["id"]
+                ]
+                _persistir_portafolio()
+                st.rerun()
 
-    with col_action:
-        st.markdown('<div class="upf-activo-delete-wrap">', unsafe_allow_html=True)
-        if st.button("🗑️", key=f"upf_del_{activo['id']}", help="Eliminar activo"):
-            st.session_state["user_portfolio_activos"] = [
-                a for a in st.session_state["user_portfolio_activos"]
-                if a["id"] != activo["id"]
-            ]
-            _persistir_portafolio()
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
+        n1, n2, n3 = st.columns(3)
+        n1.metric("Invertido", f"${invertido:,.0f}")
+        n2.metric("Valor actual", f"${pnl['valor_actual']:,.0f}")
+
+        if pnl["pnl_ars"] is not None:
+            signo = "+" if pnl["pnl_ars"] >= 0 else ""
+            n3.metric(
+                "Ganancia / Pérdida",
+                f"${pnl['pnl_ars']:,.0f}",
+                delta=f"{signo}{pnl['pnl_pct']:.2f}%",
+            )
+        else:
+            n3.metric(
+                "Ganancia / Pérdida",
+                "—",
+                help="Sin datos de compra — cargá el activo con precio de compra para verlo.",
+            )
 
 
 def _render_action_buttons(activos: list):
