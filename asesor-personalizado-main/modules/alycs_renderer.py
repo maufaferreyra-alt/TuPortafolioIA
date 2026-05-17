@@ -64,15 +64,25 @@ def _alyc_detail_html(alyc: dict) -> str:
 def render_alycs_section(portfolio: dict, profile: dict):
     """Renderiza la sección completa de comparación de brokers."""
 
+    # Header con HTML inline en una sola estructura (sin la clase
+    # .section-header ni saltos de línea): el HTML multilínea con <p>
+    # lo re-envolvía el procesador de Markdown de Streamlit y rompía
+    # el centrado. Inline + texto continuo = centrado confiable.
     st.markdown(
-        """<div class="section-header">
-<h2>🏦 ¿Dónde podés invertir tu cartera?</h2>
-<p class="section-subtitle">
-Sabemos que elegir un broker es confuso. Acá te mostramos las opciones más usadas
-en Argentina, con lo bueno y lo no tan bueno de cada una. No hay una mejor que
-otra — depende de qué te conviene a vos.
-</p>
-</div>""",
+        '<div style="text-align:center; max-width:680px; '
+        'margin:2.5rem auto 1.25rem auto;">'
+        '<div style="font-size:1.75rem; font-weight:700; color:#f5f6fa; '
+        'margin-bottom:0.6rem; letter-spacing:-0.01em;">'
+        '🏦 ¿Dónde podés invertir tu cartera?'
+        '</div>'
+        '<div style="font-size:1rem; color:rgba(245,246,250,0.75); '
+        'line-height:1.55;">'
+        'Sabemos que elegir un broker es confuso. Acá te mostramos las '
+        'opciones más usadas en Argentina, con lo bueno y lo no tan bueno '
+        'de cada una. No hay una mejor que otra — depende de qué te '
+        'conviene a vos.'
+        '</div>'
+        '</div>',
         unsafe_allow_html=True,
     )
 
