@@ -232,17 +232,25 @@ def _render_loading():
             unsafe_allow_html=True,
         )
 
-        # Si hay solo 1 activo, mantener el render flat (no tiene
-        # sentido un expander para una sola cosa)
-        if len(activos) == 1:
-            _render_activo_card(activos[0])
+        # ── Vista de activos ─────────────────────────────────────
+        # Normal: HTML puro estilo "Composición de su cartera"
+        #   (categorías en <details> nativos, sub-cards anidadas).
+        # Editar: cards Streamlit con el botón 🗑️ de borrar — el
+        #   borrar es un widget y no puede vivir en el HTML puro.
+        if st.session_state.get("_upf_modo_editar", False):
+            _render_modo_editar(activos)
         else:
-            # 2+ activos: agrupar por categoría con cards custom
-            # (border accent + % gigante + toggle propio con session_state).
-            from .user_portfolio import agrupar_activos_por_categoria as _agrupar_loop
-            grupos_loop = _agrupar_loop(activos)
-            for grupo in grupos_loop:
-                _render_categoria_card(grupo)
+            _render_portafolio_html(activos)
+            _, _col_editar = st.columns([3, 2])
+            with _col_editar:
+                if st.button(
+                    "✏️ Editar / eliminar activos",
+                    key="_upf_btn_modo_editar",
+                    use_container_width=True,
+                    type="tertiary",
+                ):
+                    st.session_state["_upf_modo_editar"] = True
+                    st.rerun()
 
         # ── Resumen chico DESPUÉS de los desplegables ────────────
         # El valor total + delta + datos clave en formato compacto.
@@ -805,6 +813,142 @@ def _render_mini_donut(grupo: dict):
         plot_bgcolor="rgba(0,0,0,0)",
     )
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+
+
+def _user_asset_card_html(activo: dict, color: str) -> str:
+    """
+    HTML de la sub-card de UN activo del usuario, con el mismo estilo
+    (clases .asset-detail-card / .adc-*) que las cards de la pantalla
+    "Composición de su cartera". Muestra valor actual + invertido + P&L.
+    """
+    from .user_portfolio import calcular_pnl, costo_invertido
+
+    pnl = calcular_pnl(activo)
+    invertido = costo_invertido(activo)
+    valor = pnl["valor_actual"]
+    nombre = activo.get("nombre", "?")
+    ticker = activo.get("ticker", "")
+
+    if pnl["pnl_ars"] is not None:
+        signo = "+" if pnl["pnl_ars"] >= 0 else ""
+        pnl_col = "#22c55e" if pnl["pnl_ars"] >= 0 else "#ef4444"
+        pnl_html = (
+            f' &nbsp;·&nbsp; <span style="color:{pnl_col};font-weight:600;">'
+            f'{signo}${pnl["pnl_ars"]:,.0f} ({signo}{pnl["pnl_pct"]:.2f}%)</span>'
+        )
+    else:
+        pnl_html = (
+            ' &nbsp;·&nbsp; <span style="color:rgba(255,255,255,0.4);">'
+            'sin dato de ganancia</span>'
+        )
+
+    return (
+        f'<div class="asset-detail-card" style="border-left-color:{color};">'
+        f'  <div class="adc-top">'
+        f'    <div class="adc-title-wrap">'
+        f'      <div class="adc-title">{nombre}'
+        f'        <span class="adc-ticker-badge">{ticker}</span>'
+        f'      </div>'
+        f'    </div>'
+        f'    <div class="adc-right">'
+        f'      <div class="adc-pct">${valor:,.0f}</div>'
+        f'      <div class="adc-amt">valor actual</div>'
+        f'    </div>'
+        f'  </div>'
+        f'  <div class="adc-desc">Invertido ${invertido:,.0f}{pnl_html}</div>'
+        f'</div>'
+    )
+
+
+def _render_portafolio_html(activos: list):
+    """
+    Renderiza el portafolio del usuario como HTML puro estilo
+    "Composición de su cartera": cada categoría es un <details> nativo
+    con border accent, % gigante y sub-cards de activos anidadas.
+
+    Categoría abierta por default si tiene 2+ activos o si es la única.
+    """
+    from .user_portfolio import (
+        agrupar_activos_por_categoria,
+        NOMBRES_CATEGORIA,
+        DESCRIPCIONES_CATEGORIA,
+        get_tipo_info,
+    )
+    from .comparison_renderer import COLORES_CATEGORIA
+
+    grupos = agrupar_activos_por_categoria(activos)
+    if not grupos:
+        return
+
+    html_parts = []
+    for grupo in grupos:
+        tipo_id = grupo["tipo"]
+        cantidad = grupo["cantidad"]
+        pct = grupo["porcentaje_cartera"]
+
+        tipo_info = get_tipo_info(tipo_id)
+        icono = tipo_info.get("icono", "📦") if tipo_info else "📦"
+        nombre_categoria = NOMBRES_CATEGORIA.get(tipo_id) or (
+            tipo_info.get("label", tipo_id) if tipo_info else tipo_id
+        )
+        descripcion = DESCRIPCIONES_CATEGORIA.get(tipo_id, "")
+        color = COLORES_CATEGORIA.get(tipo_id, "#6366f1")
+
+        sufijo = f"{cantidad} {'activo' if cantidad == 1 else 'activos'}"
+        desc_line = f"{descripcion}  ·  {sufijo}" if descripcion else sufijo
+
+        abierto = " open" if (cantidad >= 2 or len(grupos) == 1) else ""
+        cards = "".join(_user_asset_card_html(a, color) for a in grupo["activos"])
+
+        html_parts.append(
+            f'<details class="cat-exp"{abierto}>'
+            f'<summary class="cat-exp-summary">'
+            f'  <div class="cat-l1-card" style="border-left-color:{color};">'
+            f'    <div class="cat-l1-body">'
+            f'      <div class="cat-l1-name">{icono}&nbsp; {nombre_categoria}</div>'
+            f'      <div class="cat-l1-desc">{desc_line}</div>'
+            f'    </div>'
+            f'    <div class="cat-l1-right">'
+            f'      <div class="cat-l1-pct" style="color:{color};">{pct:.1f}%</div>'
+            f'      <div class="cat-l1-pct-sub">de tu cartera</div>'
+            f'    </div>'
+            f'    <span class="cat-exp-chevron">›</span>'
+            f'  </div>'
+            f'</summary>'
+            f'<div class="cat-exp-body" style="border-left-color:{color};">'
+            f'  {cards}'
+            f'</div>'
+            f'</details>'
+        )
+
+    st.markdown("\n".join(html_parts), unsafe_allow_html=True)
+
+
+def _render_modo_editar(activos: list):
+    """
+    Modo edición: lista los activos con sus cards completas (que
+    incluyen el botón 🗑️ de borrar) + botón para volver a la vista
+    hermosa. El borrar es un widget de Streamlit y no puede ir en el
+    HTML puro de la vista normal — por eso vive en este modo aparte.
+    """
+    st.caption(
+        "Tocá el 🗑️ de un activo para sacarlo de tu cartera. "
+        "Cuando termines, volvé a la vista normal."
+    )
+    for activo in activos:
+        _render_activo_card(activo)
+
+    st.markdown('<div style="margin-top: 0.5rem;"></div>', unsafe_allow_html=True)
+    _, col_listo = st.columns([3, 2])
+    with col_listo:
+        if st.button(
+            "✓ Terminar de editar",
+            key="_upf_btn_fin_editar",
+            use_container_width=True,
+            type="primary",
+        ):
+            st.session_state["_upf_modo_editar"] = False
+            st.rerun()
 
 
 def _render_categoria_card(grupo: dict):
