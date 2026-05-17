@@ -186,6 +186,20 @@ if (_bg_thread is not None
     st.session_state.scores_refreshed = True
 
 apply_custom_css()
+
+# ── Inicialización de localStorage (1 vez por sesión, refresh por run) ──
+# El singleton de módulo en storage.py se eliminó porque congelaba el
+# caché de LocalStorage al arranque del proceso. Ahora creamos la
+# instancia 1 vez en session_state y refrescamos en cada run para que
+# storage.py lea siempre el estado actual del navegador.
+from streamlit_local_storage import LocalStorage as _LocalStorage
+if "_local_storage" not in st.session_state:
+    st.session_state["_local_storage"] = _LocalStorage()
+try:
+    st.session_state["_local_storage"].refreshItems()
+except Exception as _e:
+    print(f"[app] Error refreshing localStorage: {_e}")
+
 render_header()
 
 # ── Sidebar: frescura de scores y botón de actualización ──────────────────────

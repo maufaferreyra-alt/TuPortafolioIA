@@ -16,13 +16,41 @@ cartera puede no reflejar la realidad.
 
 import json
 from datetime import datetime, timedelta
+
+import streamlit as st
 from streamlit_local_storage import LocalStorage
 
-_local_storage = LocalStorage()
+# NOTA: NO crear LocalStorage() acá como singleton de módulo.
+# Causa raíz del bug de persistencia que arreglamos:
+#   El singleton se construye 1 vez por proceso del servidor. El
+#   constructor lee el localStorage del navegador en ese momento y
+#   guarda el resultado en un caché interno. getItem() NUNCA vuelve a
+#   consultar el navegador — solo lee el caché. Si el caché quedó
+#   vacío (timing del componente Streamlit), queda vacío toda la vida
+#   del proceso → cargar_estado() devuelve None para siempre.
+#
+# El fix: app.py crea la instancia 1 vez por sesión en st.session_state,
+# y llama refreshItems() en cada run del script. Las funciones de este
+# módulo usan _get_storage() para acceder a esa instancia ya refrescada.
 
 SCHEMA_VERSION = "1.0"
 STORAGE_KEY = "tuportafolioia_data_v1"
 DIAS_EXPIRACION = 30
+
+
+def _get_storage() -> LocalStorage | None:
+    """
+    Devuelve la instancia de LocalStorage de la sesión actual.
+
+    Debe haber sido inicializada en app.py al inicio de cada run del
+    script. Si por algún motivo no existe (orden de importación raro,
+    test sin Streamlit, etc.), devuelve None y las funciones públicas
+    de este módulo degradan a no-op silencioso (con log).
+    """
+    try:
+        return st.session_state.get("_local_storage")
+    except Exception:
+        return None
 
 
 def guardar_estado(
@@ -43,7 +71,11 @@ def guardar_estado(
         }
 
         data_str = json.dumps(data, default=str, ensure_ascii=False)
-        _local_storage.setItem(STORAGE_KEY, data_str)
+        ls = _get_storage()
+        if ls is None:
+            print("[storage] LocalStorage no inicializado (app.py debió hacerlo)")
+            return False
+        ls.setItem(STORAGE_KEY, data_str)
         return True
 
     except Exception as e:
@@ -59,7 +91,10 @@ def cargar_estado() -> dict | None:
     Returns None si no hay nada O si expiró (>30 días).
     """
     try:
-        data_str = _local_storage.getItem(STORAGE_KEY)
+        ls = _get_storage()
+        if ls is None:
+            return None
+        data_str = ls.getItem(STORAGE_KEY)
 
         if not data_str:
             return None
@@ -97,7 +132,11 @@ def cargar_estado() -> dict | None:
 def limpiar_estado() -> bool:
     """Borra todo lo guardado."""
     try:
-        _local_storage.deleteItem(STORAGE_KEY)
+        ls = _get_storage()
+        if ls is None:
+            print("[storage] LocalStorage no inicializado")
+            return False
+        ls.deleteItem(STORAGE_KEY)
         return True
     except Exception as e:
         print(f"[storage] Error limpiando: {e}")
