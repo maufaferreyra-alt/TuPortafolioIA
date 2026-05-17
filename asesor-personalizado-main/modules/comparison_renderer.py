@@ -286,8 +286,10 @@ def render_comparison_page():
         )
         + _metrica_comparada(
             "Repartida en",
-            f"🧩 {len(allocation_real)} tipos",
-            f"🧩 {len(allocation_sugerida)} tipos",
+            f"🧩 {len(allocation_real)} "
+            + ("tipo" if len(allocation_real) == 1 else "tipos"),
+            f"🧩 {len(allocation_sugerida)} "
+            + ("tipo" if len(allocation_sugerida) == 1 else "tipos"),
             "más repartida = que a una le vaya mal no te hunde",
         )
         + '</div>',
