@@ -883,30 +883,38 @@ elif step == "results":
     with col_pie:
         st.markdown('<div class="section-title">📊 Distribución de la Cartera</div>', unsafe_allow_html=True)
 
-        # Toggles "prender/apagar" por categoría: al destildar una, su
-        # peso se reparte entre las demás y el donut + la composición
-        # de abajo se recalculan. Es para explorar "cómo quedaría sin X".
+        # El donut va ARRIBA y limpio. Los toggles "prender/apagar" van
+        # DEBAJO, como una leyenda clickeable: al destildar una
+        # categoría, su peso se reparte entre las demás y el donut + la
+        # composición de abajo se recalculan.
         from modules.charts import categorias_presentes, portfolio_filtrado
+        _donut_slot = st.container()  # el donut se renderiza acá (arriba)
+
         _cats_meta = categorias_presentes(portfolio)
         st.caption("Destildá una categoría para ver cómo se reparte el resto:")
         _cats_apagadas = []
-        for _cm in _cats_meta:
-            _on = st.checkbox(
-                f"{_cm['icon']} {_cm['cat']}",
-                value=True,
-                key=f"_cattoggle_{_cm['cat']}",
-            )
-            if not _on:
-                _cats_apagadas.append(_cm["cat"])
+        for _fila_idx in range(0, len(_cats_meta), 2):
+            _fila = _cats_meta[_fila_idx:_fila_idx + 2]
+            _cols_t = st.columns(2)
+            for _i, _cm in enumerate(_fila):
+                with _cols_t[_i]:
+                    _on = st.checkbox(
+                        f"{_cm['icon']} {_cm['cat']}",
+                        value=True,
+                        key=f"_cattoggle_{_cm['cat']}",
+                    )
+                    if not _on:
+                        _cats_apagadas.append(_cm["cat"])
         _portfolio_vista = portfolio_filtrado(portfolio, _cats_apagadas)
 
-        render_pie_chart(_portfolio_vista, mostrar_leyenda=False)
-        if _cats_apagadas:
-            st.caption(
-                "🔄 Estás viendo cómo quedaría tu cartera sin "
-                + ", ".join(_cats_apagadas)
-                + ". Volvé a tildar para restaurar la cartera sugerida."
-            )
+        with _donut_slot:
+            render_pie_chart(_portfolio_vista, mostrar_leyenda=False)
+            if _cats_apagadas:
+                st.caption(
+                    "🔄 Estás viendo cómo quedaría tu cartera sin "
+                    + ", ".join(_cats_apagadas)
+                    + ". Volvé a tildar para restaurar la cartera sugerida."
+                )
 
         # Caption sutil con la distribución geográfica (antes era una card
         # con icono globe + texto largo "Su cartera incluye activos en...
