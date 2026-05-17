@@ -77,11 +77,21 @@ otra — depende de qué te conviene a vos.
     )
 
     # Disclaimer educativo
-    st.info(
-        "💡 **Importante:** los brokers también se llaman ALyCs (Agentes de Liquidación y "
-        "Compensación). Son las empresas autorizadas por la CNV donde abrís tu cuenta para "
-        "invertir. Todos los que mostramos están regulados y son seguros — la diferencia "
-        "está en cómo te atienden, qué te cobran y qué herramientas te dan."
+    st.markdown(
+        '<div style="border-left: 3px solid #6366f1; '
+        'background: rgba(99, 102, 241, 0.04); '
+        'border-radius: 0 8px 8px 0; '
+        'padding: 0.875rem 1.125rem; '
+        'margin: 0.5rem 0 1rem 0; '
+        'font-size: 0.875rem; '
+        'color: rgba(255,255,255,0.75); '
+        'line-height: 1.5;">'
+        '<strong style="color: #ffffff;">💡 Importante:</strong> los brokers también se llaman ALyCs (Agentes de Liquidación y '
+        'Compensación). Son las empresas autorizadas por la CNV donde abrís tu cuenta para '
+        'invertir. Todos los que mostramos están regulados y son seguros — la diferencia '
+        'está en cómo te atienden, qué te cobran y qué herramientas te dan.'
+        '</div>',
+        unsafe_allow_html=True,
     )
 
     # Un expander colapsable por broker — arrancan cerrados para no saturar.

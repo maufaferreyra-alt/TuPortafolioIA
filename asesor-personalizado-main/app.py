@@ -1448,7 +1448,7 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
         if st.button(
             "💼 Cargar mi portafolio actual",
             use_container_width=True,
-            type="secondary",
+            type="primary",
             key="results_load_portfolio_btn",
         ):
             st.session_state["step"] = "user_portfolio"

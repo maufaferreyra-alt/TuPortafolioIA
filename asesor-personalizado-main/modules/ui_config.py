@@ -3449,6 +3449,127 @@ div[data-testid="stContainer"] {
     color: var(--tpia-text-primary);
 }
 
+/* ═════════════════════════════════════════════════════════════
+   PANTALLA RESULTADOS — reducir estímulos visuales
+   ═════════════════════════════════════════════════════════════
+   Overrides a clases existentes del proyecto para hacerlas más
+   sutiles. La idea: que estos elementos sean "marcadores" del flow,
+   no cajas prominentes que compiten con el CTA principal.
+*/
+
+/* Banner "¿Hay algún término que no conoce?" — sutil */
+.glosario-cta {
+    background: rgba(99, 102, 241, 0.04) !important;
+    border: none !important;
+    border-left: 3px solid #6366f1 !important;
+    border-radius: 0 8px 8px 0 !important;
+    padding: 0.875rem 1.125rem !important;
+    margin: 1rem 0 0.5rem 0 !important;
+    box-shadow: none !important;
+}
+
+.glosario-cta-title {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.25rem !important;
+}
+
+.glosario-cta-sub {
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-size: 0.85rem !important;
+    margin: 0 !important;
+}
+
+/* Banner "¿Querés ver tu portafolio actual?" — sutil */
+.upf-cta-card {
+    background: rgba(99, 102, 241, 0.04) !important;
+    border: none !important;
+    border-left: 3px solid #6366f1 !important;
+    border-radius: 0 8px 8px 0 !important;
+    padding: 0.875rem 1.125rem !important;
+    margin: 0.5rem 0 0.75rem 0 !important;
+    box-shadow: none !important;
+}
+
+.upf-cta-card .upf-cta-icon,
+.upf-cta-card .upf-cta-content {
+    background: transparent !important;
+}
+
+.upf-cta-card .upf-cta-title {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.25rem !important;
+}
+
+.upf-cta-card p {
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-size: 0.85rem !important;
+    line-height: 1.5 !important;
+    margin: 0 !important;
+}
+
+/* Disclaimer legal — más liviano */
+.portfolio-disclaimer {
+    background: transparent !important;
+    border: none !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    border-radius: 0 !important;
+    padding: 1rem 0 !important;
+    margin: 1.25rem 0 !important;
+}
+
+.portfolio-disclaimer .pd-body strong {
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+}
+
+.portfolio-disclaimer .pd-body p {
+    color: rgba(255, 255, 255, 0.55) !important;
+    font-size: 0.825rem !important;
+    line-height: 1.55 !important;
+    margin: 0.5rem 0 0 0 !important;
+}
+
+.portfolio-disclaimer .pd-fine {
+    color: rgba(255, 255, 255, 0.4) !important;
+    font-size: 0.75rem !important;
+    margin-top: 0.5rem !important;
+}
+
+.portfolio-disclaimer .pd-icon {
+    opacity: 0.5 !important;
+}
+
+/* Botones SECONDARY — outline real (sin fondo indigo) */
+/* Los 3 botones de la pantalla resultados (Nueva Evaluación / Ver
+   Glosario / Cómo funciona) son secondary. Deben verse outline
+   sutil, NO con fondo indigo. */
+.stButton > button[kind="secondary"],
+.stButton > button[data-testid="baseButton-secondary"] {
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    border: 1px solid var(--tpia-border-strong) !important;
+    color: var(--tpia-text-secondary) !important;
+    box-shadow: none !important;
+    font-weight: 500 !important;
+}
+
+.stButton > button[kind="secondary"]:hover,
+.stButton > button[data-testid="baseButton-secondary"]:hover {
+    background: var(--tpia-bg-elevated) !important;
+    background-color: var(--tpia-bg-elevated) !important;
+    border: 1px solid var(--tpia-accent) !important;
+    color: var(--tpia-text-primary) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
