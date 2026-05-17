@@ -373,25 +373,56 @@ def get_rentabilidad_anual_estimada(activos: list) -> float:
     return suma_ponderada
 
 
+# Puntaje numérico de riesgo por categoría (1 = bajo, 3 = alto).
+_RIESGO_SCORE = {"bajo": 1.0, "medio": 2.0, "alto": 3.0}
+
+
 def get_nivel_riesgo_cartera(activos: list) -> str:
     """
-    Devuelve 'bajo' / 'medio' / 'alto' según la categoría dominante.
-    Heurística simple: si más del 60% está en categorías de "alto"
-    riesgo, la cartera es "alto". Si más del 60% en "bajo", "bajo".
-    Resto: "medio".
+    Devuelve 'bajo' / 'medio' / 'alto'.
+
+    Combina DOS cosas (la versión vieja solo miraba la categoría
+    dominante, así que una cartera 100% en algo y otra diversificada
+    podían dar el mismo nivel — incorrecto):
+
+    1. Riesgo propio de las categorías, ponderado por cuánta plata hay
+       en cada una (las acciones pesan más que un plazo fijo).
+    2. Concentración: estar metido en pocas canastas es más riesgoso
+       que repartir. Se mide con el índice HHI (Herfindahl: suma de
+       los pesos al cuadrado) — 1.0 = todo en una categoría, ~0.2 =
+       bien repartido. A más concentración, el riesgo se multiplica.
+
+    Así una cartera concentrada nunca puede leerse igual que la misma
+    plata diversificada.
     """
     allocation = get_alocacion_por_categoria(activos)
     if not allocation:
         return "bajo"
 
-    peso_alto = sum(p for t, p in allocation.items() if RIESGO_POR_CATEGORIA.get(t) == "alto")
-    peso_bajo = sum(p for t, p in allocation.items() if RIESGO_POR_CATEGORIA.get(t) == "bajo")
+    # 1. Riesgo base ponderado (rango 1.0 a 3.0).
+    score_base = sum(
+        (peso / 100) * _RIESGO_SCORE.get(
+            RIESGO_POR_CATEGORIA.get(tipo, "medio"), 2.0
+        )
+        for tipo, peso in allocation.items()
+    )
 
-    if peso_alto > 60:
+    # 2. Factor de concentración vía HHI.
+    hhi = sum((peso / 100) ** 2 for peso in allocation.values())
+    if hhi >= 0.60:      # muy concentrada (1-2 categorías dominan todo)
+        factor = 1.4
+    elif hhi >= 0.35:    # algo concentrada
+        factor = 1.2
+    else:                # bien diversificada
+        factor = 1.0
+
+    score = score_base * factor
+
+    if score >= 2.5:
         return "alto"
-    if peso_bajo > 60:
-        return "bajo"
-    return "medio"
+    if score >= 1.6:
+        return "medio"
+    return "bajo"
 
 
 def detectar_gaps_simples(allocation_real: dict, allocation_sugerida: dict) -> list:
