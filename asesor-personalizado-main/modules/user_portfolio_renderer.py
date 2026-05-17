@@ -822,12 +822,17 @@ def _user_asset_card_html(activo: dict, color: str) -> str:
     "Composición de su cartera". Muestra valor actual + invertido + P&L.
     """
     from .user_portfolio import calcular_pnl, costo_invertido
+    from .universo_instrumentos import get_descripcion
 
     pnl = calcular_pnl(activo)
     invertido = costo_invertido(activo)
     valor = pnl["valor_actual"]
     nombre = activo.get("nombre", "?")
     ticker = activo.get("ticker", "")
+    descripcion = get_descripcion(ticker)
+    desc_html = (
+        f'<div class="adc-desc">{descripcion}</div>' if descripcion else ''
+    )
 
     if pnl["pnl_ars"] is not None:
         signo = "+" if pnl["pnl_ars"] >= 0 else ""
@@ -855,7 +860,9 @@ def _user_asset_card_html(activo: dict, color: str) -> str:
         f'      <div class="adc-amt">valor actual</div>'
         f'    </div>'
         f'  </div>'
-        f'  <div class="adc-desc">Invertido ${invertido:,.0f}{pnl_html}</div>'
+        f'  {desc_html}'
+        f'  <div class="adc-meta" style="margin-top:0.4rem;">'
+        f'Invertido ${invertido:,.0f}{pnl_html}</div>'
         f'</div>'
     )
 

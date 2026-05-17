@@ -175,6 +175,168 @@ UNIVERSO_INSTRUMENTOS = [
 ]
 
 
+# ── Descripciones educativas por activo (Bloque 6A pulido) ──────────
+# Una frase corta por activo, tono cercano y sin jerga, para mostrar
+# debajo del nombre en las cards del portafolio del usuario (estilo
+# "Composición de su cartera"). Indexadas por ticker.
+_DESCRIPCIONES_ACTIVOS = {
+    # ── Bonos soberanos ──
+    "AL30": "Deuda del Estado argentino en dólares, ley local — vence en 2030",
+    "AL35": "Deuda del Estado argentino en dólares, ley local — vence en 2035",
+    "AL41": "Deuda del Estado argentino en dólares, ley local — el más largo de la serie",
+    "GD30": "Deuda argentina en dólares bajo ley de Nueva York — vence en 2030",
+    "GD35": "Deuda argentina en dólares bajo ley de Nueva York — vence en 2035",
+    "GD38": "Deuda argentina en dólares bajo ley de Nueva York — vence en 2038",
+    "GD41": "Deuda argentina en dólares bajo ley de Nueva York — el más largo de la serie",
+    "AE38": "Deuda del Estado argentino en dólares, ley local — vence en 2038",
+    "AL29": "Deuda del Estado argentino en dólares, ley local — vence en 2029",
+    "GD29": "Deuda argentina en dólares bajo ley de Nueva York — el más corto de la serie",
+    # ── ETFs (CEDEARs de fondos) ──
+    "SPY":  "Las 500 empresas más grandes de EE.UU. en una sola compra",
+    "VOO":  "Las 500 mayores empresas de EE.UU., con costos muy bajos",
+    "QQQ":  "Las 100 tecnológicas más grandes — Apple, Microsoft, NVIDIA y más",
+    "EEM":  "Acciones de países en desarrollo de todo el mundo",
+    "EWZ":  "Las principales empresas de la bolsa brasileña en un solo paquete",
+    "GLD":  "Sigue el precio del oro — refugio clásico cuando hay incertidumbre",
+    "IAU":  "Sigue el precio del oro, con costos más bajos que el GLD",
+    "SLV":  "Sigue el precio de la plata — metal precioso y a la vez industrial",
+    "XLE":  "Las grandes petroleras y energéticas de EE.UU. agrupadas",
+    "XLF":  "Bancos y aseguradoras de EE.UU. en una sola compra",
+    "XLK":  "Las empresas de tecnología de EE.UU. agrupadas en un fondo",
+    "ARKK": "Apuesta a empresas de innovación disruptiva — mucho riesgo, mucho potencial",
+    "DIA":  "Las 30 grandes industriales históricas de EE.UU.",
+    "IWM":  "2000 empresas chicas de EE.UU. — más riesgo, más potencial de crecimiento",
+    # ── CEDEARs: Tecnología ──
+    "AAPL":  "Fabrica el iPhone, la Mac y servicios — de las empresas más valiosas del mundo",
+    "MSFT":  "Windows, Office y la nube Azure — gigante del software para empresas",
+    "GOOGL": "Dueña de Google, YouTube y Android — domina la búsqueda y la publicidad online",
+    "AMZN":  "El mayor comercio electrónico del mundo y líder en servicios de nube",
+    "META":  "Dueña de Facebook, Instagram y WhatsApp — gigante de las redes sociales",
+    "TSLA":  "Autos eléctricos y baterías — la automotriz más valiosa del mundo",
+    "NVDA":  "Los chips que mueven la inteligencia artificial — corazón del boom de la IA",
+    "NFLX":  "La plataforma de streaming de series y películas más grande del mundo",
+    "AMD":   "Diseña procesadores y chips gráficos — rival directo de Intel y NVIDIA",
+    "INTC":  "Pionera de los microprocesadores — busca recuperar terreno en la industria de chips",
+    "CRM":   "Software de gestión de clientes líder para empresas",
+    "ORCL":  "Bases de datos y software empresarial — gigante histórico de la tecnología",
+    "ADBE":  "Photoshop, PDF y herramientas creativas — referente del software de diseño",
+    "CSCO":  "Equipos de red que mantienen conectado a internet",
+    "QCOM":  "Los chips que dan conectividad a casi todos los celulares del mundo",
+    "IBM":   "Veterana de la tecnología — hoy enfocada en nube e inteligencia artificial",
+    # ── CEDEARs: Consumo y entretenimiento ──
+    "DIS":  "Películas, parques y streaming — el gigante del entretenimiento",
+    "KO":   "La marca de bebidas más reconocida del planeta",
+    "PEP":  "Bebidas y snacks — dueña de Pepsi, Gatorade y Lay's",
+    "MCD":  "La cadena de comida rápida más grande del mundo",
+    "SBUX": "La cadena de cafeterías líder a nivel global",
+    "NKE":  "La marca de indumentaria deportiva más valiosa del mundo",
+    "WMT":  "La cadena de supermercados más grande de EE.UU.",
+    "PG":   "Productos de uso diario — dueña de Gillette, Pampers y Ariel",
+    "COST": "Venta mayorista por membresía — clientes muy fieles",
+    "HD":   "La mayor cadena de materiales para el hogar y la construcción de EE.UU.",
+    "TGT":  "Cadena minorista de EE.UU. — competidora directa de Walmart",
+    "ABNB": "La plataforma de alquileres temporarios más grande del mundo",
+    "UBER": "Viajes y delivery — líder global de la movilidad por app",
+    "SPOT": "La plataforma de música en streaming más grande del mundo",
+    # ── CEDEARs: Financiero ──
+    "JPM":  "El banco más grande de EE.UU. por tamaño de activos",
+    "BAC":  "Uno de los bancos más grandes de EE.UU., con millones de clientes",
+    "C":    "Banco global con fuerte presencia internacional",
+    "WFC":  "Uno de los bancos más tradicionales de EE.UU.",
+    "GS":   "El banco de inversión más prestigioso de Wall Street",
+    "MS":   "Banco de inversión y gestión de patrimonios de primer nivel",
+    "V":    "La red de pagos con tarjeta más usada del mundo",
+    "MA":   "Red global de pagos — gana con cada transacción con tarjeta",
+    "PYPL": "Pionera de los pagos digitales en internet",
+    "AXP":  "Tarjetas premium y servicios financieros para clientes de alto poder",
+    # ── CEDEARs: Salud / Farma ──
+    "JNJ":  "Farmacéutica y productos de salud — de las más sólidas del sector",
+    "PFE":  "Laboratorio farmacéutico global — conocida por su vacuna contra el COVID",
+    "MRNA": "Biotecnológica que popularizó las vacunas de ARN mensajero",
+    "UNH":  "La mayor aseguradora de salud de EE.UU.",
+    "ABT":  "Equipos médicos, diagnósticos y nutrición",
+    "MRK":  "Laboratorio farmacéutico líder en tratamientos contra el cáncer",
+    # ── CEDEARs: Energía e industria ──
+    "XOM":  "Una de las petroleras más grandes del mundo",
+    "CVX":  "Gigante petrolero estadounidense, integrado desde el pozo al surtidor",
+    "BA":   "Uno de los dos grandes fabricantes de aviones del mundo",
+    "CAT":  "Maquinaria pesada para construcción y minería — termómetro de la economía",
+    "GE":   "Histórica industrial de EE.UU. — hoy enfocada en aviación y energía",
+    "F":    "Automotriz estadounidense centenaria",
+    "GM":   "La mayor automotriz de EE.UU. — dueña de Chevrolet",
+    # ── CEDEARs: Latinoamérica ──
+    "MELI": "El mayor comercio electrónico y fintech de Latinoamérica",
+    "BABA": "El gigante del comercio electrónico de China",
+    "PBR":  "La petrolera estatal de Brasil",
+    "VALE": "Una de las mineras de hierro más grandes del mundo, de Brasil",
+    "ITUB": "El banco privado más grande de Brasil",
+    # ── Acciones argentinas: Bancos ──
+    "GGAL": "Uno de los bancos privados más grandes de Argentina",
+    "BMA":  "Banco argentino con fuerte presencia en el interior del país",
+    "BBAR": "La filial argentina del banco español BBVA",
+    "SUPV": "Banco argentino de tamaño mediano",
+    "BHIP": "Banco argentino históricamente ligado al crédito para vivienda",
+    "VALO": "Grupo financiero argentino ligado al mercado de capitales",
+    # ── Acciones argentinas: Energía ──
+    "YPFD":  "La principal petrolera de Argentina, de control estatal",
+    "PAMP":  "La mayor empresa energética independiente de Argentina",
+    "TGSU2": "Transporta y distribuye gas natural en el sur del país",
+    "TGNO4": "Transporta gas natural en el norte y centro del país",
+    "EDN":   "La mayor distribuidora de electricidad de Argentina",
+    "CEPU":  "La mayor generadora privada de electricidad del país",
+    "TRAN":  "Opera la red de alta tensión que lleva electricidad por todo el país",
+    "METR":  "La principal distribuidora de gas natural del área metropolitana",
+    "CAPX":  "Empresa argentina integrada de energía — petróleo, gas y electricidad",
+    # ── Acciones argentinas: Industria y materiales ──
+    "TXAR": "La principal productora de acero de Argentina",
+    "ALUA": "La única productora de aluminio del país",
+    "LOMA": "La mayor cementera de Argentina",
+    "MIRG": "Fabricante argentino de electrónica y autopartes",
+    "BYMA": "La empresa que opera la Bolsa de valores argentina",
+    # ── Acciones argentinas: Agro / Real Estate ──
+    "CRES": "Empresa agropecuaria argentina con campos en la región",
+    "IRSA": "La mayor desarrolladora de shoppings y oficinas de Argentina",
+    "AGRO": "Fabricante argentino de maquinaria agrícola — sembradoras y más",
+    # ── Acciones argentinas: Telecom / Otros ──
+    "TECO2": "La mayor empresa de telecomunicaciones del país — dueña de Personal y Flow",
+    "COME":  "Grupo argentino con negocios en energía, agro y construcción",
+    "MOLI":  "Empresa argentina de alimentos — dueña de marcas como Lucchetti y Gallo",
+    # ── ONs (Obligaciones Negociables) ──
+    "YPFDS":  "Préstamo a YPF que paga interés en dólares — respaldado por la petrolera",
+    "PMCNO":  "Deuda de Pan American Energy, una de las mayores petroleras del país",
+    "TGSU2O": "Deuda de la transportista de gas — paga interés en dólares",
+    "VISTAO": "Deuda de Vista, productora de petróleo de Vaca Muerta",
+    "TLCN":   "Deuda de Telecom — préstamo a la telefónica que paga interés",
+    "PAEMO":  "Deuda de Pampa Energía con vencimiento en 2027",
+    # ── FCIs ──
+    "FCI-MM-COCOS":  "Fondo de liquidez de Cocos — rinde algo todos los días, rescate inmediato",
+    "FCI-MM-BALANZ": "Fondo de liquidez de Balanz — para la plata que podés necesitar ya",
+    "FCI-MM-IOL":    "Fondo de liquidez de InvertirOnline — disponible al instante",
+    "FCI-RF-COCOS":  "Fondo de Cocos que invierte en bonos — más rendimiento, algo más de riesgo",
+    "FCI-RF-BALANZ": "Fondo de Balanz en bonos — pensado para horizontes un poco más largos",
+    "FCI-MIXTO":     "Combina bonos y acciones — equilibrio entre riesgo y rendimiento",
+    # ── Letras ──
+    "S30Y6": "Letra del Tesoro en pesos a tasa fija — vencimiento corto",
+    "S31L6": "Letra del Tesoro en pesos a tasa fija — vencimiento corto",
+    "S29G6": "Letra del Tesoro en pesos a tasa fija — vencimiento corto",
+    "T2X6":  "Bono del Tesoro en pesos que capitaliza intereses — corto plazo",
+    # ── MEP / Dólar ──
+    "MEP":   "Dólares legales comprados a través de la bolsa",
+    "AL30D": "Dólar MEP operado con el bono AL30 — la vía más usada",
+    "GD30D": "Dólar MEP operado con el bono GD30 — alternativa con bono ley NY",
+}
+
+
+def get_descripcion(ticker: str) -> str:
+    """
+    Devuelve la descripción educativa de un activo por su ticker.
+    Cadena vacía si no hay descripción registrada para ese ticker.
+    """
+    if not ticker:
+        return ""
+    return _DESCRIPCIONES_ACTIVOS.get(ticker.upper().strip(), "")
+
+
 # Aliases populares: el usuario escribe algo común, encontramos el ticker
 _ALIASES_POPULARES = {
     "galicia":   ["GGAL"],
