@@ -140,6 +140,33 @@ def _render_intro():
             st.rerun()
 
 
+def _paso_badge(numero: str, titulo: str, subtitulo: str = "") -> str:
+    """
+    HTML de un encabezado de paso numerado para el form de carga.
+    Círculo indigo con el número + título + subtítulo guía. Pensado
+    para que un usuario novato sepa en qué parte del proceso está.
+    """
+    sub = (
+        f'<div style="font-size:0.8rem;color:rgba(255,255,255,0.5);'
+        f'margin-top:0.1rem;line-height:1.4;">{subtitulo}</div>'
+        if subtitulo else ''
+    )
+    return (
+        f'<div style="display:flex;align-items:center;gap:0.7rem;'
+        f'margin:1.75rem 0 0.9rem 0;">'
+        f'<div style="flex-shrink:0;width:1.7rem;height:1.7rem;'
+        f'border-radius:50%;background:#6366f1;color:#ffffff;'
+        f'display:flex;align-items:center;justify-content:center;'
+        f'font-weight:700;font-size:0.9rem;line-height:1;">{numero}</div>'
+        f'<div>'
+        f'<div style="font-size:1.05rem;font-weight:600;color:#ffffff;'
+        f'letter-spacing:-0.005em;">{titulo}</div>'
+        f'{sub}'
+        f'</div>'
+        f'</div>'
+    )
+
+
 def _render_loading():
     """Pantalla principal de carga: lista de activos + form."""
 
@@ -308,9 +335,20 @@ def _render_loading():
 
     # ─── Form para agregar nuevo activo ───────────────────
     st.markdown(
-        '<div style="font-size: 1.3rem; font-weight: 600; color: #ffffff; margin-bottom: 0.75rem;">'
+        '<div style="font-size: 1.3rem; font-weight: 600; color: #ffffff; margin-bottom: 0.25rem;">'
         '➕ Agregar un activo'
         '</div>',
+        unsafe_allow_html=True,
+    )
+
+    # ── Paso 1: identificar el activo ─────────────────────
+    st.markdown(
+        _paso_badge(
+            "1",
+            "¿Qué activo tenés?",
+            "Elegí primero el tipo y después buscá el activo puntual. "
+            "Si no sabés alguno, no pasa nada — andá probando.",
+        ),
         unsafe_allow_html=True,
     )
 
@@ -379,9 +417,14 @@ def _render_loading():
 
     activo_elegido = matches[activo_idx]
 
-    # ─── PASO 3: ¿Cómo sabe el usuario cuánto tiene? ───
+    # ─── Paso 2: cuánto tiene el usuario ───
     st.markdown(
-        '<hr style="border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 2rem 0;">',
+        _paso_badge(
+            "2",
+            "¿Cuánto tenés?",
+            "Cargá lo que tenés hoy de este activo. El resto de las "
+            "cuentas las hacemos nosotros.",
+        ),
         unsafe_allow_html=True,
     )
 
