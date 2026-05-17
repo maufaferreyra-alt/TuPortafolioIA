@@ -745,17 +745,24 @@ def _render_mini_donut(grupo: dict):
     if valor_grupo <= 0:
         return
 
-    labels = []
-    values = []
+    # Agrupar por ticker primero — si el mismo ticker está cargado
+    # múltiples veces (ej. 2 compras de la misma ON en momentos
+    # distintos), sumamos sus valores para mostrar UN solo slice
+    # con el peso total de ese ticker.
+    valores_por_ticker = {}
     for a in activos:
         valor = calcular_valor_actual(a) or 0
         if valor > 0:
             ticker = a.get("ticker", "?")
-            labels.append(ticker)
-            values.append(valor)
+            valores_por_ticker[ticker] = valores_por_ticker.get(ticker, 0) + valor
 
-    if not labels:
+    # Si después de agrupar queda 1 solo ticker, el donut sería
+    # "TICKER 100%" — no agrega información, mejor no mostrarlo.
+    if len(valores_por_ticker) < 2:
         return
+
+    labels = list(valores_por_ticker.keys())
+    values = list(valores_por_ticker.values())
 
     # Paleta de azules/violetas para variantes dentro de UNA categoría
     # (no usar la paleta del 6C porque esos colores son por categoría,
@@ -841,13 +848,16 @@ def _render_categoria_card(grupo: dict):
     expandida = st.session_state[clave_estado]
 
     # ── HEADER DECORATIVO: border accent + título + descripción + % ──
-    # Layout flex: izquierda título/descripción, derecha % gigante
+    # Layout flex: izquierda título/descripción, derecha % gigante.
+    # margin-bottom 0 para conectarse visualmente con el botón toggle
+    # que viene debajo (CSS del tertiary neutraliza el botón a estilo
+    # link, así que se ve como un caption clickeable al pie de la card).
     st.markdown(
         f'<div style="border-left: 3px solid {color_accent}; '
         f'background: rgba(255,255,255,0.025); '
         f'border-radius: 10px; '
         f'padding: 1rem 1.25rem 0.875rem 1.25rem; '
-        f'margin-bottom: 0.375rem; '
+        f'margin-bottom: 0; '
         f'display: flex; align-items: center; justify-content: space-between; gap: 1rem;">'
         f'<div style="flex: 1; min-width: 0;">'
         f'<div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">'

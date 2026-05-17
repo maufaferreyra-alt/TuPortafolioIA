@@ -3232,6 +3232,56 @@ h1.tpia-brand, [class*="brand"] {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+/* ─── Botones tertiary — estilo LINK discreto (toggles de cards) ─── */
+/* Forzar neutralización del styling primary que el CSS global aplicó
+   por encima del default de tertiary. Estos botones se usan como
+   triggers de toggle en las cards de categoría (Ver detalle / Ocultar). */
+.stButton > button[kind="tertiary"],
+.stButton > button[data-testid="baseButton-tertiary"] {
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    border: none !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    color: rgba(255, 255, 255, 0.55) !important;
+    font-size: 0.825rem !important;
+    font-weight: 500 !important;
+    padding: 0.375rem 0.625rem !important;
+    min-height: auto !important;
+    height: auto !important;
+    transition: color 150ms ease !important;
+}
+
+.stButton > button[kind="tertiary"]:hover,
+.stButton > button[data-testid="baseButton-tertiary"]:hover {
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    border: none !important;
+    color: rgba(255, 255, 255, 0.95) !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* ─── FALLBACK: botones de toggle de cards de categoría ─── */
+/* Si tertiary no aplica en esta versión de Streamlit, capturamos
+   los botones de toggle por su label visible. */
+.stButton > button:has(span:not(:empty)):where(
+    [aria-label*="Ver detalle"],
+    [aria-label*="Ocultar detalle"]
+) {
+    background: transparent !important;
+    background-image: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: rgba(255, 255, 255, 0.55) !important;
+    font-size: 0.825rem !important;
+    padding: 0.375rem 0.625rem !important;
+    min-height: auto !important;
+    height: auto !important;
+}
+
 /* Botón primary — usar el accent indigo Linear-like */
 .stButton > button[kind="primary"],
 .stButton > button[data-testid="baseButton-primary"] {
