@@ -83,12 +83,25 @@ def render_user_portfolio_page():
 def _render_intro():
     """Pantalla de bienvenida a la carga del portafolio."""
 
-    # Header centrado
+    # ── Header (hero centrado, HTML inline premium) ──────────────
+    # No usamos las clases .upf-intro-* (están duplicadas en
+    # ui_config.py y se pisan entre sí). CSS inline = render confiable.
     st.markdown(
-        '<div class="upf-intro-header">'
-        '<div class="upf-intro-icon">💼</div>'
-        '<h1 class="upf-intro-title">¿Estás listo para armar tu primer portafolio?</h1>'
-        '<p class="upf-intro-subtitle">'
+        '<div style="max-width:600px; margin:1.5rem auto 1.5rem auto; '
+        'text-align:center;">'
+        # ícono en badge circular indigo
+        '<div style="width:4.5rem; height:4.5rem; margin:0 auto 1.25rem auto; '
+        'border-radius:50%; background:rgba(99,102,241,0.12); '
+        'border:1px solid rgba(99,102,241,0.28); display:flex; '
+        'align-items:center; justify-content:center; font-size:2.2rem;">💼</div>'
+        # título
+        '<h1 style="font-size:1.9rem; font-weight:700; color:#f5f5f7; '
+        'line-height:1.25; letter-spacing:-0.02em; margin:0 0 0.85rem 0;">'
+        '¿Estás listo para armar tu primer portafolio?'
+        '</h1>'
+        # subtítulo (max-width chico para que envuelva parejo)
+        '<p style="font-size:1.02rem; color:rgba(255,255,255,0.6); '
+        'line-height:1.6; max-width:480px; margin:0 auto;">'
         'Sabemos que da nervios. Por eso te vamos a acompañar paso por paso. '
         'No hay apuro, no hay decisiones definitivas — solo estamos viendo qué tenés hoy.'
         '</p>'
@@ -96,25 +109,36 @@ def _render_intro():
         unsafe_allow_html=True,
     )
 
-    # Bullets en bloque separado, HTML simple
+    # ── Bullets (card con cada punto en su fila) ─────────────────
+    _bullets = [
+        ("⏱️", "Te va a tomar menos de 5 minutos"),
+        ("🔓", "Podés cargar cuando quieras, en cualquier momento"),
+        ("🔒", "Lo que cargues queda solo en tu navegador, nadie más lo ve"),
+        ("💪", "No es decisión definitiva — es ver qué tenés para hablarlo con tu asesor"),
+    ]
+    _filas_html = ""
+    for _i, (_ic, _txt) in enumerate(_bullets):
+        _borde = (
+            "" if _i == len(_bullets) - 1
+            else "border-bottom:1px solid rgba(255,255,255,0.05);"
+        )
+        _filas_html += (
+            f'<div style="display:flex; align-items:center; gap:0.85rem; '
+            f'padding:0.7rem 0; {_borde}">'
+            f'<div style="flex-shrink:0; width:2.15rem; height:2.15rem; '
+            f'border-radius:8px; background:rgba(99,102,241,0.1); '
+            f'display:flex; align-items:center; justify-content:center; '
+            f'font-size:1.1rem;">{_ic}</div>'
+            f'<div style="font-size:0.95rem; color:rgba(255,255,255,0.82); '
+            f'line-height:1.45;">{_txt}</div>'
+            f'</div>'
+        )
     st.markdown(
-        '<div class="upf-intro-bullets">'
-        '<div class="upf-intro-bullet">'
-        '<span class="upf-intro-bullet-icon">⏱️</span>'
-        '<span class="upf-intro-bullet-text">Te va a tomar menos de 5 minutos</span>'
-        '</div>'
-        '<div class="upf-intro-bullet">'
-        '<span class="upf-intro-bullet-icon">🔓</span>'
-        '<span class="upf-intro-bullet-text">Podés cargar cuando quieras, en cualquier momento</span>'
-        '</div>'
-        '<div class="upf-intro-bullet">'
-        '<span class="upf-intro-bullet-icon">🔒</span>'
-        '<span class="upf-intro-bullet-text">Lo que cargues queda solo en tu navegador, nadie más lo ve</span>'
-        '</div>'
-        '<div class="upf-intro-bullet">'
-        '<span class="upf-intro-bullet-icon">💪</span>'
-        '<span class="upf-intro-bullet-text">No es decisión definitiva — es ver qué tenés para hablarlo con tu asesor</span>'
-        '</div>'
+        '<div style="max-width:560px; margin:0 auto 1.75rem auto; '
+        'background:rgba(255,255,255,0.025); '
+        'border:1px solid rgba(255,255,255,0.07); '
+        'border-radius:14px; padding:0.35rem 1.35rem;">'
+        + _filas_html +
         '</div>',
         unsafe_allow_html=True,
     )
