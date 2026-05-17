@@ -2374,7 +2374,7 @@ html, body, #root, .stApp {
 
 .section-header {
     margin: 3rem 0 1.5rem 0;
-    text-align: center;
+    text-align: center !important;
 }
 
 .section-header h2 {
@@ -2389,7 +2389,7 @@ html, body, #root, .stApp {
     max-width: 700px;
     margin: 0 auto;
     line-height: 1.55;
-    text-align: center;
+    text-align: center !important;
 }
 
 /* Contenido interno de cada broker (dentro del st.expander).
