@@ -76,27 +76,33 @@ otra — depende de qué te conviene a vos.
         unsafe_allow_html=True,
     )
 
-    # Disclaimer educativo
-    st.markdown(
-        '<div style="border-left: 3px solid #6366f1; '
-        'background: rgba(99, 102, 241, 0.04); '
-        'border-radius: 0 8px 8px 0; '
-        'padding: 0.875rem 1.125rem; '
-        'margin: 0.5rem 0 1rem 0; '
-        'font-size: 0.875rem; '
-        'color: rgba(255,255,255,0.75); '
-        'line-height: 1.5;">'
-        '<strong style="color: #ffffff;">💡 Importante:</strong> los brokers también se llaman ALyCs (Agentes de Liquidación y '
-        'Compensación). Son las empresas autorizadas por la CNV donde abrís tu cuenta para '
-        'invertir. Todos los que mostramos están regulados y son seguros — la diferencia '
-        'está en cómo te atienden, qué te cobran y qué herramientas te dan.'
-        '</div>',
-        unsafe_allow_html=True,
-    )
+    # ── Lista de brokers ──────────────────────────────────────────
+    # Cada broker es un st.expander colapsable. Para no abrumar a quien
+    # nunca invirtió, mostramos solo los primeros y el resto va atrás
+    # de un botón "ver más" (reduce estímulos / parálisis de elección).
+    # Qué es una ALyC ya está explicado en el Glosario, no hace falta
+    # un banner acá.
+    _N_VISIBLES = 3
+    _mostrar_todas = st.session_state.get("_alycs_mostrar_todas", False)
+    _visibles = ALYCS if _mostrar_todas else ALYCS[:_N_VISIBLES]
 
-    # Un expander colapsable por broker — arrancan cerrados para no saturar.
-    # El indicador de asesor va SOLO en el header (no duplicado en el cuerpo).
-    for alyc in ALYCS:
+    for alyc in _visibles:
+        # Rótulo sobre Cocos: marca el punto de entrada más fácil para
+        # un primerizo. Es sobre facilidad de onboarding, NO un "es el
+        # mejor" — todos los brokers son válidos (ver copy del header).
+        if alyc["id"] == "cocos":
+            st.markdown(
+                '<div style="display:inline-block; font-size:0.72rem; '
+                'font-weight:600; color:#60a5fa; '
+                'background:rgba(96,165,250,0.1); '
+                'border:1px solid rgba(96,165,250,0.3); '
+                'border-radius:999px; padding:0.15rem 0.7rem; '
+                'margin:0.25rem 0 0.35rem 2px;">'
+                '✨ Más fácil para arrancar'
+                '</div>',
+                unsafe_allow_html=True,
+            )
+
         asesor_indicator = (
             "· 👤 con asesor" if alyc.get("tiene_asesor_humano") else "· 💬 solo chat"
         )
@@ -122,6 +128,18 @@ otra — depende de qué te conviene a vos.
                 ):
                     st.session_state["alyc_seleccionada"] = alyc["id"]
                     st.session_state["mostrar_mensaje_asesor"] = True
+
+    # Botón para ver el resto de los brokers: el primerizo ve pocas
+    # opciones; el que quiere comparar todo, despliega.
+    if not _mostrar_todas and len(ALYCS) > _N_VISIBLES:
+        _restantes = len(ALYCS) - _N_VISIBLES
+        if st.button(
+            f"Ver las demás opciones ({_restantes})",
+            key="_alycs_ver_mas_btn",
+            use_container_width=True,
+        ):
+            st.session_state["_alycs_mostrar_todas"] = True
+            st.rerun()
 
     # Mostrar el mensaje pre-armado si se eligió una ALyC
     if st.session_state.get("mostrar_mensaje_asesor"):
