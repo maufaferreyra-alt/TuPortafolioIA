@@ -86,21 +86,63 @@ def _construir_donut(allocation: dict, titulo: str):
         hovertemplate="<b>%{label}</b><br>%{percent}<extra></extra>",
     )])
     fig.update_layout(
-        showlegend=True,
-        legend=dict(
-            orientation="v",
-            yanchor="middle",
-            y=0.5,
-            xanchor="left",
-            x=1.05,
-            font=dict(size=11, color="rgba(255,255,255,0.75)"),
-        ),
+        # Sin leyenda propia: hay una leyenda única compartida abajo de
+        # los dos donuts (evita repetir las categorías dos veces).
+        showlegend=False,
         margin=dict(t=10, b=10, l=10, r=10),
-        height=280,
+        height=210,
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
     )
     return fig
+
+
+def _leyenda_compartida(allocation_real: dict, allocation_sugerida: dict) -> str:
+    """
+    HTML de una leyenda única para los dos donuts: un color + nombre
+    por cada categoría presente en cualquiera de las dos carteras.
+    """
+    tipos = list(dict.fromkeys(
+        list(allocation_real.keys()) + list(allocation_sugerida.keys())
+    ))
+    items = ""
+    for t in tipos:
+        color = COLORES_CATEGORIA.get(t, "#888")
+        nombre = NOMBRES_CATEGORIA.get(t, t)
+        items += (
+            f'<span style="display:inline-flex; align-items:center; '
+            f'gap:0.4rem; margin:0.25rem 0.7rem;">'
+            f'<span style="width:0.7rem; height:0.7rem; border-radius:3px; '
+            f'background:{color}; display:inline-block; flex-shrink:0;"></span>'
+            f'<span style="font-size:0.8rem; color:rgba(255,255,255,0.7);">'
+            f'{nombre}</span>'
+            f'</span>'
+        )
+    return (
+        '<div style="display:flex; flex-wrap:wrap; justify-content:center; '
+        'margin:0.25rem 0 0.75rem 0;">' + items + '</div>'
+    )
+
+
+def _metrica_comparada(label: str, val_tuya: str, val_sug: str, sublabel: str) -> str:
+    """HTML de una métrica en formato comparativo: tu cartera vs sugerida."""
+    return (
+        f'<div style="flex:1; min-width:220px;">'
+        f'<div style="font-size:0.8rem; color:rgba(255,255,255,0.55); '
+        f'margin-bottom:0.4rem;">{label}</div>'
+        f'<div style="display:flex; gap:1.1rem; align-items:baseline;">'
+        f'<div><div style="font-size:1.35rem; font-weight:700; color:#ffffff;">'
+        f'{val_tuya}</div>'
+        f'<div style="font-size:0.7rem; color:rgba(255,255,255,0.4);">tu cartera</div></div>'
+        f'<div style="color:rgba(255,255,255,0.3); font-size:0.9rem;">vs</div>'
+        f'<div><div style="font-size:1.35rem; font-weight:700; '
+        f'color:rgba(255,255,255,0.7);">{val_sug}</div>'
+        f'<div style="font-size:0.7rem; color:rgba(255,255,255,0.4);">sugerida</div></div>'
+        f'</div>'
+        f'<div style="font-size:0.7rem; color:rgba(255,255,255,0.35); '
+        f'margin-top:0.4rem;">{sublabel}</div>'
+        f'</div>'
+    )
 
 
 def render_comparison_page():
@@ -206,26 +248,6 @@ def render_comparison_page():
         fig_real = _construir_donut(allocation_real, "Real")
         if fig_real:
             st.plotly_chart(fig_real, use_container_width=True, config={"displayModeBar": False})
-        st.markdown(
-            f'<div style="padding: 0.5rem 0;">'
-            f'<div style="font-size: 0.875rem; color: rgba(255,255,255,0.6);">Lo que podría rendir al año</div>'
-            f'<div style="font-size: 1.5rem; font-weight: 700; color: #ffffff; margin-top: 0.15rem;">'
-            f'{_emoji_rentabilidad(rent_real)} {rent_real:.1f}%</div>'
-            f'<div style="font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-top: 0.25rem;">'
-            f'estimación real, después de inflación</div>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            f'<div style="padding: 0.5rem 0;">'
-            f'<div style="font-size: 0.875rem; color: rgba(255,255,255,0.6);">Nivel de riesgo</div>'
-            f'<div style="font-size: 1.25rem; font-weight: 600; color: #ffffff; margin-top: 0.15rem;">'
-            f'{_emoji_riesgo(riesgo_real)} {riesgo_real.capitalize()}</div>'
-            f'<div style="font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-top: 0.25rem;">'
-            f'cuánto puede subir o bajar tu plata</div>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
 
     with col_sug:
         st.markdown(
@@ -236,26 +258,35 @@ def render_comparison_page():
         fig_sug = _construir_donut(allocation_sugerida, "Sugerida")
         if fig_sug:
             st.plotly_chart(fig_sug, use_container_width=True, config={"displayModeBar": False})
-        st.markdown(
-            f'<div style="padding: 0.5rem 0;">'
-            f'<div style="font-size: 0.875rem; color: rgba(255,255,255,0.6);">Lo que podría rendir al año</div>'
-            f'<div style="font-size: 1.5rem; font-weight: 700; color: #ffffff; margin-top: 0.15rem;">'
-            f'{_emoji_rentabilidad(rent_sugerida)} {rent_sugerida:.1f}%</div>'
-            f'<div style="font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-top: 0.25rem;">'
-            f'estimación real, después de inflación</div>'
-            f'</div>',
-            unsafe_allow_html=True,
+
+    # ── Leyenda única compartida por los dos donuts ──────────────
+    st.markdown(
+        _leyenda_compartida(allocation_real, allocation_sugerida),
+        unsafe_allow_html=True,
+    )
+
+    # ── Tira comparativa: rentabilidad y riesgo, las dos carteras ─
+    # Una sola lectura lado a lado, en vez de cuatro bloques sueltos.
+    st.markdown(
+        '<div style="display:flex; gap:1.5rem; flex-wrap:wrap; '
+        'background:rgba(255,255,255,0.025); '
+        'border:1px solid rgba(255,255,255,0.06); border-radius:12px; '
+        'padding:1rem 1.25rem;">'
+        + _metrica_comparada(
+            "Lo que podría rendir al año",
+            f"{_emoji_rentabilidad(rent_real)} {rent_real:.1f}%",
+            f"{_emoji_rentabilidad(rent_sugerida)} {rent_sugerida:.1f}%",
+            "estimación real, después de inflación",
         )
-        st.markdown(
-            f'<div style="padding: 0.5rem 0;">'
-            f'<div style="font-size: 0.875rem; color: rgba(255,255,255,0.6);">Nivel de riesgo</div>'
-            f'<div style="font-size: 1.25rem; font-weight: 600; color: #ffffff; margin-top: 0.15rem;">'
-            f'{_emoji_riesgo(riesgo_sugerido)} {riesgo_sugerido.capitalize()}</div>'
-            f'<div style="font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-top: 0.25rem;">'
-            f'cuánto puede subir o bajar tu plata</div>'
-            f'</div>',
-            unsafe_allow_html=True,
+        + _metrica_comparada(
+            "Nivel de riesgo",
+            f"{_emoji_riesgo(riesgo_real)} {riesgo_real.capitalize()}",
+            f"{_emoji_riesgo(riesgo_sugerido)} {riesgo_sugerido.capitalize()}",
+            "cuánto puede subir o bajar tu plata",
         )
+        + '</div>',
+        unsafe_allow_html=True,
+    )
 
     # ── Diferencia anual destacada (el VENDEDOR del pitch) ────────
     if diferencia_pct_anual > 0.5:  # Solo si hay diferencia material
