@@ -2374,7 +2374,7 @@ html, body, #root, .stApp {
 
 .section-header {
     margin: 3rem 0 1.5rem 0;
-    text-align: left;
+    text-align: center;
 }
 
 .section-header h2 {
@@ -2387,7 +2387,7 @@ html, body, #root, .stApp {
     font-size: 1rem;
     color: rgba(245, 246, 250, 0.75);
     max-width: 700px;
-    margin: 0;
+    margin: 0 auto;
     line-height: 1.55;
 }
 
@@ -3568,6 +3568,31 @@ div[data-testid="stContainer"] {
     color: var(--tpia-text-primary) !important;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* ─── Chips de preguntas de Lucas (chat) — resaltado azul ─── */
+/* Estos botones tenían su estilo solo en _LIGHT_THEME_CSS, así que
+   en tema oscuro perdían el resaltado. Acá los dejamos azules
+   (accent indigo) en cualquier tema, por encima del override
+   genérico de botones secondary. */
+.lucas-chips-block .stButton > button {
+    background: rgba(99, 102, 241, 0.10) !important;
+    background-color: rgba(99, 102, 241, 0.10) !important;
+    background-image: none !important;
+    border: 1px solid rgba(99, 102, 241, 0.30) !important;
+    color: #c7d2fe !important;
+    border-radius: 10px !important;
+    font-weight: 500 !important;
+    box-shadow: none !important;
+}
+
+.lucas-chips-block .stButton > button:hover {
+    background: rgba(99, 102, 241, 0.18) !important;
+    background-color: rgba(99, 102, 241, 0.18) !important;
+    border-color: rgba(99, 102, 241, 0.55) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.20) !important;
 }
 
 </style>
