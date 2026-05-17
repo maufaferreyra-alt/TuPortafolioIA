@@ -923,17 +923,35 @@ def _render_portafolio_html(activos: list):
 
 def _render_modo_editar(activos: list):
     """
-    Modo edición: lista los activos con sus cards completas (que
-    incluyen el botón 🗑️ de borrar) + botón para volver a la vista
-    hermosa. El borrar es un widget de Streamlit y no puede ir en el
-    HTML puro de la vista normal — por eso vive en este modo aparte.
+    Modo edición: cada activo se muestra con la MISMA card linda de la
+    vista normal (HTML) + un botón 🗑️ al costado para sacarlo. El
+    borrar es un widget de Streamlit y no puede ir dentro del HTML, por
+    eso va en una columna aparte.
     """
+    from .comparison_renderer import COLORES_CATEGORIA
+
     st.caption(
         "Tocá el 🗑️ de un activo para sacarlo de tu cartera. "
         "Cuando termines, volvé a la vista normal."
     )
     for activo in activos:
-        _render_activo_card(activo)
+        color = COLORES_CATEGORIA.get(activo.get("tipo"), "#60a5fa")
+        col_card, col_del = st.columns([11, 1], vertical_alignment="center")
+        with col_card:
+            st.markdown(_user_asset_card_html(activo, color), unsafe_allow_html=True)
+        with col_del:
+            if st.button(
+                "🗑️",
+                key=f"upf_del_{activo['id']}",
+                help="Sacar este activo de tu cartera",
+            ):
+                st.session_state["user_portfolio_activos"] = [
+                    a for a in st.session_state["user_portfolio_activos"]
+                    if a["id"] != activo["id"]
+                ]
+                _persistir_portafolio()
+                st.rerun()
+        st.markdown('<div style="margin-bottom:0.6rem;"></div>', unsafe_allow_html=True)
 
     st.markdown('<div style="margin-top: 0.5rem;"></div>', unsafe_allow_html=True)
     _, col_listo = st.columns([3, 2])
