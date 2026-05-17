@@ -18,7 +18,7 @@ from .user_portfolio import (
 
 # Paleta de colores para los donuts (consistente con dark theme)
 COLORES_CATEGORIA = {
-    "accion_arg": "#60a5fa",   # azul accent
+    "accion_arg": "#6366f1",   # azul accent
     "cedear":     "#a78bfa",   # violeta
     "bono":       "#34d399",   # verde
     "on":         "#fbbf24",   # amarillo

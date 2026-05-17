@@ -152,7 +152,7 @@ def _render_loading():
     # clases .upf-* y las cards salían como texto plano sin estilo. Los
     # componentes nativos renderizan styleados garantizado.
     st.markdown(
-        '<div style="font-size: 1.75rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem; letter-spacing: -0.01em;">'
+        '<div style="font-size: 1.5rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem; letter-spacing: -0.01em;">'
         '💼 Tu portafolio actual'
         '</div>',
         unsafe_allow_html=True,
@@ -226,7 +226,7 @@ def _render_loading():
             )
 
         st.markdown(
-            '<div style="font-size: 1.3rem; font-weight: 600; color: #ffffff; margin: 1.5rem 0 0.75rem 0;">'
+            '<div style="font-size: 1.15rem; font-weight: 600; color: #ffffff; margin: 1.5rem 0 0.75rem 0;">'
             'Activos en tu cartera'
             '</div>',
             unsafe_allow_html=True,
@@ -237,11 +237,12 @@ def _render_loading():
         if len(activos) == 1:
             _render_activo_card(activos[0])
         else:
-            # 2+ activos: agrupar por categoría con expanders + mini-donut
+            # 2+ activos: agrupar por categoría con cards custom
+            # (border accent + % gigante + toggle propio con session_state).
             from .user_portfolio import agrupar_activos_por_categoria as _agrupar_loop
             grupos_loop = _agrupar_loop(activos)
             for grupo in grupos_loop:
-                _render_categoria_group(grupo)
+                _render_categoria_card(grupo)
 
         # ── Resumen chico DESPUÉS de los desplegables ────────────
         # El valor total + delta + datos clave en formato compacto.
@@ -250,19 +251,34 @@ def _render_loading():
         pnl_color_res = "#22c55e" if totales['pnl_total_pct'] >= 0 else "#ef4444"
         pnl_arrow_res = "↑" if totales['pnl_total_pct'] >= 0 else "↓"
 
+        # Texto de los tooltips (mismo copy que tenían los st.metric
+        # antes de pasar a HTML plano).
+        tooltip_valor_actual = (
+            "Cuánto vale hoy tu cartera, sumando el precio actual de cada activo."
+        )
+        tooltip_total_invertido = (
+            "Lo que realmente pusiste, sumando el costo de cada activo. "
+            "Si cargaste con precio de compra, usamos ese costo real; "
+            "si cargaste en modo simple, usamos el monto que indicaste."
+        )
+        tooltip_cantidad_activos = (
+            "Cantidad de posiciones distintas en tu cartera. "
+            "Si cargaste el mismo activo dos veces, cuenta como dos."
+        )
+
         st.markdown(
             f'<div style="margin: 1.25rem 0 0.5rem 0; padding: 0.875rem 1.125rem; '
             f'background: rgba(255,255,255,0.025); border-radius: 10px; '
             f'border: 1px solid rgba(255,255,255,0.06);">'
             f'<div style="font-size: 0.95rem; color: rgba(255,255,255,0.85); line-height: 1.5;">'
             f'💎 Tu portafolio vale '
-            f'<strong style="color: #ffffff;">${totales["valor_total_actual"]:,.0f}</strong>'
+            f'<strong style="color: #ffffff; cursor: help;" title="{tooltip_valor_actual}">${totales["valor_total_actual"]:,.0f}</strong>'
             f'  ·  '
             f'<span style="color: {pnl_color_res}; font-weight: 500;">{pnl_arrow_res} {signo_pct}{totales["pnl_total_pct"]:.2f}%</span>'
             f'  ·  Total invertido '
-            f'<strong style="color: rgba(255,255,255,0.95);">${totales["total_invertido"]:,.0f}</strong>'
+            f'<strong style="color: rgba(255,255,255,0.95); cursor: help;" title="{tooltip_total_invertido}">${totales["total_invertido"]:,.0f}</strong>'
             f'  ·  '
-            f'<strong style="color: rgba(255,255,255,0.95);">{totales["cantidad_activos"]}</strong>'
+            f'<strong style="color: rgba(255,255,255,0.95); cursor: help;" title="{tooltip_cantidad_activos}">{totales["cantidad_activos"]}</strong>'
             f' {"activo" if totales["cantidad_activos"] == 1 else "activos"}'
             f'</div>'
             f'<div style="font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-top: 0.5rem; line-height: 1.4;">'
@@ -744,7 +760,7 @@ def _render_mini_donut(grupo: dict):
     # (no usar la paleta del 6C porque esos colores son por categoría,
     # acá necesitamos diferenciación dentro de la misma categoría)
     PALETA_INTRA = [
-        "#60a5fa",  # azul
+        "#6366f1",  # azul
         "#a78bfa",  # violeta
         "#34d399",  # verde
         "#fbbf24",  # amarillo
@@ -781,6 +797,114 @@ def _render_mini_donut(grupo: dict):
         plot_bgcolor="rgba(0,0,0,0)",
     )
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+
+
+def _render_categoria_card(grupo: dict):
+    """
+    Renderiza UN grupo de activos como una card con el estilo de
+    "Composición de su cartera" (cartera sugerida): border-left accent
+    + título + descripción + % gigante a la derecha. Toggle para
+    expandir/colapsar con session_state.
+
+    Estado inicial:
+      - 2+ activos: expandido por default
+      - 1 activo: colapsado
+    """
+    from .user_portfolio import (
+        DESCRIPCIONES_CATEGORIA,
+        NOMBRES_CATEGORIA,
+        get_tipo_info,
+    )
+    from .comparison_renderer import COLORES_CATEGORIA
+
+    tipo_id = grupo["tipo"]
+    cantidad = grupo["cantidad"]
+    valor_total = grupo["valor_total"]
+    pct_cartera = grupo["porcentaje_cartera"]
+
+    tipo_info = get_tipo_info(tipo_id)
+    icono = tipo_info.get("icono", "📦") if tipo_info else "📦"
+    nombre_categoria = NOMBRES_CATEGORIA.get(tipo_id) or (
+        tipo_info.get("label", tipo_id) if tipo_info else tipo_id
+    )
+    descripcion = DESCRIPCIONES_CATEGORIA.get(tipo_id, "")
+    color_accent = COLORES_CATEGORIA.get(tipo_id, "#6366f1")
+
+    sufijo_count = f"{cantidad} {'activo' if cantidad == 1 else 'activos'}"
+
+    # State del toggle de expandido en session_state
+    clave_estado = f"_cat_card_expandida_{tipo_id}"
+    if clave_estado not in st.session_state:
+        st.session_state[clave_estado] = cantidad >= 2
+
+    expandida = st.session_state[clave_estado]
+
+    # ── HEADER DECORATIVO: border accent + título + descripción + % ──
+    # Layout flex: izquierda título/descripción, derecha % gigante
+    st.markdown(
+        f'<div style="border-left: 3px solid {color_accent}; '
+        f'background: rgba(255,255,255,0.025); '
+        f'border-radius: 10px; '
+        f'padding: 1rem 1.25rem 0.875rem 1.25rem; '
+        f'margin-bottom: 0.375rem; '
+        f'display: flex; align-items: center; justify-content: space-between; gap: 1rem;">'
+        f'<div style="flex: 1; min-width: 0;">'
+        f'<div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">'
+        f'<span style="font-size: 1.05rem;">{icono}</span>'
+        f'<strong style="color: #ffffff; font-size: 1rem; letter-spacing: -0.005em;">{nombre_categoria}</strong>'
+        f'</div>'
+        f'<div style="color: rgba(255,255,255,0.6); font-size: 0.825rem; line-height: 1.4;">'
+        f'{descripcion}'
+        f'{"  ·  " + sufijo_count if descripcion else sufijo_count}'
+        f'</div>'
+        f'</div>'
+        f'<div style="text-align: right; flex-shrink: 0;">'
+        f'<div style="color: {color_accent}; font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1;">'
+        f'{pct_cartera:.1f}%'
+        f'</div>'
+        f'<div style="color: rgba(255,255,255,0.4); font-size: 0.7rem; letter-spacing: 0.05em; text-transform: uppercase; margin-top: 0.25rem;">'
+        f'de tu cartera'
+        f'</div>'
+        f'</div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+    # ── BOTÓN TOGGLE: discreto, alineado a la derecha ──
+    # Streamlit no permite envolver el header en un botón clickeable,
+    # así que ofrecemos un toggle textual chico debajo. Usamos columnas
+    # con peso para alinear a la derecha.
+    col_spacer, col_btn = st.columns([5, 2])
+    with col_btn:
+        label_btn = "Ocultar detalle ⌄" if expandida else "Ver detalle ›"
+        if st.button(
+            label_btn,
+            key=f"_btn_toggle_cat_{tipo_id}",
+            use_container_width=True,
+            type="tertiary",
+        ):
+            st.session_state[clave_estado] = not expandida
+            st.rerun()
+
+    # ── CONTENIDO EXPANDIDO ──
+    if expandida:
+        # Mini-donut SOLO si hay 2+ activos
+        if cantidad >= 2:
+            _render_mini_donut(grupo)
+            st.markdown(
+                '<hr style="border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 0.5rem 0 1rem 0;">',
+                unsafe_allow_html=True,
+            )
+
+        # Cards de los activos del grupo (sin cambios)
+        for activo in grupo["activos"]:
+            _render_activo_card(activo)
+
+    # Separador visual entre cards de categoría
+    st.markdown(
+        '<div style="margin-bottom: 1rem;"></div>',
+        unsafe_allow_html=True,
+    )
 
 
 def _render_categoria_group(grupo: dict):
@@ -855,7 +979,7 @@ def _render_activo_card(activo: dict):
                 f'{icono} {activo["nombre"]}'
                 f'</div>'
                 f'<div style="font-size: 0.85rem; color: rgba(255,255,255,0.55); margin-top: 0.15rem;">'
-                f'<span style="color: #60a5fa; font-weight: 600; font-family: ui-monospace, monospace;">{activo["ticker"]}</span>'
+                f'<span style="color: #6366f1; font-weight: 600; font-family: ui-monospace, monospace;">{activo["ticker"]}</span>'
                 f' · {tipo_label}'
                 f'</div>',
                 unsafe_allow_html=True,

@@ -289,6 +289,20 @@ def get_tipo_info(tipo_id: str) -> dict | None:
 
 
 # Mapeo tipo_id → nombre human-friendly para mostrar
+# Descripciones educativas breves por categoría
+# Una frase clara por categoría, sin jerga financiera, para mostrar
+# debajo del título de la categoría en las cards del portafolio.
+DESCRIPCIONES_CATEGORIA = {
+    "accion_arg": "Empresas argentinas que cotizan en la bolsa local",
+    "cedear":     "Acciones de empresas extranjeras compradas en pesos",
+    "bono":       "Préstamos al gobierno que pagan interés en plazos fijos",
+    "on":         "Préstamos a empresas privadas con interés fijo",
+    "letra":      "Bonos cortos del Tesoro, menores a un año",
+    "fci":        "Fondos administrados por profesionales — entrada y salida flexibles",
+    "mep":        "Dólares legales comprados a través de la bolsa",
+    "cash":       "Plata disponible sin invertir",
+}
+
 NOMBRES_CATEGORIA = {
     "accion_arg": "Acciones argentinas",
     "cedear":     "CEDEARs (acciones del exterior)",
