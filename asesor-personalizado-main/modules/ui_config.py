@@ -3149,6 +3149,244 @@ html, body, #root, .stApp {
     if st.session_state.get("theme") == "light":
         st.markdown(_LIGHT_THEME_CSS, unsafe_allow_html=True)
 
+    # ═════════════════════════════════════════════════════════════════
+    # PREMIUM VISUAL — Refinamientos estilo Linear (Bloque 6+)
+    # ═════════════════════════════════════════════════════════════════
+    # Este bloque va al FINAL de apply_custom_css() para overridear lo
+    # viejo donde haga falta vía cascada CSS. Variables centralizadas
+    # para mantener consistencia. Inter para el cuerpo, Syne se mantiene
+    # en headers de marca.
+    st.markdown("""
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ─── Variables CSS de la paleta Linear-like ─────────────────────── */
+:root {
+    --tpia-bg-base:       #0f1423;
+    --tpia-bg-surface:    #1a1f2e;
+    --tpia-bg-elevated:   #232838;
+    --tpia-border-subtle: rgba(255, 255, 255, 0.06);
+    --tpia-border-strong: rgba(255, 255, 255, 0.12);
+    --tpia-text-primary:  #f5f5f7;
+    --tpia-text-secondary: rgba(255, 255, 255, 0.72);
+    --tpia-text-muted:    rgba(255, 255, 255, 0.45);
+    --tpia-accent:        #6366f1;
+    --tpia-accent-hover:  #818cf8;
+    --tpia-accent-soft:   rgba(99, 102, 241, 0.12);
+    --tpia-success:       #22c55e;
+    --tpia-warning:       #f59e0b;
+    --tpia-error:         #ef4444;
+    --tpia-radius-sm:     8px;
+    --tpia-radius-md:     10px;
+    --tpia-radius-lg:     12px;
+    --tpia-transition:    150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── Tipografía global: Inter en body, Syne se mantiene en marca ── */
+html, body, [data-testid="stAppViewContainer"], .stApp,
+.stMarkdown, .stText, p, span, div,
+[data-testid="stMarkdownContainer"] {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Cuerpo de texto: off-white en vez de blanco puro (menos fatiga) */
+body, .stApp, [data-testid="stMarkdownContainer"] p {
+    color: var(--tpia-text-primary) !important;
+}
+
+/* Headers de marca (que YA usan Syne) — preservar la fuente custom */
+.tpia-brand, .tpia-brand *,
+h1.tpia-brand, [class*="brand"] {
+    font-family: 'Syne', 'Inter', sans-serif !important;
+}
+
+/* ─── Botones de Streamlit ────────────────────────────────────────── */
+.stButton > button {
+    border-radius: var(--tpia-radius-sm) !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.005em !important;
+    transition: all var(--tpia-transition) !important;
+    border: 1px solid var(--tpia-border-strong) !important;
+}
+
+.stButton > button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Botón primary — usar el accent indigo Linear-like */
+.stButton > button[kind="primary"],
+.stButton > button[data-testid="baseButton-primary"] {
+    background: linear-gradient(180deg, var(--tpia-accent) 0%, #4f46e5 100%) !important;
+    border: 1px solid var(--tpia-accent-hover) !important;
+    color: #ffffff !important;
+}
+
+.stButton > button[kind="primary"]:hover,
+.stButton > button[data-testid="baseButton-primary"]:hover {
+    background: linear-gradient(180deg, var(--tpia-accent-hover) 0%, var(--tpia-accent) 100%) !important;
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+}
+
+/* ─── Containers / Cards (st.container con border) ────────────────── */
+[data-testid="stVerticalBlockBorderWrapper"],
+div[data-testid="stContainer"] {
+    border-radius: var(--tpia-radius-md) !important;
+    border-color: var(--tpia-border-subtle) !important;
+    background: var(--tpia-bg-surface) !important;
+    transition: border-color var(--tpia-transition) !important;
+}
+
+/* Hover sutil en cards interactivas */
+[data-testid="stVerticalBlockBorderWrapper"]:hover {
+    border-color: var(--tpia-border-strong) !important;
+}
+
+/* ─── Inputs (text, number, selectbox) ────────────────────────────── */
+.stTextInput input, .stNumberInput input, .stTextArea textarea {
+    border-radius: var(--tpia-radius-sm) !important;
+    border: 1px solid var(--tpia-border-subtle) !important;
+    background: var(--tpia-bg-surface) !important;
+    color: var(--tpia-text-primary) !important;
+    font-family: 'Inter', sans-serif !important;
+    transition: border-color var(--tpia-transition) !important;
+}
+
+.stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus {
+    border-color: var(--tpia-accent) !important;
+    box-shadow: 0 0 0 3px var(--tpia-accent-soft) !important;
+}
+
+.stSelectbox > div > div {
+    border-radius: var(--tpia-radius-sm) !important;
+    border: 1px solid var(--tpia-border-subtle) !important;
+    background: var(--tpia-bg-surface) !important;
+}
+
+/* ─── st.metric — refinar tipografía y spacing ────────────────────── */
+[data-testid="stMetricValue"] {
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+    color: var(--tpia-text-primary) !important;
+}
+
+[data-testid="stMetricLabel"] {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 0.875rem !important;
+    color: var(--tpia-text-secondary) !important;
+    font-weight: 500 !important;
+}
+
+[data-testid="stMetricDelta"] {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 0.875rem !important;
+}
+
+/* ─── Captions y small text ───────────────────────────────────────── */
+[data-testid="stCaptionContainer"], .stCaption {
+    color: var(--tpia-text-muted) !important;
+    font-family: 'Inter', sans-serif !important;
+    line-height: 1.5 !important;
+}
+
+/* ─── Radio buttons y checkboxes ──────────────────────────────────── */
+.stRadio > div, .stCheckbox > label {
+    font-family: 'Inter', sans-serif !important;
+}
+
+.stRadio > div > label {
+    transition: background var(--tpia-transition) !important;
+    border-radius: var(--tpia-radius-sm) !important;
+    padding: 0.5rem 0.75rem !important;
+}
+
+.stRadio > div > label:hover {
+    background: var(--tpia-bg-elevated) !important;
+}
+
+/* ─── Expanders ───────────────────────────────────────────────────── */
+[data-testid="stExpander"] details {
+    border-radius: var(--tpia-radius-md) !important;
+    border-color: var(--tpia-border-subtle) !important;
+    background: var(--tpia-bg-surface) !important;
+    transition: border-color var(--tpia-transition) !important;
+}
+
+[data-testid="stExpander"] details:hover {
+    border-color: var(--tpia-border-strong) !important;
+}
+
+[data-testid="stExpander"] summary {
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 500 !important;
+}
+
+/* ─── Alerts (info, warning, error, success) ──────────────────────── */
+[data-testid="stAlert"] {
+    border-radius: var(--tpia-radius-md) !important;
+    border-width: 1px !important;
+    font-family: 'Inter', sans-serif !important;
+}
+
+/* ─── Headers tipográficos (h1, h2, h3) sin perder lo de marca ──── */
+.stMarkdown h1:not(.tpia-brand) {
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+    color: var(--tpia-text-primary) !important;
+}
+
+.stMarkdown h2 {
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em !important;
+    color: var(--tpia-text-primary) !important;
+}
+
+.stMarkdown h3 {
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 600 !important;
+    color: var(--tpia-text-primary) !important;
+}
+
+/* ─── Sidebar tipografía ──────────────────────────────────────────── */
+[data-testid="stSidebar"] {
+    font-family: 'Inter', sans-serif !important;
+}
+
+/* ─── Scrollbar custom (detalle premium sutil) ────────────────────── */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--tpia-bg-base);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--tpia-border-strong);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* ─── Selección de texto con el accent ────────────────────────────── */
+::selection {
+    background: var(--tpia-accent-soft);
+    color: var(--tpia-text-primary);
+}
+
+</style>
+""", unsafe_allow_html=True)
+
 
 _LIGHT_THEME_CSS = """<style>
 /* ─────────────────────────────────────────────────────────────
