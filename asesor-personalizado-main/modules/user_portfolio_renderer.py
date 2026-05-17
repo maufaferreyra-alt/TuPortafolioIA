@@ -97,7 +97,7 @@ def _render_intro():
         # título
         '<h1 style="font-size:1.9rem; font-weight:700; color:#f5f5f7; '
         'line-height:1.25; letter-spacing:-0.02em; margin:0 0 0.85rem 0;">'
-        '¿Estás listo para armar tu primer portafolio?'
+        '¿Querés practicar o armar tu portafolio?'
         '</h1>'
         # subtítulo (max-width chico para que envuelva parejo)
         '<p style="font-size:1.02rem; color:rgba(255,255,255,0.6); '
@@ -144,10 +144,17 @@ def _render_intro():
     )
 
     # Botones
+    # El label de arrancar depende de si ya hay activos cargados:
+    # cartera en 0 → "empezar"; ya empezó → "seguir".
+    _tiene_activos = len(st.session_state.get("user_portfolio_activos", [])) > 0
+    _label_arrancar = (
+        "💪 Seguir con el armado de mi portafolio" if _tiene_activos
+        else "💪 Empezar el armado de mi portafolio"
+    )
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         if st.button(
-            "💪 Empezar a cargar mi portafolio",
+            _label_arrancar,
             use_container_width=True,
             type="primary",
             key="upf_start_btn",
