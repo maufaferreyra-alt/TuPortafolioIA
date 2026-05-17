@@ -458,3 +458,62 @@ def detectar_gaps_simples(allocation_real: dict, allocation_sugerida: dict) -> l
                 })
 
     return gaps[:3]
+
+
+def agrupar_activos_por_categoria(activos: list) -> list:
+    """
+    Agrupa los activos por su categoría (tipo) y ordena por valor
+    total descendente.
+
+    Returns: lista de dicts con la forma:
+        [
+            {
+                "tipo": "accion_arg",
+                "activos": [activo1, activo2, ...],
+                "valor_total": 250000.0,
+                "invertido_total": 200000.0,
+                "porcentaje_cartera": 12.5,
+                "cantidad": 2,
+            },
+            ...
+        ]
+    Ordenado por valor_total descendente (categoría más grande primero).
+    """
+    if not activos:
+        return []
+
+    # Valor total de toda la cartera (para calcular % por categoría)
+    valor_cartera_total = sum(calcular_valor_actual(a) or 0 for a in activos)
+    if valor_cartera_total <= 0:
+        valor_cartera_total = 1  # Evitar div by zero
+
+    grupos = {}
+    for activo in activos:
+        tipo = activo.get("tipo")
+        if not tipo:
+            continue
+        if tipo not in grupos:
+            grupos[tipo] = {
+                "tipo": tipo,
+                "activos": [],
+                "valor_total": 0,
+                "invertido_total": 0,
+                "porcentaje_cartera": 0,
+                "cantidad": 0,
+            }
+        valor = calcular_valor_actual(activo) or 0
+        invertido = costo_invertido(activo) or 0
+        grupos[tipo]["activos"].append(activo)
+        grupos[tipo]["valor_total"] += valor
+        grupos[tipo]["invertido_total"] += invertido
+        grupos[tipo]["cantidad"] += 1
+
+    # Calcular % de cartera y ordenar
+    for grupo in grupos.values():
+        grupo["porcentaje_cartera"] = (grupo["valor_total"] / valor_cartera_total) * 100
+
+    return sorted(
+        grupos.values(),
+        key=lambda g: g["valor_total"],
+        reverse=True,
+    )

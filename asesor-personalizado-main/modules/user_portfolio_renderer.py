@@ -243,8 +243,16 @@ def _render_loading():
             unsafe_allow_html=True,
         )
 
-        for activo in activos:
-            _render_activo_card(activo)
+        # Si hay solo 1 activo, mantener el render flat (no tiene
+        # sentido un expander para una sola cosa)
+        if len(activos) == 1:
+            _render_activo_card(activos[0])
+        else:
+            # 2+ activos: agrupar por categoría con expanders + mini-donut
+            from .user_portfolio import agrupar_activos_por_categoria
+            grupos = agrupar_activos_por_categoria(activos)
+            for grupo in grupos:
+                _render_categoria_group(grupo)
     else:
         st.info(
             "📥 Todavía no cargaste ningún activo. "
@@ -681,6 +689,129 @@ def _render_loading():
                 st.rerun()
 
     _render_action_buttons(activos)
+
+
+def _render_mini_donut(grupo: dict):
+    """
+    Renderiza un mini-donut con el peso de cada activo DENTRO de la
+    categoría. Solo tiene sentido cuando hay 2+ activos — el llamador
+    debe verificar antes de invocar.
+
+    Usa Plotly con el mismo styling de los donuts del 6C, pero más chico.
+    """
+    import plotly.graph_objects as go
+
+    activos = grupo["activos"]
+    if len(activos) < 2:
+        return
+
+    # Calcular peso de cada activo dentro del grupo
+    valor_grupo = grupo["valor_total"]
+    if valor_grupo <= 0:
+        return
+
+    labels = []
+    values = []
+    for a in activos:
+        valor = calcular_valor_actual(a) or 0
+        if valor > 0:
+            ticker = a.get("ticker", "?")
+            labels.append(ticker)
+            values.append(valor)
+
+    if not labels:
+        return
+
+    # Paleta de azules/violetas para variantes dentro de UNA categoría
+    # (no usar la paleta del 6C porque esos colores son por categoría,
+    # acá necesitamos diferenciación dentro de la misma categoría)
+    PALETA_INTRA = [
+        "#60a5fa",  # azul
+        "#a78bfa",  # violeta
+        "#34d399",  # verde
+        "#fbbf24",  # amarillo
+        "#f472b6",  # rosa
+        "#22d3ee",  # cyan
+        "#fb923c",  # naranja
+        "#e879f9",  # magenta
+    ]
+    colors = [PALETA_INTRA[i % len(PALETA_INTRA)] for i in range(len(labels))]
+
+    fig = go.Figure(data=[go.Pie(
+        labels=labels,
+        values=values,
+        hole=0.6,
+        marker=dict(colors=colors, line=dict(color="#1a1f2e", width=2)),
+        textinfo="percent",
+        textposition="inside",
+        textfont=dict(size=11, color="#ffffff"),
+        hovertemplate="<b>%{label}</b><br>$%{value:,.0f}<br>%{percent}<extra></extra>",
+    )])
+    fig.update_layout(
+        showlegend=True,
+        legend=dict(
+            orientation="v",
+            yanchor="middle",
+            y=0.5,
+            xanchor="left",
+            x=1.05,
+            font=dict(size=10, color="rgba(255,255,255,0.75)"),
+        ),
+        margin=dict(t=5, b=5, l=5, r=5),
+        height=180,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+    )
+    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+
+
+def _render_categoria_group(grupo: dict):
+    """
+    Renderiza UN grupo de activos como un expander.
+
+    El header del expander muestra ícono + nombre human-friendly +
+    total $ + cantidad de activos + % de la cartera total.
+
+    Estado inicial:
+      - Si hay 2+ activos: expanded=True
+      - Si hay 1 activo: expanded=False
+    """
+    tipo_id = grupo["tipo"]
+    cantidad = grupo["cantidad"]
+    valor_total = grupo["valor_total"]
+    pct_cartera = grupo["porcentaje_cartera"]
+
+    # Ícono y nombre desde el catálogo de tipos
+    tipo_info = get_tipo_info(tipo_id)
+    icono = tipo_info["icono"] if tipo_info else "📦"
+    nombre_categoria = tipo_info["label"] if tipo_info else tipo_id
+
+    # Sufijo: "1 activo" o "N activos"
+    sufijo_count = f"{cantidad} {'activo' if cantidad == 1 else 'activos'}"
+
+    # Header del expander (multi-info en una sola línea)
+    header_text = (
+        f"{icono} {nombre_categoria}  ·  "
+        f"${valor_total:,.0f}  ·  "
+        f"{sufijo_count}  ·  "
+        f"{pct_cartera:.1f}% de tu cartera"
+    )
+
+    # Estado inicial: abierto si hay 2+, cerrado si hay 1
+    inicialmente_abierto = cantidad >= 2
+
+    with st.expander(header_text, expanded=inicialmente_abierto):
+        # Mini-donut SOLO si hay 2+ activos
+        if cantidad >= 2:
+            _render_mini_donut(grupo)
+            st.markdown(
+                '<hr style="border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 0.5rem 0 1rem 0;">',
+                unsafe_allow_html=True,
+            )
+
+        # Cards de los activos del grupo
+        for activo in grupo["activos"]:
+            _render_activo_card(activo)
 
 
 def _render_activo_card(activo: dict):
