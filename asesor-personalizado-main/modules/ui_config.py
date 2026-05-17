@@ -2389,6 +2389,7 @@ html, body, #root, .stApp {
     max-width: 700px;
     margin: 0 auto;
     line-height: 1.55;
+    text-align: center;
 }
 
 /* Contenido interno de cada broker (dentro del st.expander).
@@ -3571,11 +3572,16 @@ div[data-testid="stContainer"] {
 }
 
 /* ─── Chips de preguntas de Lucas (chat) — resaltado azul ─── */
-/* Estos botones tenían su estilo solo en _LIGHT_THEME_CSS, así que
-   en tema oscuro perdían el resaltado. Acá los dejamos azules
-   (accent indigo) en cualquier tema, por encima del override
-   genérico de botones secondary. */
-.lucas-chips-block .stButton > button {
+/* Los botones tienen key="lucas_chip_N"; Streamlit le pone al
+   contenedor la clase st-key-lucas_chip_N. Targeteamos por ahí — el
+   <div class="lucas-chips-block"> NO envuelve los botones en el DOM
+   (cada st.markdown se cierra en su propio bloque), así que el
+   selector viejo .lucas-chips-block ... nunca matcheaba. Las
+   variantes con [kind]/[data-testid] suben la especificidad para
+   ganarle al override genérico de botones secondary. */
+[class*="st-key-lucas_chip"] .stButton > button,
+[class*="st-key-lucas_chip"] .stButton > button[kind="secondary"],
+[class*="st-key-lucas_chip"] .stButton > button[data-testid="baseButton-secondary"] {
     background: rgba(99, 102, 241, 0.10) !important;
     background-color: rgba(99, 102, 241, 0.10) !important;
     background-image: none !important;
@@ -3586,7 +3592,9 @@ div[data-testid="stContainer"] {
     box-shadow: none !important;
 }
 
-.lucas-chips-block .stButton > button:hover {
+[class*="st-key-lucas_chip"] .stButton > button:hover,
+[class*="st-key-lucas_chip"] .stButton > button[kind="secondary"]:hover,
+[class*="st-key-lucas_chip"] .stButton > button[data-testid="baseButton-secondary"]:hover {
     background: rgba(99, 102, 241, 0.18) !important;
     background-color: rgba(99, 102, 241, 0.18) !important;
     border-color: rgba(99, 102, 241, 0.55) !important;
