@@ -783,18 +783,17 @@ elif step == "results":
 </div>
 </div>""", unsafe_allow_html=True)
 
-    # Caption educativo: desglose del haircut de costos reales
+    # Caption educativo: las cifras ya descuentan los costos reales.
+    # El desglose con jerga (comisiones, spread bid/ask, impuesto
+    # cedular) confundía a un usuario que nunca invirtió. Lo bajamos a
+    # una línea humana y el detalle lo explica Lucas en el chat.
     _haircut_info = portfolio.get("haircut_info")
     if _haircut_info:
-        _haircut_pct = _haircut_info["haircut_total"] * 100
-        _desglose    = _haircut_info["desglose"]
         st.caption(
-            f"💡 Las cifras netas descuentan ~{_haircut_pct:.1f}% anual estimado por "
-            f"costos reales: comisiones del broker ({_desglose['comisiones_rebalanceo']*100:.1f}% al año), "
-            f"spread bid/ask ({_desglose['spread']*100:.1f}%), e impuestos vigentes 2026. "
-            f"El impuesto cedular sobre ganancias está suspendido. Estimación promedio para "
-            f"retail típico; tu situación particular puede variar. Para análisis fiscal "
-            f"personalizado consultá con tu contador."
+            "💡 Estos números ya descuentan los costos reales de invertir "
+            "—comisiones e impuestos—. Es una estimación promedio y tu "
+            "situación puntual puede variar. ¿Querés saber de dónde sale "
+            "ese descuento? Preguntale a Lucas, tu asesor, acá abajo."
         )
 
     # Nota sutil sobre el horizonte (antes era una card grande amarilla,
