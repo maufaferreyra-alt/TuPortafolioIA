@@ -24,6 +24,30 @@ from .universo_instrumentos import (
 )
 
 
+# ── Nombres en lenguaje natural por tipo de activo ────────────────
+# Usados en labels del form para que el usuario novato encuentre
+# las palabras que ve en su broker (acciones, CEDEARs, bonos)
+# en vez del genérico "unidades".
+
+NOMBRES_PLURAL_POR_TIPO = {
+    "accion_arg": "acciones",
+    "cedear":     "CEDEARs",
+    "bono":       "bonos",
+    "on":         "ONs",
+    "letra":      "letras",
+    "mep":        "dólares",
+}
+
+NOMBRES_SINGULAR_POR_TIPO = {
+    "accion_arg": "acción",
+    "cedear":     "CEDEAR",
+    "bono":       "bono",
+    "on":         "ON",
+    "letra":      "letra",
+    "mep":        "dólar",
+}
+
+
 def _persistir_portafolio():
     """Guarda el portafolio del usuario en localStorage junto con la cartera."""
     try:
@@ -380,9 +404,14 @@ def _render_loading():
 
         else:
             # ──── MODO UNIDADES: cantidad + precio del día ────
+            # Nombres dinámicos según tipo (acciones/CEDEARs/bonos/etc)
+            tipo_id = tipo_seleccionado["id"]
+            nombre_plural = NOMBRES_PLURAL_POR_TIPO.get(tipo_id, "unidades")
+            nombre_singular = NOMBRES_SINGULAR_POR_TIPO.get(tipo_id, "unidad")
+
             st.caption(
-                "Si conocés cuántas unidades tenés y a qué precio cotiza hoy, "
-                "calculamos por vos cuánto vale."
+                f"Si conocés cuántas {nombre_plural} tenés y a qué precio "
+                f"cotiza una hoy, calculamos por vos cuánto vale tu posición."
             )
 
             # Key del number_input del precio (usado también por el botón
@@ -440,50 +469,60 @@ def _render_loading():
 
             with col_unid:
                 cantidad_unidades = st.number_input(
-                    "📊 Cantidad de unidades que tenés",
+                    f"📊 Cantidad de {nombre_plural} que tenés",
                     min_value=0.0,
                     step=1.0,
                     value=0.0,
                     key=f"upf_cantidad_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
-                    help="La cantidad exacta que dice tu broker",
+                    help=(
+                        f"La cantidad exacta de {nombre_plural} que dice tu "
+                        "broker. Si tu broker dice 'tenencia 100', acá va 100."
+                    ),
                 )
 
             with col_precio:
                 precio_actual = st.number_input(
-                    "💲 Precio del día (ARS)",
+                    f"💲 Precio actual de una {nombre_singular} (ARS)",
                     min_value=0.0,
                     step=10.0,
                     key=precio_key,
                     help=(
-                        "A qué precio cotiza hoy una unidad. Lo ves en tu "
-                        "broker, en BYMA, o usá '📡 Traer precio en vivo' "
-                        "arriba."
+                        f"Lo que vale HOY UNA {nombre_singular} (no el total). "
+                        f"Si tenés 100 {nombre_plural} y cada una vale $1.000, "
+                        "acá ponés 1000, no 100000. Lo ves en tu broker como "
+                        "'cotización' o 'último precio', o usá '📡 Traer precio "
+                        "en vivo' arriba."
                     ),
                 )
 
             # Cálculo automático en vivo con componente nativo
             if cantidad_unidades > 0 and precio_actual > 0:
                 valor_calc = cantidad_unidades * precio_actual
-                st.success(
-                    f"💡 **Valor actual estimado:** ${valor_calc:,.0f} ARS  "
-                    f"_({cantidad_unidades:.2f} unidades × ${precio_actual:,.2f})_"
+                st.info(
+                    f"💡 **Tu posición vale:** ${valor_calc:,.0f} ARS  "
+                    f"_({cantidad_unidades:.0f} {nombre_plural} × "
+                    f"${precio_actual:,.2f} cada una)_"
                 )
 
-            # SOLO en modo unidades aparece el modo avanzado
-            with st.expander("🔧 Modo avanzado: quiero saber ganancia/pérdida"):
+            # SOLO en modo unidades aparece el campo de precio de compra
+            with st.expander(f"💡 Sé a qué precio compré cada {nombre_singular} (opcional)"):
                 st.caption(
-                    "Si recordás a qué precio compraste una unidad, podemos "
-                    "calcular cuánto ganaste o perdiste. Si no lo recordás, "
-                    "no pasa nada — el resto funciona igual."
+                    f"Si recordás a qué precio compraste cada {nombre_singular}, "
+                    f"calculamos cuánto ganaste o perdiste desde ese momento. "
+                    "Si no lo recordás, no pasa nada — el resto funciona igual."
                 )
 
                 precio_compra = st.number_input(
-                    "💼 Precio al que compraste una unidad (ARS, opcional)",
+                    f"💼 Precio al que compraste cada {nombre_singular} (ARS, opcional)",
                     min_value=0.0,
                     step=10.0,
                     value=0.0,
                     key=f"upf_precio_compra_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
-                    help="Si no lo recordás, dejalo en 0",
+                    help=(
+                        f"Lo que pagaste por UNA {nombre_singular} cuando la "
+                        "compraste, no el total. Si no lo recordás exacto, "
+                        "dejalo en 0 y seguís."
+                    ),
                 )
 
             # Banner del supuesto cae — copy NEUTRO (Bug 4)
@@ -684,6 +723,7 @@ def _render_action_buttons(activos: list):
         if st.button(
             "← Volver a mi cartera sugerida",
             use_container_width=True,
+            type="tertiary",
             key="upf_back_btn",
         ):
             st.session_state["step"] = "results"
