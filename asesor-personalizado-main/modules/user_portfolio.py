@@ -430,8 +430,8 @@ def detectar_gaps_simples(allocation_real: dict, allocation_sugerida: dict) -> l
             elif tipo == "bono":
                 explicacion_extra = " Te dan estabilidad y un ingreso predecible."
             gaps.append({
-                "icon": "🎯",
-                "titulo": f"Te falta {nombre.lower()}",
+                "icon": "🧩",
+                "titulo": f"Te falta {nombre}",
                 "explicacion": (
                     f"La sugerida tiene un {peso_sug:.0f}% acá y vos tenés "
                     f"un {peso_real:.0f}%.{explicacion_extra}"
@@ -450,8 +450,8 @@ def detectar_gaps_simples(allocation_real: dict, allocation_sugerida: dict) -> l
             # Solo si NO es el gap de concentración (evitar repetir)
             if not any(g["titulo"].endswith(f"en {NOMBRES_CATEGORIA.get(tipo, tipo)}") for g in gaps):
                 gaps.append({
-                    "icon": "🎯",
-                    "titulo": f"Tenés más {nombre.lower()} de lo recomendado",
+                    "icon": "⚖️",
+                    "titulo": f"Tenés más {nombre} de lo recomendado",
                     "explicacion": (
                         f"Vos: {peso_real:.0f}%. Sugerido: {peso_sug:.0f}%. "
                         "Reducir un poco y diversificar a otras categorías baja el riesgo."

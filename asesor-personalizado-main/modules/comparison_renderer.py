@@ -80,7 +80,7 @@ def _construir_donut(allocation: dict, titulo: str):
         values=values,
         hole=0.55,
         marker=dict(colors=colors, line=dict(color="#0e1117", width=2)),
-        textinfo="percent",
+        texttemplate="%{percent:.0%}",
         textposition="inside",
         textfont=dict(size=13, color="#ffffff"),
         hovertemplate="<b>%{label}</b><br>%{percent}<extra></extra>",
@@ -284,7 +284,36 @@ def render_comparison_page():
             f"{_emoji_riesgo(riesgo_sugerido)} {riesgo_sugerido.capitalize()}",
             "cuánto puede subir o bajar tu plata",
         )
+        + _metrica_comparada(
+            "Repartida en",
+            f"🧩 {len(allocation_real)} tipos",
+            f"🧩 {len(allocation_sugerida)} tipos",
+            "más repartida = que a una le vaya mal no te hunde",
+        )
         + '</div>',
+        unsafe_allow_html=True,
+    )
+
+    # ── Por qué te sugerimos esta — explicación simple ───────────
+    # Traduce a lenguaje cero-técnico que la sugerida es el resultado
+    # de optimizar (Markowitz) sobre el análisis de cada empresa.
+    # Pensado para alguien que nunca invirtió y que no quiere números.
+    st.markdown(
+        '<div style="border-left:3px solid #60a5fa; '
+        'background:rgba(96,165,250,0.05); border-radius:0 10px 10px 0; '
+        'padding:0.9rem 1.15rem; margin-top:0.85rem;">'
+        '<div style="font-size:0.95rem; font-weight:600; color:#ffffff; '
+        'margin-bottom:0.3rem;">⭐ ¿Por qué te sugerimos esta?</div>'
+        '<div style="font-size:0.875rem; color:rgba(255,255,255,0.72); '
+        'line-height:1.55;">'
+        'No es la que más promete en el papel — es la más equilibrada '
+        'para vos. La armamos mirando cada empresa una por una y cómo '
+        'se mueven sus precios entre sí, para encontrar el mejor punto '
+        'entre lo que podés ganar y lo que podés llegar a perder. No '
+        'hace falta que entiendas los números: para eso la calculamos '
+        'nosotros.'
+        '</div>'
+        '</div>',
         unsafe_allow_html=True,
     )
 
