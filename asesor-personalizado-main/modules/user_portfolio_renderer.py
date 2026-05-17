@@ -178,7 +178,7 @@ def _render_loading():
 
             st.markdown(
                 f"""
-                <div style="padding: 1rem 0.5rem 0.75rem 0.5rem;">
+                <div style="padding: 1rem 0.5rem 0.25rem 0.5rem;">
                   <div style="font-size: 0.875rem; color: rgba(255,255,255,0.65); margin-bottom: 0.25rem;">
                     💎 Valor actual de tu cartera
                   </div>
@@ -187,6 +187,9 @@ def _render_loading():
                   </div>
                   <div style="font-size: 1rem; color: {pnl_color}; margin-top: 0.5rem; font-weight: 500;">
                     {pnl_arrow} {signo_pct}{totales['pnl_total_pct']:.2f}% · ${totales['pnl_total_ars']:,.0f}
+                  </div>
+                  <div style="font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-top: 0.5rem; line-height: 1.4;">
+                    ℹ️ Diferencia entre lo que pusiste y lo que vale hoy. Los activos sin precio de compra no suman al cálculo individual.
                   </div>
                 </div>
                 """,
