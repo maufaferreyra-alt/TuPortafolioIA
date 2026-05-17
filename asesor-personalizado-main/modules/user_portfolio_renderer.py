@@ -385,6 +385,57 @@ def _render_loading():
                 "calculamos por vos cuánto vale."
             )
 
+            # Key del number_input del precio (usado también por el botón
+            # de fetch para escribir el valor traído de la API).
+            precio_key = f"upf_precio_actual_{activo_elegido['ticker']}_{tipo_seleccionado['id']}"
+
+            # Inicializar si no existe (evita warning de Streamlit por
+            # conflicto entre value default y session_state existente).
+            if precio_key not in st.session_state:
+                st.session_state[precio_key] = 0.0
+
+            # Botón de auto-fill desde API (Bloque 6B). Va arriba de
+            # las columnas para que sea visible y opcional. Si la API
+            # no tiene el activo, caption discreta y el usuario carga
+            # manual abajo.
+            col_btn, col_info = st.columns([2, 3])
+            with col_btn:
+                if st.button(
+                    "📡 Traer precio en vivo",
+                    key=f"upf_fetch_btn_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
+                    use_container_width=True,
+                    help=(
+                        "Trae el precio del día desde APIs gratuitas "
+                        "(data912 / argentinadatos, ~2h de delay). En "
+                        "producción con API paga sería tiempo real."
+                    ),
+                ):
+                    from .market_data import get_precio_dia
+                    precio_fetched = get_precio_dia(
+                        activo_elegido["ticker"],
+                        tipo_seleccionado["id"],
+                    )
+                    if precio_fetched and precio_fetched > 0:
+                        st.session_state[precio_key] = float(precio_fetched)
+                        st.session_state[f"_fetch_msg_{precio_key}"] = (
+                            f"✅ ${precio_fetched:,.2f} traído de la API"
+                        )
+                    else:
+                        st.session_state[f"_fetch_msg_{precio_key}"] = (
+                            "📡 No tenemos precio en vivo para este activo. "
+                            "Cargalo a mano abajo."
+                        )
+                    st.rerun()
+
+            with col_info:
+                # Mostrar el último mensaje de fetch (success o no-data)
+                msg = st.session_state.get(f"_fetch_msg_{precio_key}")
+                if msg:
+                    if msg.startswith("✅"):
+                        st.success(msg)
+                    else:
+                        st.caption(msg)
+
             col_unid, col_precio = st.columns(2)
 
             with col_unid:
@@ -402,9 +453,12 @@ def _render_loading():
                     "💲 Precio del día (ARS)",
                     min_value=0.0,
                     step=10.0,
-                    value=0.0,
-                    key=f"upf_precio_actual_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
-                    help="A qué precio cotiza hoy una unidad. Lo ves en tu broker o en BYMA.",
+                    key=precio_key,
+                    help=(
+                        "A qué precio cotiza hoy una unidad. Lo ves en tu "
+                        "broker, en BYMA, o usá '📡 Traer precio en vivo' "
+                        "arriba."
+                    ),
                 )
 
             # Cálculo automático en vivo con componente nativo

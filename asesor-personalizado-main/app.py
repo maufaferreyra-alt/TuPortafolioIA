@@ -202,6 +202,27 @@ except Exception as _e:
 
 render_header()
 
+# ── Banner global del dólar (Bloque 6B) ─────────────────────────────
+# Refresca cada 2 min (cache TTL en dolarapi). Falla silenciosa si la
+# API está caída — el banner no aparece y la app sigue normal.
+try:
+    from modules.market_data import get_dolar_rates
+    _dolar = get_dolar_rates()
+    if _dolar:
+        partes = []
+        if _dolar.get("mep"):
+            partes.append(f"MEP ${_dolar['mep']:,.0f}")
+        if _dolar.get("ccl"):
+            partes.append(f"CCL ${_dolar['ccl']:,.0f}")
+        if _dolar.get("oficial"):
+            partes.append(f"Oficial ${_dolar['oficial']:,.0f}")
+        if _dolar.get("blue"):
+            partes.append(f"Blue ${_dolar['blue']:,.0f}")
+        if partes:
+            st.caption(f"🏦  {'  ·  '.join(partes)}  ·  _Cotizaciones en vivo (dolarapi)_")
+except Exception as _e:
+    print(f"[app] Error banner dolar: {_e}")
+
 # ── Sidebar: frescura de scores y botón de actualización ──────────────────────
 
 with st.sidebar:

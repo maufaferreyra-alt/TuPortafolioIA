@@ -116,11 +116,37 @@ def cargar_estado() -> dict | None:
                 limpiar_estado()
                 return None
 
+        # ── Migración silenciosa: entries con precio_actual_ars contaminado ──
+        # En el bug del 6A inicial, el modo simple guardaba
+        # precio_actual_ars = monto_invertido_ars (una "unidad virtual" =
+        # monto total). Eso después en modo unidades generaba cálculos x40000%.
+        # Detectamos esa firma específica y limpiamos.
+        activos_raw = data.get("user_portfolio_activos", [])
+        activos_migrados = []
+        for a in activos_raw:
+            if not isinstance(a, dict):
+                continue
+            precio_actual = a.get("precio_actual_ars")
+            monto = a.get("monto_invertido_ars", 0)
+            # Firma del bug: precio_actual existe, precio_compra no,
+            # y precio_actual ≈ monto_invertido (una "unidad virtual").
+            tiene_bug = (
+                precio_actual is not None
+                and monto > 0
+                and not a.get("precio_compra_ars")
+                and abs(precio_actual - monto) < 0.01
+            )
+            if tiene_bug:
+                print(f"[storage] Migrando entry contaminada: {a.get('ticker')}")
+                a["precio_actual_ars"] = None
+                a["precio_compra_ars"] = None
+            activos_migrados.append(a)
+
         return {
             "answers":     data.get("answers", {}),
             "profile":     data.get("profile", {}),
             "portfolio":   data.get("portfolio", {}),
-            "user_portfolio_activos": data.get("user_portfolio_activos", []),
+            "user_portfolio_activos": activos_migrados,
             "guardado_en": data.get("guardado_en"),
         }
 
