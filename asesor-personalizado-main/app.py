@@ -276,8 +276,13 @@ step = st.session_state.step
 # scroll de la pantalla anterior, o algún widget fuerza scroll al fondo.
 # Múltiples intentos con delays escalonados para ganar contra cualquier
 # scroll automático que Streamlit dispare después.
-_last_step = st.session_state.get("_last_rendered_step")
-if _last_step is not None and _last_step != step:
+# Clave de navegación: incluye el sub-step del portafolio del usuario
+# (user_portfolio_step: intro→loading). Ese sub-step NO cambia `step`,
+# así que sin esto las pantallas internas del portafolio no scrolleaban
+# al top al navegar entre ellas.
+_nav_key = f"{step}|{st.session_state.get('user_portfolio_step', '')}"
+_last_nav = st.session_state.get("_last_rendered_nav")
+if _last_nav is not None and _last_nav != _nav_key:
     components.html("""
 <script>
 (function() {
@@ -308,11 +313,11 @@ if _last_step is not None and _last_step != step:
     // el usuario). Si Streamlit dispara scroll automático tardío, igual lo
     // ganamos en el primer segundo. Después soltamos el control.
     toTop();
-    [50, 150, 350, 700, 1000].forEach(function(d) { setTimeout(toTop, d); });
+    [50, 150, 350, 700, 1100, 1600].forEach(function(d) { setTimeout(toTop, d); });
 })();
 </script>
 """, height=0)
-st.session_state["_last_rendered_step"] = step
+st.session_state["_last_rendered_nav"] = _nav_key
 
 # ══════════════════════════════════════════════════════════════════════════════
 # INTRO
