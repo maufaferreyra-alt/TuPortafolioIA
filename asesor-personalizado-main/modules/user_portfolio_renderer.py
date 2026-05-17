@@ -168,59 +168,48 @@ def _render_loading():
 
         signo_pct = '+' if totales['pnl_total_pct'] >= 0 else ''
 
-        with st.container(border=True):
-            # ── HERO: Valor actual como métrica principal ──────────
-            # CSS inline en style="" aplica confiablemente (no usa
-            # clases del CSS global). Color del delta dinámico según
-            # signo del P&L.
-            pnl_color = "#22c55e" if totales['pnl_total_pct'] >= 0 else "#ef4444"
-            pnl_arrow = "↑" if totales['pnl_total_pct'] >= 0 else "↓"
+        # ── DONUT GRANDE: composición de la cartera por categoría ──
+        # En vez de mostrar el valor total como número gigante, el donut
+        # comunica la composición visual (qué tan diversificada está la
+        # cartera, qué predomina). El valor total va al resumen chico
+        # debajo de los desplegables.
+        from .user_portfolio import agrupar_activos_por_categoria, NOMBRES_CATEGORIA
+        from .comparison_renderer import COLORES_CATEGORIA
 
-            st.markdown(
-                f"""
-                <div style="padding: 1rem 0.5rem 0.25rem 0.5rem;">
-                  <div style="font-size: 0.875rem; color: rgba(255,255,255,0.65); margin-bottom: 0.25rem;">
-                    💎 Valor actual de tu cartera
-                  </div>
-                  <div style="font-size: 3rem; font-weight: 700; color: #ffffff; line-height: 1.1; letter-spacing: -0.02em;">
-                    ${totales['valor_total_actual']:,.0f}
-                  </div>
-                  <div style="font-size: 1rem; color: {pnl_color}; margin-top: 0.5rem; font-weight: 500;">
-                    {pnl_arrow} {signo_pct}{totales['pnl_total_pct']:.2f}% · ${totales['pnl_total_ars']:,.0f}
-                  </div>
-                  <div style="font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-top: 0.5rem; line-height: 1.4;">
-                    ℹ️ Diferencia entre lo que pusiste y lo que vale hoy. Los activos sin precio de compra no suman al cálculo individual.
-                  </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+        grupos_para_donut = agrupar_activos_por_categoria(activos)
+        if grupos_para_donut:
+            import plotly.graph_objects as go
 
-            # Separador sutil entre hero y secundarias
-            st.markdown(
-                '<hr style="border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 0.5rem 0 1rem 0;">',
-                unsafe_allow_html=True,
-            )
+            labels_donut = [NOMBRES_CATEGORIA.get(g["tipo"], g["tipo"]) for g in grupos_para_donut]
+            values_donut = [g["valor_total"] for g in grupos_para_donut]
+            colors_donut = [COLORES_CATEGORIA.get(g["tipo"], "#888") for g in grupos_para_donut]
 
-            # ── Métricas secundarias ────────────────────────────────
-            c1, c2 = st.columns(2)
-            c1.metric(
-                "Total invertido",
-                f"${totales['total_invertido']:,.0f}",
-                help=(
-                    "Lo que realmente pusiste, sumando el costo de cada activo. "
-                    "Si cargaste con precio de compra, usamos ese costo real; "
-                    "si cargaste en modo simple, usamos el monto que indicaste."
+            fig_cartera = go.Figure(data=[go.Pie(
+                labels=labels_donut,
+                values=values_donut,
+                hole=0.6,
+                marker=dict(colors=colors_donut, line=dict(color="#0f1423", width=2)),
+                textinfo="percent",
+                textposition="inside",
+                textfont=dict(size=14, color="#ffffff"),
+                hovertemplate="<b>%{label}</b><br>$%{value:,.0f}<br>%{percent}<extra></extra>",
+            )])
+            fig_cartera.update_layout(
+                showlegend=True,
+                legend=dict(
+                    orientation="v",
+                    yanchor="middle",
+                    y=0.5,
+                    xanchor="left",
+                    x=1.05,
+                    font=dict(size=12, color="rgba(255,255,255,0.85)"),
                 ),
+                margin=dict(t=20, b=20, l=20, r=20),
+                height=340,
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
             )
-            c2.metric(
-                "Activos en cartera",
-                str(totales['cantidad_activos']),
-                help=(
-                    "Cantidad de posiciones distintas en tu cartera. "
-                    "Si cargaste el mismo activo dos veces, cuenta como dos."
-                ),
-            )
+            st.plotly_chart(fig_cartera, use_container_width=True, config={"displayModeBar": False})
 
         # Detectar si algún activo está en modo simple (sin valuación de mercado).
         # En modo simple precio_actual_ars queda en None.
@@ -249,10 +238,39 @@ def _render_loading():
             _render_activo_card(activos[0])
         else:
             # 2+ activos: agrupar por categoría con expanders + mini-donut
-            from .user_portfolio import agrupar_activos_por_categoria
-            grupos = agrupar_activos_por_categoria(activos)
-            for grupo in grupos:
+            from .user_portfolio import agrupar_activos_por_categoria as _agrupar_loop
+            grupos_loop = _agrupar_loop(activos)
+            for grupo in grupos_loop:
                 _render_categoria_group(grupo)
+
+        # ── Resumen chico DESPUÉS de los desplegables ────────────
+        # El valor total + delta + datos clave en formato compacto.
+        # Visualmente discreto (no es el dato protagonista — el donut
+        # de arriba lo es), pero la info sigue accesible.
+        pnl_color_res = "#22c55e" if totales['pnl_total_pct'] >= 0 else "#ef4444"
+        pnl_arrow_res = "↑" if totales['pnl_total_pct'] >= 0 else "↓"
+
+        st.markdown(
+            f'<div style="margin: 1.25rem 0 0.5rem 0; padding: 0.875rem 1.125rem; '
+            f'background: rgba(255,255,255,0.025); border-radius: 10px; '
+            f'border: 1px solid rgba(255,255,255,0.06);">'
+            f'<div style="font-size: 0.95rem; color: rgba(255,255,255,0.85); line-height: 1.5;">'
+            f'💎 Tu portafolio vale '
+            f'<strong style="color: #ffffff;">${totales["valor_total_actual"]:,.0f}</strong>'
+            f'  ·  '
+            f'<span style="color: {pnl_color_res}; font-weight: 500;">{pnl_arrow_res} {signo_pct}{totales["pnl_total_pct"]:.2f}%</span>'
+            f'  ·  Total invertido '
+            f'<strong style="color: rgba(255,255,255,0.95);">${totales["total_invertido"]:,.0f}</strong>'
+            f'  ·  '
+            f'<strong style="color: rgba(255,255,255,0.95);">{totales["cantidad_activos"]}</strong>'
+            f' {"activo" if totales["cantidad_activos"] == 1 else "activos"}'
+            f'</div>'
+            f'<div style="font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-top: 0.5rem; line-height: 1.4;">'
+            f'ℹ️ Diferencia entre lo que pusiste y lo que vale hoy. Los activos sin precio de compra no suman al cálculo individual.'
+            f'</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
     else:
         st.info(
             "📥 Todavía no cargaste ningún activo. "
