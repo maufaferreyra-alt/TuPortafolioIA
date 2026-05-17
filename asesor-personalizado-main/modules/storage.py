@@ -76,6 +76,14 @@ def guardar_estado(
             print("[storage] LocalStorage no inicializado (app.py debió hacerlo)")
             return False
         ls.setItem(STORAGE_KEY, data_str)
+        # ── Fix race condition de streamlit-local-storage ─────────
+        # El setItem() escribe al localStorage del browser de forma
+        # asíncrona vía un iframe. Si el código de arriba hace
+        # st.rerun() inmediatamente después, el iframe se destruye
+        # antes de que el JS complete la escritura. El sleep da tiempo
+        # al round-trip. 500ms es invisible al usuario pero suficiente.
+        import time
+        time.sleep(0.5)
         return True
 
     except Exception as e:
@@ -163,6 +171,9 @@ def limpiar_estado() -> bool:
             print("[storage] LocalStorage no inicializado")
             return False
         ls.deleteItem(STORAGE_KEY)
+        # Mismo fix de race condition que en guardar_estado.
+        import time
+        time.sleep(0.5)
         return True
     except Exception as e:
         print(f"[storage] Error limpiando: {e}")
