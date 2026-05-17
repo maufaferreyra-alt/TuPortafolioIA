@@ -9,6 +9,7 @@ Estados:
 import streamlit as st
 from .user_portfolio import (
     TIPOS_INSTRUMENTO,
+    TIPOS_VIVO,
     crear_activo,
     calcular_pnl,
     total_portafolio,
@@ -167,10 +168,44 @@ def _paso_badge(numero: str, titulo: str, subtitulo: str = "") -> str:
     )
 
 
+def _refrescar_precios_vivos(activos: list) -> bool:
+    """
+    Para los activos modo 'vivo' (acciones / CEDEARs / MEP) vuelve a
+    pedir el precio de mercado y actualiza precio_actual_ars. Así el
+    valor del portafolio se mueve con el mercado sin que el usuario
+    haga nada.
+
+    Usa la caché de 1h de market_data, así que llamarlo en cada run no
+    satura la API. Devuelve True si hay al menos un activo en vivo.
+    """
+    if not activos:
+        return False
+    try:
+        from .market_data import get_precio_dia
+    except Exception:
+        return False
+    hay_vivos = False
+    for a in activos:
+        if a.get("modo") != "vivo":
+            continue
+        hay_vivos = True
+        try:
+            precio = get_precio_dia(a.get("ticker", ""), a.get("tipo", ""))
+            if precio and precio > 0:
+                a["precio_actual_ars"] = float(precio)
+        except Exception as e:
+            print(f"[user_portfolio] refresh precio falló para {a.get('ticker')}: {e}")
+    return hay_vivos
+
+
 def _render_loading():
     """Pantalla principal de carga: lista de activos + form."""
 
     activos = st.session_state.get("user_portfolio_activos", [])
+
+    # Refresco automático de precios para los activos en vivo (6C):
+    # el valor del portafolio se mueve con el mercado sin tocar nada.
+    _hay_activos_vivos = _refrescar_precios_vivos(activos)
 
     # ─── Header ──────────────────────────────────────────
     # NOTA: usamos componentes nativos de Streamlit (st.subheader, st.caption,
@@ -192,6 +227,12 @@ def _render_loading():
     # ─── Lista de activos cargados (si los hay) ──────────
     if activos:
         totales = total_portafolio(activos)
+
+        if _hay_activos_vivos:
+            st.caption(
+                "🟢 Precios de acciones, CEDEARs y MEP actualizados con el "
+                "mercado de hoy. Los bonos, ONs y fondos los actualizás vos."
+            )
 
         signo_pct = '+' if totales['pnl_total_pct'] >= 0 else ''
 
@@ -428,251 +469,142 @@ def _render_loading():
         unsafe_allow_html=True,
     )
 
-    es_fci = tipo_seleccionado["id"] == "fci"
+    tipo_id = tipo_seleccionado["id"]
+    tk = activo_elegido["ticker"]
+    nombre_plural = NOMBRES_PLURAL_POR_TIPO.get(tipo_id, "unidades")
+    nombre_singular = NOMBRES_SINGULAR_POR_TIPO.get(tipo_id, "unidad")
+    es_vivo_tipo = tipo_id in TIPOS_VIVO
 
-    # Variables del form (defaults según corresponda)
-    monto_simple = 0.0
-    cantidad_unidades = 0.0
-    precio_actual = 0.0
-    precio_compra = 0.0
-    fci_monto_puesto = 0.0
-    fci_valor_hoy = 0.0
-    es_modo_simple = True  # FCI siempre es modo simple-like
-
-    if es_fci:
-        # ─────────── FORM PARA FCIs ───────────
-        # Los FCIs no se cargan por cuotapartes. El broker te muestra
-        # directamente cuánto vale tu posición en pesos.
-        st.markdown("##### 💰 ¿Cuánto tenés en este fondo?")
-        st.caption(
-            "En los FCIs el broker te muestra directo cuánto vale tu "
-            "posición — no hace falta calcular nada."
+    # Para acciones / CEDEARs / MEP el camino es "vivo": seguimos el
+    # precio de mercado. El usuario puede tildar "no sé el precio" y
+    # entonces ese activo se carga como manual.
+    no_sabe_precio = False
+    if es_vivo_tipo:
+        no_sabe_precio = st.checkbox(
+            "No sé a qué precio compré este activo",
+            key=f"upf_nosabe_{tk}_{tipo_id}",
+            help=(
+                "Si no te acordás del precio de compra, igual lo podés "
+                "cargar — lo registramos con el valor que tenga hoy, pero "
+                "no vamos a poder seguir tu ganancia automáticamente."
+            ),
         )
 
-        col_pusiste, col_hoy = st.columns(2)
+    modo_carga = "vivo" if (es_vivo_tipo and not no_sabe_precio) else "manual"
 
-        with col_pusiste:
-            fci_monto_puesto = st.number_input(
+    # Variables del form (las completa el camino que corresponda)
+    monto_puesto = 0.0
+    precio_compra = 0.0
+    valor_hoy_manual = 0.0
+
+    if modo_carga == "vivo":
+        # ─────────── CAMINO EN VIVO: monto + precio de compra ───────────
+        st.caption(
+            f"Decinos cuánto pusiste y a qué precio estaba {nombre_singular} "
+            f"cuando compraste. Con eso seguimos solos cuánto vale hoy."
+        )
+
+        col_monto, col_pcompra = st.columns(2)
+        with col_monto:
+            monto_puesto = st.number_input(
+                "💵 ¿Cuánto pusiste en total? (ARS)",
+                min_value=0.0,
+                step=1000.0,
+                value=0.0,
+                key=f"upf_vivo_monto_{tk}_{tipo_id}",
+                help=(
+                    "La plata total que pusiste cuando compraste este "
+                    "activo. Lo ves en el comprobante de tu broker."
+                ),
+            )
+        with col_pcompra:
+            precio_compra = st.number_input(
+                f"🏷️ ¿A qué precio estaba una {nombre_singular}? (ARS)",
+                min_value=0.0,
+                step=10.0,
+                value=0.0,
+                key=f"upf_vivo_pcompra_{tk}_{tipo_id}",
+                help=(
+                    f"El precio de UNA {nombre_singular} el día que "
+                    f"compraste — no el total. Lo necesitamos para saber "
+                    f"cuántas {nombre_plural} tenés."
+                ),
+            )
+
+        # Preview en vivo: unidades + cuánto valdría hoy
+        if monto_puesto > 0 and precio_compra > 0:
+            unidades_prev = monto_puesto / precio_compra
+            from .market_data import get_precio_dia
+            precio_hoy_prev = get_precio_dia(tk, tipo_id)
+            if precio_hoy_prev and precio_hoy_prev > 0:
+                valor_hoy_prev = unidades_prev * precio_hoy_prev
+                pnl_prev = valor_hoy_prev - monto_puesto
+                pnl_pct_prev = (pnl_prev / monto_puesto) * 100
+                signo_prev = "+" if pnl_prev >= 0 else ""
+                msg_prev = (
+                    f"💡 Tendrías **{unidades_prev:,.2f} {nombre_plural}**. "
+                    f"Hoy valdrían **${valor_hoy_prev:,.0f}** — "
+                    f"{signo_prev}${pnl_prev:,.0f} "
+                    f"({signo_prev}{pnl_pct_prev:.2f}%)."
+                )
+                (st.success if pnl_prev >= 0 else st.error)(msg_prev)
+            else:
+                st.info(
+                    f"💡 Serían **{unidades_prev:,.2f} {nombre_plural}**. "
+                    "Todavía no tenemos el precio de hoy de este activo — "
+                    "lo vas a ver apenas esté disponible."
+                )
+
+    else:
+        # ─────────── CAMINO MANUAL: monto + valor de hoy editable ───────────
+        st.caption(
+            "Decinos cuánto pusiste y, si lo sabés, cuánto vale hoy. "
+            "Ese valor lo podés editar vos cuando quieras."
+        )
+
+        col_monto, col_hoy = st.columns(2)
+        with col_monto:
+            monto_puesto = st.number_input(
                 "💵 ¿Cuánto pusiste? (ARS)",
                 min_value=0.0,
                 step=1000.0,
                 value=0.0,
-                key=f"upf_fci_puesto_{activo_elegido['ticker']}",
-                help="Lo que entregaste cuando suscribiste el fondo.",
+                key=f"upf_man_monto_{tk}_{tipo_id}",
+                help="Lo que pusiste cuando compraste este activo.",
             )
-
         with col_hoy:
-            fci_valor_hoy = st.number_input(
+            valor_hoy_manual = st.number_input(
                 "💎 ¿Cuánto vale hoy? (ARS, opcional)",
                 min_value=0.0,
                 step=1000.0,
                 value=0.0,
-                key=f"upf_fci_hoy_{activo_elegido['ticker']}",
+                key=f"upf_man_hoy_{tk}_{tipo_id}",
                 help=(
-                    "Lo que ves en tu broker como 'valor actual' o 'tenencia'. "
-                    "Si no lo sabés, dejalo en 0 — asumimos que vale lo que pusiste."
+                    "Lo que ves en tu broker como 'valor actual' o "
+                    "'tenencia'. Si no lo sabés, dejalo en 0 — asumimos "
+                    "que vale lo que pusiste."
                 ),
             )
 
-        # Si cargó ambos, mostrar P&L proyectado en vivo
-        if fci_monto_puesto > 0 and fci_valor_hoy > 0:
-            pnl_proy = fci_valor_hoy - fci_monto_puesto
-            pnl_pct_proy = (pnl_proy / fci_monto_puesto) * 100
-            signo = '+' if pnl_proy >= 0 else ''
-            if pnl_proy >= 0:
-                st.success(
-                    f"💡 **Ganancia / pérdida proyectada:** "
-                    f"{signo}${pnl_proy:,.0f} ({signo}{pnl_pct_proy:.2f}%)"
-                )
-            else:
-                st.error(
-                    f"💡 **Ganancia / pérdida proyectada:** "
-                    f"${pnl_proy:,.0f} ({pnl_pct_proy:.2f}%)"
-                )
+        # Si cargó ambos, mostrar ganancia/pérdida
+        if monto_puesto > 0 and valor_hoy_manual > 0:
+            pnl_man = valor_hoy_manual - monto_puesto
+            pnl_pct_man = (pnl_man / monto_puesto) * 100
+            signo_man = "+" if pnl_man >= 0 else ""
+            msg_man = (
+                f"💡 **Ganancia / pérdida:** {signo_man}${pnl_man:,.0f} "
+                f"({signo_man}{pnl_pct_man:.2f}%)"
+            )
+            (st.success if pnl_man >= 0 else st.error)(msg_man)
 
+    # ─── SANITY CHECK DE MAGNITUD ────────────────────────────────
+    # Chequeo sobre lo que el usuario dice que puso. En el camino vivo
+    # el valor de hoy lo da el mercado (no se bloquea por eso); en el
+    # manual chequeamos también el valor de hoy cargado a mano.
+    if modo_carga == "vivo":
+        valor_para_check = monto_puesto
     else:
-        # ─────────── FORM PARA RESTO DE TIPOS ───────────
-        st.markdown("##### 💰 ¿Cómo querés cargar lo que tenés?")
-
-        modo_carga = st.radio(
-            "Elegí la opción que mejor te resulte:",
-            options=[
-                "💵 Sé cuánta plata tengo en este activo",
-                "📊 Sé cuántas unidades tengo (lo veo en mi broker)",
-            ],
-            key=f"upf_modo_{tipo_seleccionado['id']}_{activo_elegido['ticker']}",
-            help="Si dudás, elegí la primera — es la más común.",
-        )
-
-        es_modo_simple = modo_carga.startswith("💵")
-
-        if es_modo_simple:
-            # ──── MODO SIMPLE: solo monto, sin ganancia/pérdida ────
-            st.caption(
-                "Ingresá cuánta plata (en pesos) tenés hoy en este activo. "
-                "Lo encontrás en tu broker como \"valor actual\" o \"tenencia\"."
-            )
-
-            monto_simple = st.number_input(
-                "💵 Plata que tenés en este activo (ARS)",
-                min_value=0.0,
-                step=1000.0,
-                value=0.0,
-                key=f"upf_monto_simple_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
-                help="Por ejemplo: si en tu broker dice 'Apple: $50.000', poné 50000",
-            )
-
-            # En modo simple NO hay manera de calcular ganancia/pérdida.
-            st.info(
-                "⓵ En este modo no calculamos ganancia o pérdida — solo "
-                "registramos el valor que pusiste. Si querés saber tu "
-                "ganancia, elegí el modo \"sé cuántas unidades tengo\"."
-            )
-
-        else:
-            # ──── MODO UNIDADES: cantidad + precio del día ────
-            # Nombres dinámicos según tipo (acciones/CEDEARs/bonos/etc)
-            tipo_id = tipo_seleccionado["id"]
-            nombre_plural = NOMBRES_PLURAL_POR_TIPO.get(tipo_id, "unidades")
-            nombre_singular = NOMBRES_SINGULAR_POR_TIPO.get(tipo_id, "unidad")
-
-            st.caption(
-                f"Si conocés cuántas {nombre_plural} tenés y a qué precio "
-                f"cotiza una hoy, calculamos por vos cuánto vale tu posición."
-            )
-
-            # Key del number_input del precio (usado también por el botón
-            # de fetch para escribir el valor traído de la API).
-            precio_key = f"upf_precio_actual_{activo_elegido['ticker']}_{tipo_seleccionado['id']}"
-
-            # Inicializar si no existe (evita warning de Streamlit por
-            # conflicto entre value default y session_state existente).
-            if precio_key not in st.session_state:
-                st.session_state[precio_key] = 0.0
-
-            # Botón de auto-fill desde API (Bloque 6B). Va arriba de
-            # las columnas para que sea visible y opcional. Si la API
-            # no tiene el activo, caption discreta y el usuario carga
-            # manual abajo.
-            col_btn, col_info = st.columns([2, 3])
-            with col_btn:
-                if st.button(
-                    "📡 Traer precio en vivo",
-                    key=f"upf_fetch_btn_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
-                    use_container_width=True,
-                    help=(
-                        "Trae el precio del día desde APIs gratuitas "
-                        "(data912 / argentinadatos, ~2h de delay). En "
-                        "producción con API paga sería tiempo real."
-                    ),
-                ):
-                    from .market_data import get_precio_dia
-                    precio_fetched = get_precio_dia(
-                        activo_elegido["ticker"],
-                        tipo_seleccionado["id"],
-                    )
-                    if precio_fetched and precio_fetched > 0:
-                        st.session_state[precio_key] = float(precio_fetched)
-                        st.session_state[f"_fetch_msg_{precio_key}"] = (
-                            f"✅ ${precio_fetched:,.2f} traído de la API"
-                        )
-                    else:
-                        st.session_state[f"_fetch_msg_{precio_key}"] = (
-                            "📡 No tenemos precio en vivo para este activo. "
-                            "Cargalo a mano abajo."
-                        )
-                    st.rerun()
-
-            with col_info:
-                # Mostrar el último mensaje de fetch (success o no-data)
-                msg = st.session_state.get(f"_fetch_msg_{precio_key}")
-                if msg:
-                    if msg.startswith("✅"):
-                        st.success(msg)
-                    else:
-                        st.caption(msg)
-
-            col_unid, col_precio = st.columns(2)
-
-            with col_unid:
-                cantidad_unidades = st.number_input(
-                    f"📊 Cantidad de {nombre_plural} que tenés",
-                    min_value=0.0,
-                    step=1.0,
-                    value=0.0,
-                    key=f"upf_cantidad_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
-                    help=(
-                        f"La cantidad exacta de {nombre_plural} que dice tu "
-                        "broker. Si tu broker dice 'tenencia 100', acá va 100."
-                    ),
-                )
-
-            with col_precio:
-                precio_actual = st.number_input(
-                    f"💲 Precio actual de una {nombre_singular} (ARS)",
-                    min_value=0.0,
-                    step=10.0,
-                    key=precio_key,
-                    help=(
-                        f"Lo que vale HOY UNA {nombre_singular} (no el total). "
-                        f"Si tenés 100 {nombre_plural} y cada una vale $1.000, "
-                        "acá ponés 1000, no 100000. Lo ves en tu broker como "
-                        "'cotización' o 'último precio', o usá '📡 Traer precio "
-                        "en vivo' arriba."
-                    ),
-                )
-
-            # Cálculo automático en vivo con componente nativo
-            if cantidad_unidades > 0 and precio_actual > 0:
-                valor_calc = cantidad_unidades * precio_actual
-                st.info(
-                    f"💡 **Tu posición vale:** ${valor_calc:,.0f} ARS  "
-                    f"_({cantidad_unidades:.0f} {nombre_plural} × "
-                    f"${precio_actual:,.2f} cada una)_"
-                )
-
-            # SOLO en modo unidades aparece el campo de precio de compra
-            with st.expander(f"💡 Sé a qué precio compré cada {nombre_singular} (opcional)"):
-                st.caption(
-                    f"Si recordás a qué precio compraste cada {nombre_singular}, "
-                    f"calculamos cuánto ganaste o perdiste desde ese momento. "
-                    "Si no lo recordás, no pasa nada — el resto funciona igual."
-                )
-
-                precio_compra = st.number_input(
-                    f"💼 Precio al que compraste cada {nombre_singular} (ARS, opcional)",
-                    min_value=0.0,
-                    step=10.0,
-                    value=0.0,
-                    key=f"upf_precio_compra_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
-                    help=(
-                        f"Lo que pagaste por UNA {nombre_singular} cuando la "
-                        "compraste, no el total. Si no lo recordás exacto, "
-                        "dejalo en 0 y seguís."
-                    ),
-                )
-
-            # Banner del supuesto cae — copy NEUTRO (Bug 4)
-            if precio_actual > 0 and precio_compra > 0:
-                diferencia_pct = ((precio_compra - precio_actual) / precio_compra) * 100
-                if diferencia_pct > 5:
-                    st.warning(
-                        f"⚠️ **Heads up:** el precio actual está "
-                        f"{diferencia_pct:.1f}% por debajo de cuando compraste. "
-                        f"Puede ser pérdida real, o que cargaste algún número "
-                        f"raro — vale la pena revisarlo antes de agregar."
-                    )
-
-    # ─── SANITY CHECK DE MAGNITUD (Bug 3) ────────────────────────
-    # Se calcula sobre el valor "más reciente" (lo que vale hoy o lo
-    # que puso). Bloquea agregar si supera HARD_BLOCK_ARS o si el
-    # ratio valor/costo es absurdo en modo unidades con compra.
-    if es_fci:
-        valor_para_check = fci_valor_hoy if fci_valor_hoy > 0 else fci_monto_puesto
-    elif es_modo_simple:
-        valor_para_check = monto_simple
-    else:
-        valor_para_check = cantidad_unidades * precio_actual
+        valor_para_check = valor_hoy_manual if valor_hoy_manual > 0 else monto_puesto
 
     bloqueado_por_sanity = False
     mensaje_bloqueo = ""
@@ -682,7 +614,7 @@ def _render_loading():
         mensaje_bloqueo = (
             f"🚫 Estás cargando ${valor_para_check:,.0f} ARS en un solo activo. "
             f"Valores arriba de ${HARD_BLOCK_ARS:,.0f} ARS son muy raros — "
-            f"revisá si se te corrió la coma en cantidad o precio."
+            f"revisá si se te corrió la coma."
         )
     elif valor_para_check > SOFT_WARNING_ARS:
         st.warning(
@@ -690,20 +622,17 @@ def _render_loading():
             f"activo. Si es correcto, seguí — si no, revisá los números."
         )
 
-    # Ratio check (solo modo unidades con compra)
-    if (not es_fci and not es_modo_simple
-            and precio_actual > 0 and precio_compra > 0
-            and cantidad_unidades > 0):
-        costo_real = cantidad_unidades * precio_compra
-        valor_real = cantidad_unidades * precio_actual
-        if costo_real > 0 and valor_real / costo_real > RATIO_VALOR_MONTO_MAX:
-            bloqueado_por_sanity = True
-            multiplicador = valor_real / costo_real
-            mensaje_bloqueo = (
-                f"🚫 Estás cargando que este activo multiplicó por "
-                f"{multiplicador:.0f}x desde que lo compraste. Eso es muy raro — "
-                f"revisá precio de compra y precio del día."
-            )
+    # Ratio check del camino manual: el valor de hoy no puede ser un
+    # múltiplo absurdo de lo que se puso (señal de error de tipeo).
+    if (modo_carga == "manual" and monto_puesto > 0 and valor_hoy_manual > 0
+            and valor_hoy_manual / monto_puesto > RATIO_VALOR_MONTO_MAX):
+        bloqueado_por_sanity = True
+        multiplicador = valor_hoy_manual / monto_puesto
+        mensaje_bloqueo = (
+            f"🚫 Estás cargando que este activo multiplicó por "
+            f"{multiplicador:.0f}x lo que pusiste. Eso es muy raro — "
+            f"revisá los montos."
+        )
 
     if bloqueado_por_sanity:
         st.error(mensaje_bloqueo)
@@ -715,58 +644,45 @@ def _render_loading():
         "➕ Agregar a mi portafolio",
         type="primary",
         use_container_width=True,
-        key=f"upf_add_btn_{activo_elegido['ticker']}_{tipo_seleccionado['id']}",
+        key=f"upf_add_btn_{tk}_{tipo_id}",
         disabled=bloqueado_por_sanity,
     ):
-        if es_fci:
-            # FCI: monto_invertido obligatorio, valor_actual_directo opcional
-            if fci_monto_puesto <= 0:
-                st.error("Tenés que poner cuánto pusiste en este fondo.")
-            else:
-                nuevo_activo = crear_activo(
-                    tipo=tipo_seleccionado["id"],
-                    ticker=activo_elegido["ticker"],
-                    nombre=activo_elegido["nombre"],
-                    monto_invertido_ars=fci_monto_puesto,
-                    precio_actual_ars=None,
-                    precio_compra_ars=None,
-                    valor_actual_directo=fci_valor_hoy if fci_valor_hoy > 0 else None,
+        if modo_carga == "vivo":
+            if monto_puesto <= 0:
+                st.error("Tenés que poner cuánto pusiste en este activo.")
+            elif precio_compra <= 0:
+                st.error(
+                    "Tenés que poner a qué precio compraste — lo necesitamos "
+                    "para seguir cuánto vale hoy. Si no lo sabés, tildá "
+                    "'No sé a qué precio compré este activo'."
                 )
-                st.session_state["user_portfolio_activos"].append(nuevo_activo)
-                _persistir_portafolio()
-                st.success(f"✅ {activo_elegido['nombre']} agregado a tu cartera")
-                st.rerun()
-        elif es_modo_simple:
-            # Modo simple: SOLO monto
-            if monto_simple <= 0:
-                st.error("Tenés que poner cuánta plata tenés en este activo.")
             else:
+                from .market_data import get_precio_dia
+                precio_hoy = get_precio_dia(tk, tipo_id)
                 nuevo_activo = crear_activo(
-                    tipo=tipo_seleccionado["id"],
-                    ticker=activo_elegido["ticker"],
+                    tipo=tipo_id,
+                    ticker=tk,
                     nombre=activo_elegido["nombre"],
-                    monto_invertido_ars=monto_simple,
-                    precio_actual_ars=None,
-                    precio_compra_ars=None,
+                    monto_invertido_ars=monto_puesto,
+                    modo="vivo",
+                    precio_compra_ars=precio_compra,
+                    precio_actual_ars=precio_hoy if (precio_hoy and precio_hoy > 0) else None,
                 )
                 st.session_state["user_portfolio_activos"].append(nuevo_activo)
                 _persistir_portafolio()
                 st.success(f"✅ {activo_elegido['nombre']} agregado a tu cartera")
                 st.rerun()
         else:
-            # Modo unidades: cantidad + precio_actual obligatorios
-            if cantidad_unidades <= 0:
-                st.error("Tenés que poner cuántas unidades tenés.")
-            elif precio_actual <= 0:
-                st.error("Tenés que poner el precio actual del activo.")
+            if monto_puesto <= 0:
+                st.error("Tenés que poner cuánto pusiste en este activo.")
             else:
                 nuevo_activo = crear_activo(
-                    tipo=tipo_seleccionado["id"],
-                    ticker=activo_elegido["ticker"],
+                    tipo=tipo_id,
+                    ticker=tk,
                     nombre=activo_elegido["nombre"],
-                    monto_invertido_ars=cantidad_unidades * precio_actual,
-                    precio_actual_ars=precio_actual,
-                    precio_compra_ars=precio_compra if precio_compra > 0 else None,
+                    monto_invertido_ars=monto_puesto,
+                    modo="manual",
+                    valor_actual_directo=valor_hoy_manual if valor_hoy_manual > 0 else None,
                 )
                 st.session_state["user_portfolio_activos"].append(nuevo_activo)
                 _persistir_portafolio()
