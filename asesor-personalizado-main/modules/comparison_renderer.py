@@ -48,6 +48,41 @@ _CATEGORIA_SUGERIDA_A_TIPO = {
 }
 
 
+# Resultados y Comparación mostraban la MISMA cartera sugerida con
+# categorías distintas (Resultados: Liquidez/Cobertura/Renta fija/...;
+# Comparación: CEDEARs/ONs/Bonos/...). Eso confunde. La comparación
+# ahora re-agrupa todo a las 5 categorías de la pantalla de Resultados.
+# Mapeo tipo_id (cartera del usuario) -> categoría unificada.
+_TIPO_A_CAT_UNIF = {
+    "accion_arg": "Renta variable",
+    "cedear":     "Renta variable",
+    "bono":       "Renta fija",
+    "on":         "Renta fija",
+    "letra":      "Renta fija",
+    "fci":        "Liquidez",
+    "mep":        "Cobertura cambiaria",
+}
+
+# Colores de las 5 categorías unificadas (los mismos de la pantalla de
+# Resultados — charts._CATEGORY_META).
+_COLOR_CAT_UNIF = {
+    "Liquidez":            "#60a5fa",
+    "Cobertura cambiaria": "#f59e0b",
+    "Renta fija":          "#22c55e",
+    "Fondos globales":     "#4fa3ff",
+    "Renta variable":      "#a78bfa",
+}
+
+
+def _unificar(allocation_tipo: dict) -> dict:
+    """Re-agrupa una allocation {tipo: %} a {categoría unificada: %}."""
+    salida = {}
+    for tipo, peso in allocation_tipo.items():
+        cat = _TIPO_A_CAT_UNIF.get(tipo, "Renta variable")
+        salida[cat] = salida.get(cat, 0) + peso
+    return salida
+
+
 def _emoji_rentabilidad(pct: float) -> str:
     """
     Emoji honesto según nivel de rentabilidad REAL estimada
@@ -71,9 +106,9 @@ def _construir_donut(allocation: dict, titulo: str):
     """Construye un donut chart de Plotly a partir del dict allocation."""
     if not allocation:
         return None
-    labels = [NOMBRES_CATEGORIA.get(t, t) for t in allocation.keys()]
+    labels = list(allocation.keys())
     values = list(allocation.values())
-    colors = [COLORES_CATEGORIA.get(t, "#888") for t in allocation.keys()]
+    colors = [_COLOR_CAT_UNIF.get(c, "#888") for c in allocation.keys()]
 
     fig = go.Figure(data=[go.Pie(
         labels=labels,
@@ -107,8 +142,8 @@ def _leyenda_compartida(allocation_real: dict, allocation_sugerida: dict) -> str
     ))
     items = ""
     for t in tipos:
-        color = COLORES_CATEGORIA.get(t, "#888")
-        nombre = NOMBRES_CATEGORIA.get(t, t)
+        color = _COLOR_CAT_UNIF.get(t, "#888")
+        nombre = t
         items += (
             f'<span style="display:inline-flex; align-items:center; '
             f'gap:0.4rem; margin:0.25rem 0.7rem;">'
@@ -230,6 +265,25 @@ def render_comparison_page():
     rent_sugerida = get_rentabilidad_anual_estimada(activos_sugerida_sinteticos)
     riesgo_sugerido = get_nivel_riesgo_cartera(activos_sugerida_sinteticos)
 
+    # ── Allocations para el DISPLAY, unificadas a las 5 categorías de
+    # la pantalla de Resultados (donuts + leyenda + gaps coinciden).
+    # La sugerida se re-agrupa con la MISMA función que Resultados
+    # (_asset_to_user_category) para que matchee 1:1. La rentabilidad y
+    # el riesgo de arriba no se tocan — siguen sobre el sistema de tipos.
+    from .charts import _asset_to_user_category
+    alloc_real_disp = _unificar(allocation_real)
+    alloc_sug_disp = {}
+    for pos in positions_sug:
+        if not isinstance(pos, dict):
+            continue
+        cat = _asset_to_user_category(pos)
+        try:
+            peso = float(pos.get("weight", 0)) * 100
+        except (ValueError, TypeError):
+            continue
+        if peso > 0:
+            alloc_sug_disp[cat] = alloc_sug_disp.get(cat, 0) + peso
+
     # Diferencia anual en $ (la línea VENDEDORA)
     totales_real = total_portafolio(activos_real)
     valor_real = totales_real["valor_total_actual"]
@@ -245,7 +299,7 @@ def render_comparison_page():
             'margin-bottom: 0.5rem;">📂 Tu cartera</div>',
             unsafe_allow_html=True,
         )
-        fig_real = _construir_donut(allocation_real, "Real")
+        fig_real = _construir_donut(alloc_real_disp, "Real")
         if fig_real:
             st.plotly_chart(fig_real, use_container_width=True, config={"displayModeBar": False})
 
@@ -255,13 +309,13 @@ def render_comparison_page():
             'margin-bottom: 0.5rem;">⭐ La que te sugerimos</div>',
             unsafe_allow_html=True,
         )
-        fig_sug = _construir_donut(allocation_sugerida, "Sugerida")
+        fig_sug = _construir_donut(alloc_sug_disp, "Sugerida")
         if fig_sug:
             st.plotly_chart(fig_sug, use_container_width=True, config={"displayModeBar": False})
 
     # ── Leyenda única compartida por los dos donuts ──────────────
     st.markdown(
-        _leyenda_compartida(allocation_real, allocation_sugerida),
+        _leyenda_compartida(alloc_real_disp, alloc_sug_disp),
         unsafe_allow_html=True,
     )
 
@@ -286,15 +340,41 @@ def render_comparison_page():
         )
         + _metrica_comparada(
             "Repartida en",
-            f"🧩 {len(allocation_real)} "
-            + ("tipo" if len(allocation_real) == 1 else "tipos"),
-            f"🧩 {len(allocation_sugerida)} "
-            + ("tipo" if len(allocation_sugerida) == 1 else "tipos"),
+            f"🧩 {len(alloc_real_disp)} "
+            + ("tipo" if len(alloc_real_disp) == 1 else "tipos"),
+            f"🧩 {len(alloc_sug_disp)} "
+            + ("tipo" if len(alloc_sug_disp) == 1 else "tipos"),
             "más repartida = que a una le vaya mal no te hunde",
         )
         + '</div>',
         unsafe_allow_html=True,
     )
+
+    # ── Si la rentabilidad propia es MÁS alta, explicar por qué ──
+    # Sin esto el usuario lee "la mía rinde más" y piensa que es mejor.
+    # La causa real es la concentración — y eso ya se ve en el riesgo.
+    if rent_real > rent_sugerida + 0.3:
+        st.markdown(
+            f'<div style="border-left:3px solid #f59e0b; '
+            f'background:rgba(245,158,11,0.06); border-radius:0 10px 10px 0; '
+            f'padding:0.9rem 1.15rem; margin-top:0.85rem;">'
+            f'<div style="font-size:0.95rem; font-weight:600; color:#ffffff; '
+            f'margin-bottom:0.3rem;">'
+            f'⚠️ ¿Por qué tu cartera muestra un número más alto?</div>'
+            f'<div style="font-size:0.875rem; color:rgba(255,255,255,0.72); '
+            f'line-height:1.55;">'
+            f'No es que sea mejor. Tu cartera está concentrada en pocos '
+            f'activos parecidos: eso puede mostrar un número más alto en '
+            f'el papel, pero si a ese grupo le va mal te golpea de lleno. '
+            f'Por eso tu cartera es de riesgo <strong>{riesgo_real}</strong> '
+            f'y la sugerida de riesgo <strong>{riesgo_sugerido}</strong>. '
+            f'La sugerida está armada para darte el mejor resultado '
+            f'posible sin exponerte de más — es la mejor para tu perfil '
+            f'de riesgo y la más repartida.'
+            f'</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
 
     # ── Por qué te sugerimos esta — explicación simple ───────────
     # Traduce a lenguaje cero-técnico que la sugerida es el resultado
@@ -340,7 +420,7 @@ def render_comparison_page():
         )
 
     # ── Gaps en lenguaje humano ──────────────────────────────────
-    gaps = detectar_gaps_simples(allocation_real, allocation_sugerida)
+    gaps = detectar_gaps_simples(alloc_real_disp, alloc_sug_disp)
     if gaps:
         st.markdown(
             '<hr style="border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 2rem 0 1rem 0;">',

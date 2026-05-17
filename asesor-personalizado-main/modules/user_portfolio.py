@@ -453,13 +453,18 @@ def detectar_gaps_simples(allocation_real: dict, allocation_sugerida: dict) -> l
         peso_real = allocation_real.get(tipo, 0)
         if peso_sug >= 15 and peso_real < 5:
             nombre = NOMBRES_CATEGORIA.get(tipo, tipo)
+            # NOTA: la comparación pasa las allocations ya unificadas a
+            # las 5 categorías de Resultados, así que acá 'tipo' es el
+            # nombre de categoría (Liquidez, Renta fija, etc.).
             explicacion_extra = ""
-            if tipo == "cedear":
+            if tipo == "Cobertura cambiaria":
                 explicacion_extra = " Te protege si el peso pierde valor."
-            elif tipo == "fci":
-                explicacion_extra = " Sirve como reserva para emergencias o aprovechar oportunidades."
-            elif tipo == "bono":
-                explicacion_extra = " Te dan estabilidad y un ingreso predecible."
+            elif tipo == "Liquidez":
+                explicacion_extra = " Sirve como reserva para emergencias o para aprovechar oportunidades."
+            elif tipo == "Renta fija":
+                explicacion_extra = " Te da estabilidad y un ingreso más predecible."
+            elif tipo == "Fondos globales":
+                explicacion_extra = " Te da acceso a las empresas más grandes del mundo."
             gaps.append({
                 "icon": "🧩",
                 "titulo": f"Te falta {nombre}",
