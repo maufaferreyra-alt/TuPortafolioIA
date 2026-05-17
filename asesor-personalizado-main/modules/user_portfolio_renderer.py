@@ -140,23 +140,45 @@ def _render_loading():
         signo_pct = '+' if totales['pnl_total_pct'] >= 0 else ''
 
         with st.container(border=True):
-            c1, c2, c3, c4 = st.columns(4)
+            # Columnas con proporción [1, 1.5, 1, 1]: "Valor actual" gana
+            # 50% más ancho como métrica principal (jerarquía visual sin CSS).
+            c1, c2, c3, c4 = st.columns([1, 1.5, 1, 1])
             c1.metric(
                 "Total invertido",
                 f"${totales['total_invertido']:,.0f}",
-                help="Lo que realmente pusiste, en pesos.",
+                help=(
+                    "Lo que realmente pusiste, sumando el costo de cada activo. "
+                    "Si cargaste con precio de compra, usamos ese costo real; "
+                    "si cargaste en modo simple, usamos el monto que indicaste."
+                ),
             )
             c2.metric(
-                "Valor actual",
+                "💎 Valor actual",
                 f"${totales['valor_total_actual']:,.0f}",
-                help="Cuánto vale hoy tu cartera.",
+                help=(
+                    "Cuánto vale hoy tu cartera al precio actual de cada activo. "
+                    "Para los activos cargados en modo simple (sin precio del día), "
+                    "asumimos que valen lo mismo que pusiste."
+                ),
             )
             c3.metric(
                 "Ganancia / Pérdida",
                 f"${totales['pnl_total_ars']:,.0f}",
                 delta=f"{signo_pct}{totales['pnl_total_pct']:.2f}%",
+                help=(
+                    "Diferencia entre lo que pusiste y lo que vale hoy. "
+                    "Verde si ganaste, rojo si perdiste. Los activos sin precio "
+                    "de compra no suman al cálculo individual."
+                ),
             )
-            c4.metric("Activos cargados", str(totales['cantidad_activos']))
+            c4.metric(
+                "Activos cargados",
+                str(totales['cantidad_activos']),
+                help=(
+                    "Cantidad de posiciones distintas en tu cartera. "
+                    "Si cargaste el mismo activo dos veces, cuenta como dos."
+                ),
+            )
 
         # Detectar si algún activo está en modo simple (sin valuación de mercado).
         # En modo simple precio_actual_ars queda en None.
@@ -550,8 +572,10 @@ def _render_activo_card(activo: dict):
         col_titulo, col_action = st.columns([8, 1])
 
         with col_titulo:
-            st.markdown(f"**{icono}  {activo['nombre']}**")
-            st.caption(f"{activo['ticker']} · {tipo_label}")
+            # Un solo espacio entre ícono y nombre (era doble)
+            st.markdown(f"**{icono} {activo['nombre']}**")
+            # Ticker en bold para mejor escaneabilidad con múltiples activos
+            st.caption(f"**{activo['ticker']}** · {tipo_label}")
 
         with col_action:
             if st.button("🗑️", key=f"upf_del_{activo['id']}", help="Eliminar activo"):
@@ -563,8 +587,19 @@ def _render_activo_card(activo: dict):
                 st.rerun()
 
         n1, n2, n3 = st.columns(3)
-        n1.metric("Invertido", f"${invertido:,.0f}")
-        n2.metric("Valor actual", f"${pnl['valor_actual']:,.0f}")
+        n1.metric(
+            "Invertido",
+            f"${invertido:,.0f}",
+            help="Lo que realmente pusiste por este activo.",
+        )
+        n2.metric(
+            "Valor actual",
+            f"${pnl['valor_actual']:,.0f}",
+            help=(
+                "Cuánto vale hoy este activo. "
+                "Si lo cargaste en modo simple, asumimos que vale lo mismo que pusiste."
+            ),
+        )
 
         if pnl["pnl_ars"] is not None:
             signo = "+" if pnl["pnl_ars"] >= 0 else ""
@@ -572,12 +607,16 @@ def _render_activo_card(activo: dict):
                 "Ganancia / Pérdida",
                 f"${pnl['pnl_ars']:,.0f}",
                 delta=f"{signo}{pnl['pnl_pct']:.2f}%",
+                help="Diferencia entre lo que pusiste y lo que vale hoy.",
             )
         else:
             n3.metric(
                 "Ganancia / Pérdida",
                 "—",
-                help="Sin datos de compra — cargá el activo con precio de compra para verlo.",
+                help=(
+                    "Sin datos de compra — cargá el activo con cantidad de unidades "
+                    "+ precio de compra para verlo."
+                ),
             )
 
 
