@@ -91,8 +91,8 @@ def _render_intro():
         'text-align:center;">'
         # ícono en badge circular indigo
         '<div style="width:4.5rem; height:4.5rem; margin:0 auto 1.25rem auto; '
-        'border-radius:50%; background:rgba(99,102,241,0.12); '
-        'border:1px solid rgba(99,102,241,0.28); display:flex; '
+        'border-radius:50%; background:rgba(96,165,250,0.12); '
+        'border:1px solid rgba(96,165,250,0.28); display:flex; '
         'align-items:center; justify-content:center; font-size:2.2rem;">💼</div>'
         # título
         '<h1 style="font-size:1.9rem; font-weight:700; color:#f5f5f7; '
@@ -126,7 +126,7 @@ def _render_intro():
             f'<div style="display:flex; align-items:center; gap:0.85rem; '
             f'padding:0.7rem 0; {_borde}">'
             f'<div style="flex-shrink:0; width:2.15rem; height:2.15rem; '
-            f'border-radius:8px; background:rgba(99,102,241,0.1); '
+            f'border-radius:8px; background:rgba(96,165,250,0.1); '
             f'display:flex; align-items:center; justify-content:center; '
             f'font-size:1.1rem;">{_ic}</div>'
             f'<div style="font-size:0.95rem; color:rgba(255,255,255,0.82); '
@@ -180,7 +180,7 @@ def _paso_badge(numero: str, titulo: str, subtitulo: str = "") -> str:
         f'<div style="display:flex;align-items:center;gap:0.7rem;'
         f'margin:1.75rem 0 0.9rem 0;">'
         f'<div style="flex-shrink:0;width:1.7rem;height:1.7rem;'
-        f'border-radius:50%;background:#6366f1;color:#ffffff;'
+        f'border-radius:50%;background:#60a5fa;color:#ffffff;'
         f'display:flex;align-items:center;justify-content:center;'
         f'font-weight:700;font-size:0.9rem;line-height:1;">{numero}</div>'
         f'<div>'
@@ -759,7 +759,7 @@ def _render_mini_donut(grupo: dict):
     # (no usar la paleta del 6C porque esos colores son por categoría,
     # acá necesitamos diferenciación dentro de la misma categoría)
     PALETA_INTRA = [
-        "#6366f1",  # azul
+        "#60a5fa",  # azul
         "#a78bfa",  # violeta
         "#34d399",  # verde
         "#fbbf24",  # amarillo
@@ -882,7 +882,7 @@ def _render_portafolio_html(activos: list):
             tipo_info.get("label", tipo_id) if tipo_info else tipo_id
         )
         descripcion = DESCRIPCIONES_CATEGORIA.get(tipo_id, "")
-        color = COLORES_CATEGORIA.get(tipo_id, "#6366f1")
+        color = COLORES_CATEGORIA.get(tipo_id, "#60a5fa")
 
         sufijo = f"{cantidad} {'activo' if cantidad == 1 else 'activos'}"
         desc_line = f"{descripcion}  ·  {sufijo}" if descripcion else sufijo
@@ -970,7 +970,7 @@ def _render_categoria_card(grupo: dict):
         tipo_info.get("label", tipo_id) if tipo_info else tipo_id
     )
     descripcion = DESCRIPCIONES_CATEGORIA.get(tipo_id, "")
-    color_accent = COLORES_CATEGORIA.get(tipo_id, "#6366f1")
+    color_accent = COLORES_CATEGORIA.get(tipo_id, "#60a5fa")
 
     sufijo_count = f"{cantidad} {'activo' if cantidad == 1 else 'activos'}"
 
@@ -1124,7 +1124,7 @@ def _render_activo_card(activo: dict):
                 f'{icono} {activo["nombre"]}'
                 f'</div>'
                 f'<div style="font-size: 0.85rem; color: rgba(255,255,255,0.55); margin-top: 0.15rem;">'
-                f'<span style="color: #6366f1; font-weight: 600; font-family: ui-monospace, monospace;">{activo["ticker"]}</span>'
+                f'<span style="color: #60a5fa; font-weight: 600; font-family: ui-monospace, monospace;">{activo["ticker"]}</span>'
                 f' · {tipo_label}'
                 f'</div>',
                 unsafe_allow_html=True,

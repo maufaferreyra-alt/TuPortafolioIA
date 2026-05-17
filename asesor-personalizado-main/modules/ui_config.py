@@ -3181,9 +3181,9 @@ html, body, #root, .stApp {
     --tpia-text-primary:  #f5f5f7;
     --tpia-text-secondary: rgba(255, 255, 255, 0.72);
     --tpia-text-muted:    rgba(255, 255, 255, 0.45);
-    --tpia-accent:        #6366f1;
-    --tpia-accent-hover:  #818cf8;
-    --tpia-accent-soft:   rgba(99, 102, 241, 0.12);
+    --tpia-accent:        #60a5fa;
+    --tpia-accent-hover:  #93c5fd;
+    --tpia-accent-soft:   rgba(96, 165, 250, 0.12);
     --tpia-success:       #22c55e;
     --tpia-warning:       #f59e0b;
     --tpia-error:         #ef4444;
@@ -3286,7 +3286,7 @@ h1.tpia-brand, [class*="brand"] {
 /* Botón primary — usar el accent indigo Linear-like */
 .stButton > button[kind="primary"],
 .stButton > button[data-testid="baseButton-primary"] {
-    background: linear-gradient(180deg, var(--tpia-accent) 0%, #4f46e5 100%) !important;
+    background: linear-gradient(180deg, var(--tpia-accent) 0%, #3b82f6 100%) !important;
     border: 1px solid var(--tpia-accent-hover) !important;
     color: #ffffff !important;
 }
@@ -3294,7 +3294,7 @@ h1.tpia-brand, [class*="brand"] {
 .stButton > button[kind="primary"]:hover,
 .stButton > button[data-testid="baseButton-primary"]:hover {
     background: linear-gradient(180deg, var(--tpia-accent-hover) 0%, var(--tpia-accent) 100%) !important;
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+    box-shadow: 0 4px 16px rgba(96, 165, 250, 0.35);
 }
 
 /* ─── Containers / Cards (st.container con border) ────────────────── */
@@ -3460,9 +3460,9 @@ div[data-testid="stContainer"] {
 
 /* Banner "¿Hay algún término que no conoce?" — sutil */
 .glosario-cta {
-    background: rgba(99, 102, 241, 0.04) !important;
+    background: rgba(96, 165, 250, 0.04) !important;
     border: none !important;
-    border-left: 3px solid #6366f1 !important;
+    border-left: 3px solid #60a5fa !important;
     border-radius: 0 8px 8px 0 !important;
     padding: 0.875rem 1.125rem !important;
     margin: 1rem 0 0.5rem 0 !important;
@@ -3484,9 +3484,9 @@ div[data-testid="stContainer"] {
 
 /* Banner "¿Querés ver tu portafolio actual?" — sutil */
 .upf-cta-card {
-    background: rgba(99, 102, 241, 0.04) !important;
+    background: rgba(96, 165, 250, 0.04) !important;
     border: none !important;
-    border-left: 3px solid #6366f1 !important;
+    border-left: 3px solid #60a5fa !important;
     border-radius: 0 8px 8px 0 !important;
     padding: 0.875rem 1.125rem !important;
     margin: 0.5rem 0 0.75rem 0 !important;
@@ -3582,11 +3582,11 @@ div[data-testid="stContainer"] {
 [class*="st-key-lucas_chip"] .stButton > button,
 [class*="st-key-lucas_chip"] .stButton > button[kind="secondary"],
 [class*="st-key-lucas_chip"] .stButton > button[data-testid="baseButton-secondary"] {
-    background: rgba(99, 102, 241, 0.10) !important;
-    background-color: rgba(99, 102, 241, 0.10) !important;
+    background: rgba(96, 165, 250, 0.10) !important;
+    background-color: rgba(96, 165, 250, 0.10) !important;
     background-image: none !important;
-    border: 1px solid rgba(99, 102, 241, 0.30) !important;
-    color: #c7d2fe !important;
+    border: 1px solid rgba(96, 165, 250, 0.30) !important;
+    color: #bfdbfe !important;
     border-radius: 10px !important;
     font-weight: 500 !important;
     box-shadow: none !important;
@@ -3595,12 +3595,12 @@ div[data-testid="stContainer"] {
 [class*="st-key-lucas_chip"] .stButton > button:hover,
 [class*="st-key-lucas_chip"] .stButton > button[kind="secondary"]:hover,
 [class*="st-key-lucas_chip"] .stButton > button[data-testid="baseButton-secondary"]:hover {
-    background: rgba(99, 102, 241, 0.18) !important;
-    background-color: rgba(99, 102, 241, 0.18) !important;
-    border-color: rgba(99, 102, 241, 0.55) !important;
+    background: rgba(96, 165, 250, 0.18) !important;
+    background-color: rgba(96, 165, 250, 0.18) !important;
+    border-color: rgba(96, 165, 250, 0.55) !important;
     color: #ffffff !important;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.20) !important;
+    box-shadow: 0 4px 12px rgba(96, 165, 250, 0.20) !important;
 }
 
 </style>
