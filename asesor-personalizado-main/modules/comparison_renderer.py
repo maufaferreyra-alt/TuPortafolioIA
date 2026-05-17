@@ -49,11 +49,16 @@ _CATEGORIA_SUGERIDA_A_TIPO = {
 
 
 def _emoji_rentabilidad(pct: float) -> str:
-    """Emoji honesto según nivel de rentabilidad estimada."""
-    if pct >= 9:   return "🚀"
-    if pct >= 6:   return "✓"
-    if pct >= 3:   return "⚠️"
-    return "📉"
+    """
+    Emoji honesto según nivel de rentabilidad REAL estimada
+    (después de inflación). Thresholds calibrados con referencia
+    al S&P 500 histórico (~7% real anual) como benchmark de
+    "rendimiento bueno".
+    """
+    if pct >= 7:   return "🚀"   # alta, mejor que S&P histórico
+    if pct >= 4:   return "✓"    # buena
+    if pct >= 2:   return "⚠️"   # ojo, conviene revisar
+    return "📉"                  # baja, casi como banco
 
 
 def _emoji_riesgo(nivel: str) -> str:
