@@ -3185,11 +3185,14 @@ html, body, #root, .stApp {
 }
 
 /* ─── Tipografía global: Inter en body, Syne se mantiene en marca ── */
-/* NOTA: NO incluir 'span' en el selector global porque rompe los
-   íconos de Material que Streamlit usa internamente (chevrons de
-   expanders, etc). Inter se hereda del body al texto naturalmente. */
+/* NOTA: NO incluir 'span' ni 'div' en el selector global con !important.
+   - 'span' rompe los íconos de Material (chevrons de expanders).
+   - 'div' pisa la fuente de elementos que setean la suya a propósito:
+     p.ej. .metric-value usa var(--font-numbers) tabular; al forzarle
+     Inter los números quedan más anchos y desbordan las metric-card.
+   Inter se hereda del body al texto naturalmente, sin forzar cada div. */
 html, body, [data-testid="stAppViewContainer"], .stApp,
-.stMarkdown, .stText, p, div,
+.stMarkdown, .stText, p,
 [data-testid="stMarkdownContainer"] {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
     -webkit-font-smoothing: antialiased;
