@@ -277,3 +277,184 @@ def get_tipo_info(tipo_id: str) -> dict | None:
         if tipo["id"] == tipo_id:
             return tipo
     return None
+
+
+# ═══════════════════════════════════════════════════════════════════
+# FUNCIONES DE ANÁLISIS PARA COMPARACIÓN REAL VS SUGERIDA (Bloque 6C)
+# ═══════════════════════════════════════════════════════════════════
+#
+# Lenguaje humano: estas funciones devuelven datos que después se
+# muestran al usuario. NO usar términos técnicos en docstrings que
+# después puedan filtrar a la UI.
+
+
+# Mapeo tipo_id → nombre human-friendly para mostrar
+NOMBRES_CATEGORIA = {
+    "accion_arg": "Acciones argentinas",
+    "cedear":     "CEDEARs (acciones del exterior)",
+    "bono":       "Bonos del gobierno",
+    "on":         "ONs (deuda de empresas)",
+    "letra":      "Letras del Tesoro",
+    "fci":        "Fondos comunes",
+    "mep":        "Dólar MEP",
+}
+
+
+# Rentabilidad anual REAL estimada por categoría (después de
+# inflación). Tasas conservadoras para no inflar expectativas.
+# Estos números son la base — si en el futuro tenemos scores
+# específicos por ticker (finviz_scores.json, bond_scores.json),
+# podemos reemplazar la categoría por el promedio ponderado real.
+RENTABILIDAD_ANUAL_REAL_POR_CATEGORIA = {
+    "accion_arg": 0.08,  # 8% real anual (acciones ARG históricamente)
+    "cedear":     0.10,  # 10% real anual (S&P 500 histórico USD)
+    "bono":       0.06,  # 6% real anual (soberanos ARG estable)
+    "on":         0.08,  # 8% real anual (ONs corporativas)
+    "letra":      0.04,  # 4% real anual (LECAPs corto plazo)
+    "fci":        0.03,  # 3% real anual (Money Market en términos reales)
+    "mep":        0.00,  # 0% (cobertura de devaluación, no rinde)
+}
+
+
+# Mapeo categoría → nivel de riesgo (bajo / medio / alto)
+RIESGO_POR_CATEGORIA = {
+    "accion_arg": "alto",
+    "cedear":     "medio",
+    "bono":       "medio",
+    "on":         "medio",
+    "letra":      "bajo",
+    "fci":        "bajo",
+    "mep":        "bajo",
+}
+
+
+def get_alocacion_por_categoria(activos: list) -> dict:
+    """
+    Devuelve dict {categoria: porcentaje} para una lista de activos.
+    El porcentaje es sobre el valor ACTUAL total (no el invertido).
+    """
+    if not activos:
+        return {}
+
+    total_valor = sum(calcular_valor_actual(a) or 0 for a in activos)
+    if total_valor <= 0:
+        return {}
+
+    allocation = {}
+    for a in activos:
+        tipo = a.get("tipo")
+        if not tipo:
+            continue
+        valor = calcular_valor_actual(a) or 0
+        if valor <= 0:
+            continue
+        peso_pct = (valor / total_valor) * 100
+        allocation[tipo] = allocation.get(tipo, 0) + peso_pct
+
+    return allocation
+
+
+def get_rentabilidad_anual_estimada(activos: list) -> float:
+    """
+    Estimación de rentabilidad real anual (después de inflación) para
+    una cartera, ponderando las tasas de cada categoría por su peso.
+    Devuelve porcentaje (ej. 7.3 para 7.3%).
+    """
+    allocation = get_alocacion_por_categoria(activos)
+    if not allocation:
+        return 0.0
+
+    suma_ponderada = 0.0
+    for tipo, peso_pct in allocation.items():
+        tasa = RENTABILIDAD_ANUAL_REAL_POR_CATEGORIA.get(tipo, 0.0)
+        suma_ponderada += (peso_pct / 100) * tasa * 100
+
+    return suma_ponderada
+
+
+def get_nivel_riesgo_cartera(activos: list) -> str:
+    """
+    Devuelve 'bajo' / 'medio' / 'alto' según la categoría dominante.
+    Heurística simple: si más del 60% está en categorías de "alto"
+    riesgo, la cartera es "alto". Si más del 60% en "bajo", "bajo".
+    Resto: "medio".
+    """
+    allocation = get_alocacion_por_categoria(activos)
+    if not allocation:
+        return "bajo"
+
+    peso_alto = sum(p for t, p in allocation.items() if RIESGO_POR_CATEGORIA.get(t) == "alto")
+    peso_bajo = sum(p for t, p in allocation.items() if RIESGO_POR_CATEGORIA.get(t) == "bajo")
+
+    if peso_alto > 60:
+        return "alto"
+    if peso_bajo > 60:
+        return "bajo"
+    return "medio"
+
+
+def detectar_gaps_simples(allocation_real: dict, allocation_sugerida: dict) -> list:
+    """
+    Compara las dos allocations y devuelve una lista de gaps (max 3),
+    cada uno con título corto + explicación humana.
+
+    Retorna lista de dicts: {'icon': str, 'titulo': str, 'explicacion': str}
+    """
+    gaps = []
+
+    # Gap 1: concentración en una sola categoría (real > 60%)
+    for tipo, peso in allocation_real.items():
+        if peso > 60:
+            gaps.append({
+                "icon": "🎯",
+                "titulo": f"Estás muy concentrado en {NOMBRES_CATEGORIA.get(tipo, tipo)}",
+                "explicacion": (
+                    f"Tenés el {peso:.0f}% de tu plata en una sola categoría. "
+                    "Si a ese sector le va mal, te impacta de lleno. La idea de "
+                    "diversificar es tener huevos en distintas canastas."
+                ),
+            })
+            break  # Solo el más concentrado
+
+    # Gap 2: categoría sugerida importante que el usuario no tiene
+    for tipo, peso_sug in allocation_sugerida.items():
+        peso_real = allocation_real.get(tipo, 0)
+        if peso_sug >= 15 and peso_real < 5:
+            nombre = NOMBRES_CATEGORIA.get(tipo, tipo)
+            explicacion_extra = ""
+            if tipo == "cedear":
+                explicacion_extra = " Te protege si el peso pierde valor."
+            elif tipo == "fci":
+                explicacion_extra = " Sirve como reserva para emergencias o aprovechar oportunidades."
+            elif tipo == "bono":
+                explicacion_extra = " Te dan estabilidad y un ingreso predecible."
+            gaps.append({
+                "icon": "🎯",
+                "titulo": f"Te falta {nombre.lower()}",
+                "explicacion": (
+                    f"La sugerida tiene un {peso_sug:.0f}% acá y vos tenés "
+                    f"un {peso_real:.0f}%.{explicacion_extra}"
+                ),
+            })
+            if len(gaps) >= 3:
+                break
+
+    # Gap 3 (si todavía hay espacio): exceso en una categoría
+    for tipo, peso_real in allocation_real.items():
+        if len(gaps) >= 3:
+            break
+        peso_sug = allocation_sugerida.get(tipo, 0)
+        if peso_real > peso_sug + 20:  # 20% por encima de lo sugerido
+            nombre = NOMBRES_CATEGORIA.get(tipo, tipo)
+            # Solo si NO es el gap de concentración (evitar repetir)
+            if not any(g["titulo"].endswith(f"en {NOMBRES_CATEGORIA.get(tipo, tipo)}") for g in gaps):
+                gaps.append({
+                    "icon": "🎯",
+                    "titulo": f"Tenés más {nombre.lower()} de lo recomendado",
+                    "explicacion": (
+                        f"Vos: {peso_real:.0f}%. Sugerido: {peso_sug:.0f}%. "
+                        "Reducir un poco y diversificar a otras categorías baja el riesgo."
+                    ),
+                })
+
+    return gaps[:3]

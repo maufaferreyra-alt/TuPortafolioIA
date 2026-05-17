@@ -1500,4 +1500,8 @@ elif step == "user_portfolio":
     from modules.user_portfolio_renderer import render_user_portfolio_page
     render_user_portfolio_page()
 
+elif step == "comparison":
+    from modules.comparison_renderer import render_comparison_page
+    render_comparison_page()
+
 render_footer()

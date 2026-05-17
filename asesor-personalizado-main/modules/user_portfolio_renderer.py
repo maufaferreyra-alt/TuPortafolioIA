@@ -782,8 +782,5 @@ def _render_action_buttons(activos: list):
                 use_container_width=True,
                 key="upf_finish_btn",
             ):
-                # En el 6C abrirá la comparación. Por ahora placeholder.
-                st.info(
-                    "🚧 La comparación lado a lado va a estar disponible "
-                    "muy pronto. Por ahora tu portafolio queda guardado."
-                )
+                st.session_state["step"] = "comparison"
+                st.rerun()
