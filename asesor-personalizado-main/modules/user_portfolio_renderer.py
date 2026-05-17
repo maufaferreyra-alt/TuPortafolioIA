@@ -151,7 +151,12 @@ def _render_loading():
     # del bloque global de ui_config.py no aplicaba de forma confiable a estas
     # clases .upf-* y las cards salían como texto plano sin estilo. Los
     # componentes nativos renderizan styleados garantizado.
-    st.subheader("💼 Tu portafolio actual")
+    st.markdown(
+        '<div style="font-size: 1.75rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem; letter-spacing: -0.01em;">'
+        '💼 Tu portafolio actual'
+        '</div>',
+        unsafe_allow_html=True,
+    )
     st.caption(
         "Agregá cada activo que tenés. Podés cargar de a uno y ver cómo "
         "queda armado todo junto."
@@ -164,9 +169,38 @@ def _render_loading():
         signo_pct = '+' if totales['pnl_total_pct'] >= 0 else ''
 
         with st.container(border=True):
-            # Columnas con proporción [1, 1.5, 1, 1]: "Valor actual" gana
-            # 50% más ancho como métrica principal (jerarquía visual sin CSS).
-            c1, c2, c3, c4 = st.columns([1, 1.5, 1, 1])
+            # ── HERO: Valor actual como métrica principal ──────────
+            # CSS inline en style="" aplica confiablemente (no usa
+            # clases del CSS global). Color del delta dinámico según
+            # signo del P&L.
+            pnl_color = "#22c55e" if totales['pnl_total_pct'] >= 0 else "#ef4444"
+            pnl_arrow = "↑" if totales['pnl_total_pct'] >= 0 else "↓"
+
+            st.markdown(
+                f"""
+                <div style="padding: 1rem 0.5rem 0.75rem 0.5rem;">
+                  <div style="font-size: 0.875rem; color: rgba(255,255,255,0.65); margin-bottom: 0.25rem;">
+                    💎 Valor actual de tu cartera
+                  </div>
+                  <div style="font-size: 3rem; font-weight: 700; color: #ffffff; line-height: 1.1; letter-spacing: -0.02em;">
+                    ${totales['valor_total_actual']:,.0f}
+                  </div>
+                  <div style="font-size: 1rem; color: {pnl_color}; margin-top: 0.5rem; font-weight: 500;">
+                    {pnl_arrow} {signo_pct}{totales['pnl_total_pct']:.2f}% · ${totales['pnl_total_ars']:,.0f}
+                  </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            # Separador sutil entre hero y secundarias
+            st.markdown(
+                '<hr style="border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 0.5rem 0 1rem 0;">',
+                unsafe_allow_html=True,
+            )
+
+            # ── Métricas secundarias ────────────────────────────────
+            c1, c2 = st.columns(2)
             c1.metric(
                 "Total invertido",
                 f"${totales['total_invertido']:,.0f}",
@@ -177,26 +211,7 @@ def _render_loading():
                 ),
             )
             c2.metric(
-                "💎 Valor actual",
-                f"${totales['valor_total_actual']:,.0f}",
-                help=(
-                    "Cuánto vale hoy tu cartera al precio actual de cada activo. "
-                    "Para los activos cargados en modo simple (sin precio del día), "
-                    "asumimos que valen lo mismo que pusiste."
-                ),
-            )
-            c3.metric(
-                "Ganancia / Pérdida",
-                f"${totales['pnl_total_ars']:,.0f}",
-                delta=f"{signo_pct}{totales['pnl_total_pct']:.2f}%",
-                help=(
-                    "Diferencia entre lo que pusiste y lo que vale hoy. "
-                    "Verde si ganaste, rojo si perdiste. Los activos sin precio "
-                    "de compra no suman al cálculo individual."
-                ),
-            )
-            c4.metric(
-                "Activos cargados",
+                "Activos en cartera",
                 str(totales['cantidad_activos']),
                 help=(
                     "Cantidad de posiciones distintas en tu cartera. "
@@ -218,7 +233,12 @@ def _render_loading():
                 "Si querés precisión ahora, recargá el activo con cantidad de unidades + precio del día."
             )
 
-        st.markdown("### Activos en tu cartera")
+        st.markdown(
+            '<div style="font-size: 1.3rem; font-weight: 600; color: #ffffff; margin: 1.5rem 0 0.75rem 0;">'
+            'Activos en tu cartera'
+            '</div>',
+            unsafe_allow_html=True,
+        )
 
         for activo in activos:
             _render_activo_card(activo)
@@ -228,10 +248,18 @@ def _render_loading():
             "Empezá agregando el primero abajo."
         )
 
-    st.markdown("---")
+    st.markdown(
+        '<hr style="border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 2rem 0;">',
+        unsafe_allow_html=True,
+    )
 
     # ─── Form para agregar nuevo activo ───────────────────
-    st.markdown("### ➕ Agregar un activo")
+    st.markdown(
+        '<div style="font-size: 1.3rem; font-weight: 600; color: #ffffff; margin-bottom: 0.75rem;">'
+        '➕ Agregar un activo'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
     # PASO 1: Tipo de instrumento
     tipo_options = ["— Elegí un tipo... —"] + [
@@ -299,7 +327,10 @@ def _render_loading():
     activo_elegido = matches[activo_idx]
 
     # ─── PASO 3: ¿Cómo sabe el usuario cuánto tiene? ───
-    st.markdown("---")
+    st.markdown(
+        '<hr style="border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 2rem 0;">',
+        unsafe_allow_html=True,
+    )
 
     es_fci = tipo_seleccionado["id"] == "fci"
 
@@ -665,10 +696,18 @@ def _render_activo_card(activo: dict):
         col_titulo, col_action = st.columns([8, 1])
 
         with col_titulo:
-            # Un solo espacio entre ícono y nombre (era doble)
-            st.markdown(f"**{icono} {activo['nombre']}**")
-            # Ticker en bold para mejor escaneabilidad con múltiples activos
-            st.caption(f"**{activo['ticker']}** · {tipo_label}")
+            # Header del activo con ticker en accent color (azul marca).
+            # CSS inline garantiza que aplique (no depende de clases globales).
+            st.markdown(
+                f'<div style="font-size: 1.05rem; font-weight: 600; color: #ffffff;">'
+                f'{icono} {activo["nombre"]}'
+                f'</div>'
+                f'<div style="font-size: 0.85rem; color: rgba(255,255,255,0.55); margin-top: 0.15rem;">'
+                f'<span style="color: #60a5fa; font-weight: 600; font-family: ui-monospace, monospace;">{activo["ticker"]}</span>'
+                f' · {tipo_label}'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
 
         with col_action:
             if st.button("🗑️", key=f"upf_del_{activo['id']}", help="Eliminar activo"):
@@ -715,7 +754,10 @@ def _render_activo_card(activo: dict):
 
 def _render_action_buttons(activos: list):
     """Botones de acción al final del form."""
-    st.markdown("---")
+    st.markdown(
+        '<hr style="border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 2rem 0;">',
+        unsafe_allow_html=True,
+    )
 
     col1, col2 = st.columns(2)
 
