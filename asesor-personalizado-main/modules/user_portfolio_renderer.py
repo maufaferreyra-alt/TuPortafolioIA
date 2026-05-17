@@ -1162,7 +1162,7 @@ def _render_action_buttons(activos: list):
         if st.button(
             "← Volver a mi cartera sugerida",
             use_container_width=True,
-            type="tertiary",
+            type="secondary",
             key="upf_back_btn",
         ):
             st.session_state["step"] = "results"
