@@ -269,55 +269,11 @@ with st.sidebar:
 
 step = st.session_state.step
 
-# ── Auto scroll-to-top on navigation ─────────────────────────────────────────
-# Detecta cambios de step automáticamente. Si el usuario cambió de pantalla
-# (intro → profiling → results, o vuelve al home, o entra al glosario),
-# forzamos scroll instantáneo al top. Sin esto, Streamlit a veces preserva
-# scroll de la pantalla anterior, o algún widget fuerza scroll al fondo.
-# Múltiples intentos con delays escalonados para ganar contra cualquier
-# scroll automático que Streamlit dispare después.
-# Clave de navegación: incluye el sub-step del portafolio del usuario
-# (user_portfolio_step: intro→loading). Ese sub-step NO cambia `step`,
-# así que sin esto las pantallas internas del portafolio no scrolleaban
-# al top al navegar entre ellas.
-_nav_key = f"{step}|{st.session_state.get('user_portfolio_step', '')}"
-_last_nav = st.session_state.get("_last_rendered_nav")
-if _last_nav is not None and _last_nav != _nav_key:
-    components.html("""
-<script>
-(function() {
-    let userScrolled = false;
-    let initialTop = true;
-
-    function toTop() {
-        if (userScrolled) return;  // respetar al usuario si ya scrolleó
-        try {
-            const doc = window.parent.document;
-            window.parent.scrollTo({ top: 0, behavior: 'instant' });
-            doc.documentElement.scrollTop = 0;
-            doc.body.scrollTop = 0;
-        } catch(e) {}
-    }
-
-    // Detectar scroll manual: cualquier wheel, touchmove o keydown del usuario
-    // aborta el loop de auto-scroll para no pelearlo.
-    try {
-        const winp = window.parent;
-        const onUserScroll = () => { userScrolled = true; };
-        winp.addEventListener('wheel',     onUserScroll, { passive: true, once: true });
-        winp.addEventListener('touchmove', onUserScroll, { passive: true, once: true });
-        winp.addEventListener('keydown',   onUserScroll, { once: true });
-    } catch(e) {}
-
-    // Reintentos hasta 1s solamente (antes 4s era demasiado y peleaba con
-    // el usuario). Si Streamlit dispara scroll automático tardío, igual lo
-    // ganamos en el primer segundo. Después soltamos el control.
-    toTop();
-    [50, 150, 350, 700, 1100, 1600].forEach(function(d) { setTimeout(toTop, d); });
-})();
-</script>
-""", height=0)
-st.session_state["_last_rendered_nav"] = _nav_key
+# NOTA: se eliminó el hack de "scroll-to-top al cambiar de pantalla".
+# Era un script frágil que peleaba con Streamlit y fallaba seguido.
+# El único autoscroll que queda es el del chat de Lucas (estilo
+# WhatsApp: al preguntar, baja al último mensaje). El scroll entre
+# pantallas lo maneja Streamlit por su cuenta.
 
 # ══════════════════════════════════════════════════════════════════════════════
 # INTRO
