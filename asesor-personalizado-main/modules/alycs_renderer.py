@@ -129,17 +129,26 @@ otra — depende de qué te conviene a vos.
                     st.session_state["alyc_seleccionada"] = alyc["id"]
                     st.session_state["mostrar_mensaje_asesor"] = True
 
-    # Botón para ver el resto de los brokers: el primerizo ve pocas
-    # opciones; el que quiere comparar todo, despliega.
-    if not _mostrar_todas and len(ALYCS) > _N_VISIBLES:
-        _restantes = len(ALYCS) - _N_VISIBLES
-        if st.button(
-            f"Ver las demás opciones ({_restantes})",
-            key="_alycs_ver_mas_btn",
-            use_container_width=True,
-        ):
-            st.session_state["_alycs_mostrar_todas"] = True
-            st.rerun()
+    # Toggle ver más / ver menos: el primerizo ve pocas opciones; el
+    # que quiere comparar todo, despliega — y puede volver a contraer.
+    if len(ALYCS) > _N_VISIBLES:
+        if not _mostrar_todas:
+            _restantes = len(ALYCS) - _N_VISIBLES
+            if st.button(
+                f"Ver las demás opciones ({_restantes})",
+                key="_alycs_ver_mas_btn",
+                use_container_width=True,
+            ):
+                st.session_state["_alycs_mostrar_todas"] = True
+                st.rerun()
+        else:
+            if st.button(
+                "Ver menos opciones",
+                key="_alycs_ver_menos_btn",
+                use_container_width=True,
+            ):
+                st.session_state["_alycs_mostrar_todas"] = False
+                st.rerun()
 
     # Mostrar el mensaje pre-armado si se eligió una ALyC
     if st.session_state.get("mostrar_mensaje_asesor"):
