@@ -418,12 +418,20 @@ html, body, #root, .stApp {
         text-transform: uppercase;
         color: var(--text-3);
         margin-bottom: 0.6rem;
+        /* min-height fija para que los labels de 1 y 2 líneas ocupen
+           el mismo alto → los .metric-value quedan alineados entre
+           cards de un mismo .metrics-grid. */
+        min-height: 2.5rem;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
     }
-    
+
     @media (max-width: 640px) {
         .metric-label {
             font-size: 0.65rem;
             margin-bottom: 0.4rem;
+            min-height: 1.8rem;
         }
     }
     

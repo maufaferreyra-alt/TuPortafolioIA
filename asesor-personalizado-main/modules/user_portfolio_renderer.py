@@ -734,6 +734,7 @@ def _render_mini_donut(grupo: dict):
     Usa Plotly con el mismo styling de los donuts del 6C, pero más chico.
     """
     import plotly.graph_objects as go
+    from .user_portfolio import calcular_valor_actual
 
     activos = grupo["activos"]
     if len(activos) < 2:
