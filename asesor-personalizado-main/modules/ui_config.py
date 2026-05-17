@@ -2374,7 +2374,7 @@ html, body, #root, .stApp {
 
 .section-header {
     margin: 3rem 0 1.5rem 0;
-    text-align: center;
+    text-align: left;
 }
 
 .section-header h2 {
@@ -2387,7 +2387,7 @@ html, body, #root, .stApp {
     font-size: 1rem;
     color: rgba(245, 246, 250, 0.75);
     max-width: 700px;
-    margin: 0 auto;
+    margin: 0;
     line-height: 1.55;
 }
 
