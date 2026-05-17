@@ -882,7 +882,31 @@ elif step == "results":
 
     with col_pie:
         st.markdown('<div class="section-title">📊 Distribución de la Cartera</div>', unsafe_allow_html=True)
-        render_pie_chart(portfolio)
+
+        # Toggles "prender/apagar" por categoría: al destildar una, su
+        # peso se reparte entre las demás y el donut + la composición
+        # de abajo se recalculan. Es para explorar "cómo quedaría sin X".
+        from modules.charts import categorias_presentes, portfolio_filtrado
+        _cats_meta = categorias_presentes(portfolio)
+        st.caption("Destildá una categoría para ver cómo se reparte el resto:")
+        _cats_apagadas = []
+        for _cm in _cats_meta:
+            _on = st.checkbox(
+                f"{_cm['icon']} {_cm['cat']}",
+                value=True,
+                key=f"_cattoggle_{_cm['cat']}",
+            )
+            if not _on:
+                _cats_apagadas.append(_cm["cat"])
+        _portfolio_vista = portfolio_filtrado(portfolio, _cats_apagadas)
+
+        render_pie_chart(_portfolio_vista, mostrar_leyenda=False)
+        if _cats_apagadas:
+            st.caption(
+                "🔄 Estás viendo cómo quedaría tu cartera sin "
+                + ", ".join(_cats_apagadas)
+                + ". Volvé a tildar para restaurar la cartera sugerida."
+            )
 
         # Caption sutil con la distribución geográfica (antes era una card
         # con icono globe + texto largo "Su cartera incluye activos en...
@@ -914,7 +938,8 @@ elif step == "results":
 
     # ── Tabla de activos + razón por activo ──────────────────────────────────
     st.markdown('<div class="section-title">📋 Composición de su cartera</div>', unsafe_allow_html=True)
-    render_allocation_table(portfolio, _disp_capital, currency_label=_disp_curr)
+    # _portfolio_vista refleja los toggles de prender/apagar de arriba.
+    render_allocation_table(_portfolio_vista, _disp_capital, currency_label=_disp_curr)
 
     # ── Análisis fundamental por activo (solo modo avanzado) ─────────────────
     _scored = [p for p in portfolio["positions"] if p.get("score") and p.get("bloques")]

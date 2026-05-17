@@ -297,7 +297,7 @@ def _remove_asset(portfolio: dict, asset_id: str) -> dict:
 
 # ─── Torta (misma categorización que la tabla de instrumentos) ───────────────
 
-def render_pie_chart(portfolio: dict):
+def render_pie_chart(portfolio: dict, mostrar_leyenda: bool = True):
     positions = portfolio["positions"]
 
     # Usar la misma lógica que render_allocation_table para que ambas vistas sean consistentes
@@ -337,7 +337,7 @@ def render_pie_chart(portfolio: dict):
         customdata=hovers,
         textfont=dict(size=11, color=_t1()),
         textinfo="percent",
-        showlegend=True,
+        showlegend=mostrar_leyenda,
     )])
 
     # Leyenda horizontal debajo del gráfico — funciona bien en mobile y desktop.
@@ -758,6 +758,49 @@ def _asset_card_html(p: dict, capital: float, amt_prefix: str, category_items: l
         f'  {imbalance_html}'
         f'</div>'
     )
+
+
+def categorias_presentes(portfolio: dict) -> list:
+    """
+    Categorías de usuario presentes en el portfolio, en orden, con su
+    ícono y color. Usado para los toggles de "prender/apagar" de la
+    distribución de la cartera.
+    """
+    cats = {_asset_to_user_category(p) for p in portfolio.get("positions", [])}
+    salida = []
+    for c in _CATEGORY_ORDER:
+        if c in cats:
+            meta = _CATEGORY_META.get(c, {})
+            salida.append({
+                "cat": c,
+                "icon": meta.get("icon", "•"),
+                "color": meta.get("color", "#94a3b8"),
+            })
+    return salida
+
+
+def portfolio_filtrado(portfolio: dict, categorias_apagadas) -> dict:
+    """
+    Devuelve una copia del portfolio sin las categorías apagadas, con
+    los pesos de las restantes reescalados para que sigan sumando 1
+    (redistribución proporcional). Si no queda nada, devuelve el
+    portfolio original sin tocar.
+    """
+    apagadas = set(categorias_apagadas or [])
+    if not apagadas:
+        return portfolio
+    activos = [
+        p for p in portfolio.get("positions", [])
+        if _asset_to_user_category(p) not in apagadas
+    ]
+    total = sum(p.get("weight", 0) for p in activos)
+    if total <= 0 or not activos:
+        return portfolio
+    nuevo = dict(portfolio)
+    nuevo["positions"] = [
+        {**p, "weight": p.get("weight", 0) / total} for p in activos
+    ]
+    return nuevo
 
 
 def render_allocation_table(portfolio: dict, capital: float, currency_label: str = "USD"):
