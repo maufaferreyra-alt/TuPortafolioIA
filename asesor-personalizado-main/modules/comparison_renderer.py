@@ -83,6 +83,46 @@ def _unificar(allocation_tipo: dict) -> dict:
     return salida
 
 
+# CEDEARs que en realidad son ETFs (fondos globales), no acciones
+# sueltas. Sin esto, un usuario que carga SPY como CEDEAR caía en
+# "Renta variable" y la comparación le decía "te falta Fondos
+# globales" cuando en realidad lo tiene.
+_ETF_TICKERS = {
+    "SPY", "VOO", "QQQ", "EEM", "EWZ", "GLD", "IAU", "SLV",
+    "XLE", "XLF", "XLK", "ARKK", "DIA", "IWM",
+}
+
+
+def _categoria_unif_activo(activo: dict) -> str:
+    """
+    Categoría unificada (las 5 de Resultados) de UN activo del usuario.
+    Mira tipo + ticker: los CEDEARs de ETFs van a 'Fondos globales',
+    los CEDEARs de empresas a 'Renta variable'.
+    """
+    tipo = activo.get("tipo")
+    ticker = (activo.get("ticker") or "").upper().strip()
+    if tipo == "cedear" and ticker in _ETF_TICKERS:
+        return "Fondos globales"
+    return _TIPO_A_CAT_UNIF.get(tipo, "Renta variable")
+
+
+def _alloc_unif_usuario(activos: list) -> dict:
+    """Allocation {categoría unificada: %} de la cartera del usuario,
+    decidiendo la categoría activo por activo (ticker + tipo)."""
+    from .user_portfolio import calcular_valor_actual
+    total = sum((calcular_valor_actual(a) or 0) for a in activos)
+    if total <= 0:
+        return {}
+    out = {}
+    for a in activos:
+        valor = calcular_valor_actual(a) or 0
+        if valor <= 0:
+            continue
+        cat = _categoria_unif_activo(a)
+        out[cat] = out.get(cat, 0) + (valor / total) * 100
+    return out
+
+
 def _emoji_rentabilidad(pct: float) -> str:
     """
     Emoji honesto según nivel de rentabilidad REAL estimada
@@ -271,7 +311,7 @@ def render_comparison_page():
     # (_asset_to_user_category) para que matchee 1:1. La rentabilidad y
     # el riesgo de arriba no se tocan — siguen sobre el sistema de tipos.
     from .charts import _asset_to_user_category
-    alloc_real_disp = _unificar(allocation_real)
+    alloc_real_disp = _alloc_unif_usuario(activos_real)
     alloc_sug_disp = {}
     for pos in positions_sug:
         if not isinstance(pos, dict):
