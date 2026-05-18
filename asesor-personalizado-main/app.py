@@ -281,16 +281,16 @@ step = st.session_state.step
 if step == "intro":
     st.markdown("""<div class="hero-card">
 <div class="hero-icon">🤝</div>
-<h1 class="hero-title">Su capital puede trabajar para usted.<br>Sin letra chica. Sin tecnicismos.</h1>
+<h1 class="hero-title">Tu plata puede trabajar para vos.<br>Sin letra chica. Sin tecnicismos.</h1>
 <p class="hero-subtitle">
 Si alguna vez sintió que invertir es solo para quienes ya saben,<br>
-o que tuvo una mala experiencia previa — <strong>esta herramienta es para usted.</strong>
+o que tuviste una mala experiencia previa — <strong>esta herramienta es para vos.</strong>
 </p>
 <div class="hero-features">
 <div class="hero-feature-pill"><span class="hero-feature-icon">✅</span>Sin conocimientos previos</div>
-<div class="hero-feature-pill"><span class="hero-feature-icon">🛡️</span>Sin venderle nada</div>
+<div class="hero-feature-pill"><span class="hero-feature-icon">🛡️</span>Sin venderte nada</div>
 <div class="hero-feature-pill"><span class="hero-feature-icon">🇦🇷</span>Pensado para Argentina</div>
-<div class="hero-feature-pill"><span class="hero-feature-icon">⏱️</span>5 minutos y obtiene su cartera sugerida</div>
+<div class="hero-feature-pill"><span class="hero-feature-icon">⏱️</span>5 minutos y tenés tu cartera sugerida</div>
 <div class="hero-feature-pill"><span class="hero-feature-icon">💬</span>Explicamos cada decisión</div>
 <div class="hero-feature-pill"><span class="hero-feature-icon">🔒</span>Educativo, no asesoramiento</div>
 </div>
@@ -299,9 +299,9 @@ o que tuvo una mala experiencia previa — <strong>esta herramienta es para uste
     st.markdown("<br>", unsafe_allow_html=True)
 
     st.markdown("""<div class="audience-note">
-<strong>¿Qué hace esta herramienta?</strong> Analizamos su situación en 5 minutos y le mostramos
-cómo podría estar invertido su capital — qué instrumentos, en qué proporción y por qué cada uno.
-Usted decide si desea avanzar con un asesor real. Aquí solo comprende sus opciones.
+<strong>¿Qué hace esta herramienta?</strong> Analizamos tu situación en 5 minutos y te mostramos
+cómo podría estar invertido tu capital — qué instrumentos, en qué proporción y por qué cada uno.
+Vos decidís si querés avanzar con un asesor real. Acá solo entendés tus opciones.
 </div>""", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -394,7 +394,7 @@ elif step == "profiling":
 
     if profile_data:
         st.session_state.profile = profile_data
-        with st.spinner("Construyendo su cartera personalizada..."):
+        with st.spinner("Construyendo tu cartera personalizada..."):
             portfolio  = build_portfolio(profile_data)
             simulation = simulate_portfolio(
                 portfolio,
@@ -547,10 +547,10 @@ elif step == "results":
         "agresivo":    "Inversor Agresivo",
     }
     risk_explanations = {
-        "conservador": "Usted prioriza la preservación del capital por encima del crecimiento. Su cartera apunta a proteger el patrimonio con bajo riesgo.",
-        "estable":     "Usted desea un rendimiento superior al plazo fijo sin exponerse a caídas significativas. Su cartera combina dólares, bonos sólidos y algo de renta variable global.",
-        "moderado":    "Usted busca un equilibrio entre crecimiento y protección patrimonial. Su cartera combina instrumentos seguros con activos de mayor rendimiento.",
-        "agresivo":    "Usted está dispuesto a asumir mayor riesgo para maximizar el crecimiento a largo plazo. Su cartera apunta al mayor rendimiento posible.",
+        "conservador": "Priorizás cuidar tu plata antes que hacerla crecer rápido. Tu cartera apunta a proteger lo que tenés, con poco riesgo.",
+        "estable":     "Querés rendir más que un plazo fijo sin pegarte sustos grandes. Tu cartera mezcla dólares, bonos sólidos y algo de acciones del mundo.",
+        "moderado":    "Buscás un equilibrio entre crecer y proteger lo que tenés. Tu cartera mezcla cosas seguras con cosas que pueden rendir más.",
+        "agresivo":    "Estás dispuesto a asumir más riesgo para hacer crecer tu plata a largo plazo. Tu cartera apunta al mayor rendimiento posible.",
     }
 
     rc  = risk_colors.get(profile["risk_profile"], "#60a5fa")
@@ -862,7 +862,7 @@ elif step == "results":
 
     with col_evo:
         st.markdown('<div class="section-title">📈 Proyección de Crecimiento</div>', unsafe_allow_html=True)
-        st.markdown('<h3 class="chart-headline">¿Cuánto podría valer su dinero con el tiempo?</h3>', unsafe_allow_html=True)
+        st.markdown('<h3 class="chart-headline">¿Cuánto podría valer tu plata con el tiempo?</h3>', unsafe_allow_html=True)
         st.markdown(
             '<p style="font-size:0.85rem;opacity:0.7;text-align:center;margin-top:-8px;">'
             'Cifras netas de comisiones e impuestos estimados</p>',
@@ -877,7 +877,7 @@ elif step == "results":
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Tabla de activos + razón por activo ──────────────────────────────────
-    st.markdown('<div class="section-title">📋 Composición de su cartera</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">📋 Composición de tu cartera</div>', unsafe_allow_html=True)
     render_allocation_table(portfolio, _disp_capital, currency_label=_disp_curr)
 
     # ── Análisis fundamental por activo (solo modo avanzado) ─────────────────
@@ -944,11 +944,11 @@ elif step == "results":
     def _keep_sim_expanded():
         st.session_state.sim_expanded = True
 
-    with st.expander("📊 Simulaciones: ¿qué pasa con su dinero?",
+    with st.expander("📊 Simulaciones: ¿qué pasa con tu dinero?",
                      expanded=st.session_state.get("sim_expanded", False)):
 
         # ── Panel 1: Sin invertir ──────────────────────────────────────
-        st.markdown("#### 📉 ¿Qué pasa si no invierte?")
+        st.markdown("#### 📉 ¿Qué pasa si no invertís?")
         with st.container():
             _cagr = portfolio["expected_cagr"]
 
@@ -1290,25 +1290,25 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
 <div class="action-step">
   <div class="action-step-number">1</div>
   <div class="action-step-body">
-    <div class="action-step-title">Abra una cuenta en un broker habilitado por la CNV</div>
-    <div class="action-step-copy">El proceso es gratuito y demora aproximadamente 10 minutos.</div>
+    <div class="action-step-title">Abrí una cuenta en un broker habilitado por la CNV</div>
+    <div class="action-step-copy">El trámite es gratis y te lleva unos 10 minutos.</div>
     <details class="action-step-help"><summary>¿Cómo hacerlo?</summary>
-      <div>Elija un broker regulado por la CNV, complete sus datos personales y verifique su identidad con DNI y selfie.</div>
+      <div>Elegí un broker regulado por la CNV, completá tus datos y verificá tu identidad con DNI y una selfie.</div>
     </details>
     <details class="action-step-help"><summary>¿Cuánto necesito para empezar?</summary>
-      <div>No existe un mínimo formal. En la práctica:<br>
-      • Desde $10.000 ARS ya puede invertir en un Fondo Money Market<br>
-      • Desde $50.000 ARS puede armar una cartera básica con 2 o 3 instrumentos<br>
-      • Con $200.000 ARS o más puede replicar la cartera sugerida completa<br>
-      Lo importante es empezar, aunque sea con poco.</div>
+      <div>No hay un mínimo formal. En la práctica:<br>
+      • Desde $10.000 ARS ya podés invertir en un Fondo Money Market<br>
+      • Desde $50.000 ARS podés armar una cartera básica con 2 o 3 instrumentos<br>
+      • Con $200.000 ARS o más podés replicar la cartera sugerida completa<br>
+      Lo importante es arrancar, aunque sea con poco.</div>
     </details>
     <details class="action-step-help"><summary>¿Qué pasa si necesito el dinero antes de tiempo?</summary>
       <div style="line-height:1.7;">
         La liquidez depende del instrumento:<br><br>
         <strong style="color:#38bdf8;">💧 Retiro en el día:</strong> Fondo Money Market (24 hs) · Dólar MEP (48 hs)<br>
         <strong style="color:#f59e0b;">📅 1–5 días hábiles:</strong> LECAPs, bonos soberanos, ONs corporativas — venta en mercado secundario<br>
-        <strong style="color:#10d98a;">📈 Conviene esperar:</strong> CEDEARs y ETFs se pueden vender cualquier día, pero si el mercado está bajo puede implicar una pérdida<br><br>
-        <strong style="color:#a78bfa;">Recomendación:</strong> antes de invertir, asegúrese de tener un fondo de emergencia equivalente a 3–6 meses de gastos. Ese dinero nunca debe invertirse.
+        <strong style="color:#10d98a;">📈 Conviene esperar:</strong> CEDEARs y ETFs los podés vender cualquier día, pero si el mercado está bajo puede ser una pérdida<br><br>
+        <strong style="color:#a78bfa;">Consejo:</strong> antes de invertir, asegurate de tener un fondo de emergencia de 3–6 meses de gastos. Esa plata no la inviertas nunca.
       </div>
     </details>
   </div>
@@ -1316,30 +1316,30 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
 <div class="action-step">
   <div class="action-step-number">2</div>
   <div class="action-step-body">
-    <div class="action-step-title">Deposite el capital que desea invertir</div>
-    <div class="action-step-copy">Transfiera desde su cuenta bancaria o billetera digital.</div>
+    <div class="action-step-title">Depositá la plata que querés invertir</div>
+    <div class="action-step-copy">Transferí desde tu cuenta bancaria o billetera digital.</div>
     <details class="action-step-help"><summary>¿Cómo hacerlo?</summary>
-      <div>Acceda a la opción de depósito o transferencia en la app y siga los pasos para enviar pesos o dólares.</div>
+      <div>Entrá a la opción de depósito o transferencia en la app y seguí los pasos para enviar pesos o dólares.</div>
     </details>
   </div>
 </div>
 <div class="action-step">
   <div class="action-step-number">3</div>
   <div class="action-step-body">
-    <div class="action-step-title">Adquiera los instrumentos de su cartera</div>
-    <div class="action-step-copy">Respete la ponderación sugerida para cada instrumento.</div>
+    <div class="action-step-title">Comprá los instrumentos de tu cartera</div>
+    <div class="action-step-copy">Mantené más o menos los porcentajes sugeridos — un poco de diferencia no pasa nada.</div>
     <details class="action-step-help"><summary>¿Cómo hacerlo?</summary>
-      <div>Seleccione cada instrumento, ingrese la cantidad y confirme la operación. Si tiene dudas, comience por el activo más conservador.</div>
+      <div>Elegí cada instrumento, poné la cantidad y confirmá la operación. Si tenés dudas, empezá por el activo más conservador.</div>
     </details>
   </div>
 </div>
 <div class="action-step">
   <div class="action-step-number">4</div>
   <div class="action-step-body">
-    <div class="action-step-title">Revise el rendimiento de su cartera mensualmente</div>
-    <div class="action-step-copy">No es necesario monitorear la cartera a diario.</div>
+    <div class="action-step-title">Mirá cómo va tu cartera una vez por mes, no hace falta más</div>
+    <div class="action-step-copy">No tenés que estar mirándola todos los días.</div>
     <details class="action-step-help"><summary>¿Cómo hacerlo?</summary>
-      <div>Ingrese a su cuenta cada 30 días, verifique el rendimiento y ajuste solo si cambiaron sus objetivos o su situación financiera.</div>
+      <div>Entrá a tu cuenta cada 30 días, mirá cómo viene y ajustá solo si cambiaron tus objetivos o tu situación.</div>
     </details>
   </div>
 </div>
