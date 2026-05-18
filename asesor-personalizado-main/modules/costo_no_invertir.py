@@ -184,11 +184,19 @@ de guardar su dinero en opciones que no generan rendimiento.
         st.rerun()
 
     st.markdown("<br>", unsafe_allow_html=True)
+    # Si el usuario entró desde la pantalla de resultados (ya tiene una
+    # cartera armada), la salida lo devuelve ahí — no a rehacer el test.
+    _vino_de_resultados = st.session_state.get("_prev_step") == "results"
     _, col_skip, _ = st.columns([1, 2, 1])
     with col_skip:
-        if st.button("Ir directo a mi evaluación →", key="skip_cni"):
-            st.session_state.step = "profiling"
-            st.rerun()
+        if _vino_de_resultados:
+            if st.button("← Volver a mi cartera", key="skip_cni"):
+                st.session_state.step = "results"
+                st.rerun()
+        else:
+            if st.button("Ir directo a mi evaluación →", key="skip_cni"):
+                st.session_state.step = "profiling"
+                st.rerun()
 
 
 # ── Pantalla 2: Resultados ────────────────────────────────────────────────────
@@ -371,8 +379,11 @@ def render_cost_results():
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # ── CTA principal ─────────────────────────────────────────────────────────
-    st.markdown("""<div class="glosario-cta">
+    # ── CTA principal: solo si el usuario todavía no hizo el test ─────────────
+    # Si llegó desde la pantalla de resultados ya tiene su cartera armada;
+    # no tiene sentido ofrecerle "iniciar la evaluación" de nuevo.
+    if st.session_state.get("_prev_step") != "results":
+        st.markdown("""<div class="glosario-cta">
 <div class="glosario-cta-title">La buena noticia es que puede cambiar esto hoy mismo</div>
 <p class="glosario-cta-sub">
   Complete su perfil de inversor en menos de 2 minutos y reciba una cartera<br>
@@ -380,23 +391,23 @@ def render_cost_results():
 </p>
 </div>""", unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
 
-    _, col_cta, _ = st.columns([1, 2, 1])
-    with col_cta:
-        if st.button(
-            "Quiero que esto no vuelva a pasar → Iniciar mi evaluación",
-            key="cni_cta",
-            use_container_width=True,
-        ):
-            if storage == "plazo_fijo":
-                st.session_state.pre_experience = "Solo conozco el plazo fijo o Mercado Pago."
-            elif storage == "dolares_billete":
-                st.session_state.pre_experience = "Algo. Escuché de CEDEARs, fondos, dólar MEP."
-            st.session_state.step = "profiling"
-            st.rerun()
+        _, col_cta, _ = st.columns([1, 2, 1])
+        with col_cta:
+            if st.button(
+                "Quiero que esto no vuelva a pasar → Iniciar mi evaluación",
+                key="cni_cta",
+                use_container_width=True,
+            ):
+                if storage == "plazo_fijo":
+                    st.session_state.pre_experience = "Solo conozco el plazo fijo o Mercado Pago."
+                elif storage == "dolares_billete":
+                    st.session_state.pre_experience = "Algo. Escuché de CEDEARs, fondos, dólar MEP."
+                st.session_state.step = "profiling"
+                st.rerun()
 
-    st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
 
     col_back, col_skip = st.columns(2)
     with col_back:
@@ -404,9 +415,16 @@ def render_cost_results():
             st.session_state.step = "costo_no_invertir"
             st.rerun()
     with col_skip:
-        if st.button("Ir directo a mi evaluación →", key="cni_skip2", use_container_width=True):
-            st.session_state.step = "profiling"
-            st.rerun()
+        # Quien llegó desde resultados vuelve a su cartera; el resto
+        # sigue al test de perfil.
+        if st.session_state.get("_prev_step") == "results":
+            if st.button("← Volver a mi cartera", key="cni_skip2", use_container_width=True):
+                st.session_state.step = "results"
+                st.rerun()
+        else:
+            if st.button("Ir directo a mi evaluación →", key="cni_skip2", use_container_width=True):
+                st.session_state.step = "profiling"
+                st.rerun()
 
     st.markdown(
         '<p style="text-align:center;color:var(--text-3);font-size:0.75rem;margin-top:1.5rem;">'

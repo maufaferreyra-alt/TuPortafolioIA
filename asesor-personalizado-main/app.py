@@ -367,6 +367,7 @@ Podés verla nuevamente o armar una nueva con datos actualizados.{_nota_vieja}
 
     # ── Sin cartera guardada — flujo normal ──────────────────────────────────
     if st.button("¿Cuánto perdí por no invertir?", key="cost_btn", use_container_width=True):
+        st.session_state._prev_step = "intro"
         st.session_state.step = "costo_no_invertir"
         st.rerun()
 
@@ -1370,19 +1371,21 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
   </div>
 </div>""", unsafe_allow_html=True)
 
-    # ── Glosario CTA ──────────────────────────────────────────────────────────
-    st.markdown("""<div class="glosario-cta">
-<div class="glosario-cta-title">📚 ¿Hay algún término que no conoce?</div>
-<p class="glosario-cta-sub">Consulte el Glosario Financiero con definiciones claras y ejemplos prácticos.</p>
-</div>""", unsafe_allow_html=True)
-
     st.markdown("<br>", unsafe_allow_html=True)
 
-    col_eval, col_glos, col_meto = st.columns([1, 1, 1])
+    # Accesos del pie de resultados, en grilla simétrica 3 + 2.
+    # Fila 1: navegación / utilidades. Fila 2: las dos exploraciones
+    # opcionales (cargar tu cartera real, ver el costo de no invertir).
+    col_eval, col_glos, col_meto = st.columns(3)
     with col_eval:
         if st.button("🔄 Nueva Evaluación", key="restart", use_container_width=True):
+            # Rehacer el test conserva la cartera de práctica que el
+            # usuario armó a mano: al terminar la nueva evaluación la
+            # compara contra el portafolio sugerido nuevo.
+            _conservar = ("user_portfolio_activos", "user_portfolio_step", "theme")
             for key in list(st.session_state.keys()):
-                del st.session_state[key]
+                if key not in _conservar:
+                    del st.session_state[key]
             st.rerun()
     with col_glos:
         if st.button("📚 Ver Glosario", key="glosario_from_results", use_container_width=True):
@@ -1395,56 +1398,20 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
             st.session_state.step = "como_funciona"
             st.rerun()
 
-    # ── Botón para cargar portafolio del usuario ──
-    st.markdown("---")
-
-    col_load1, col_load2, col_load3 = st.columns([1, 2, 1])
-    with col_load2:
-        st.markdown(
-            """
-            <div class="upf-cta-card">
-                <div class="upf-cta-icon">💼</div>
-                <div class="upf-cta-content">
-                    <div class="upf-cta-title">¿Querés ver tu portafolio actual?</div>
-                    <p>
-                        Cargá los activos que tenés hoy y comparalos con la cartera sugerida.
-                        Sin compromiso — es solo para verlo lado a lado.
-                    </p>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        if st.button(
-            "💼 Cargar mi portafolio actual",
-            use_container_width=True,
-            type="primary",
-            key="results_load_portfolio_btn",
-        ):
+    col_port, col_costo = st.columns(2)
+    with col_port:
+        if st.button("💼 Cargar mi portafolio actual",
+                     key="results_load_portfolio_btn", use_container_width=True):
             st.session_state["step"] = "user_portfolio"
             # Reset al estado inicial de la página de carga
             st.session_state["user_portfolio_step"] = "intro"
             st.rerun()
-
-    # ── Empezar de cero (wipe completo: localStorage + sesión) ────────────────
-    st.markdown("---")
-    _, _col_reset, _ = st.columns([1, 2, 1])
-    with _col_reset:
-        with st.expander("🔄 ¿Cambió tu situación? Empezá de nuevo"):
-            st.markdown(
-                "Si ahora tenés otro capital, otro horizonte o cambió tu "
-                "situación financiera, podés rehacer el cuestionario desde "
-                "cero. Borramos todo lo guardado y arrancás limpio."
-            )
-            if st.button("Borrar todo y empezar de nuevo", key="wipe_todo_btn",
-                         type="secondary", use_container_width=True):
-                from modules.storage import limpiar_estado
-                limpiar_estado()
-                for _wk in list(st.session_state.keys()):
-                    if _wk not in ("auto_update_checked", "theme"):
-                        del st.session_state[_wk]
-                st.rerun()
+    with col_costo:
+        if st.button("💸 ¿Cuánto perdí por no invertir?",
+                     key="costo_from_results", use_container_width=True):
+            st.session_state._prev_step = "results"
+            st.session_state.step = "costo_no_invertir"
+            st.rerun()
 
 # ══════════════════════════════════════════════════════════════════════════════
 # GLOSARIO
