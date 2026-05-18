@@ -49,12 +49,12 @@ _CATEGORY_META = {
     },
     "Fondos globales": {
         "icon":        "🌍",
-        "description": "Acciones de las 500 empresas más grandes del mundo: Apple, Google, Amazon y más. Todo en una sola compra.",
+        "description": "Las 500 empresas más grandes del mundo en una sola compra — Apple, Google, Amazon, todas juntas. Es \"comprar el paquete\" en vez de elegir empresa por empresa.",
         "color":       "#4fa3ff",
     },
     "Renta variable": {
         "icon":        "📈",
-        "description": "Acciones con mayor potencial de crecimiento a largo plazo. El precio puede subir y bajar más que el resto.",
+        "description": "Empresas específicas que el modelo eligió por su potencial — pueden rendir más que el promedio, pero también bajar más. Acá vas con casos puntuales, no con el paquete entero.",
         "color":       "#a78bfa",
     },
 }
@@ -764,7 +764,7 @@ def render_allocation_table(portfolio: dict, capital: float, currency_label: str
             f'    </div>'
             f'    <div class="cat-l1-right">'
             f'      <div class="cat-l1-pct" style="color:{color};">{pct:.0f}%</div>'
-            f'      <div class="cat-l1-pct-sub">de su dinero</div>'
+            f'      <div class="cat-l1-pct-sub">de tu plata</div>'
             f'    </div>'
             f'    <span class="cat-exp-chevron">›</span>'
             f'  </div>'
