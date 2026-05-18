@@ -640,39 +640,14 @@ def render_bar_simulation(portfolio: dict, initial_capital: float,
         unsafe_allow_html=True,
     )
 
-    # Métricas clave debajo
-    col1, col2, col3 = st.columns(3)
-    gain_1_d  = disp_base[0] - capital_original
-    gain_10_d = disp_base[2] - capital_original
-
-    with col1:
-        sign_1 = "+" if gain_1_d >= 0 else ""
-        st.markdown(f"""<div class="metric-card" style="text-align:center;">
-<div class="metric-label">EN 1 AÑO (caso probable)</div>
-<div class="metric-value" style="color:#f0b429;">{sign_1}${gain_1_d:,.0f}</div>
-<div class="metric-sub">Lo que podría ganar el primer año</div>
-</div>""", unsafe_allow_html=True)
-    with col2:
-        gain_10_pct = pct(vals_base[2])
-        st.markdown(f"""<div class="metric-card" style="text-align:center;">
-<div class="metric-label">EN 10 AÑOS (caso probable)</div>
-<div class="metric-value" style="color:#10d98a;">+{gain_10_pct:.0f}%</div>
-<div class="metric-sub">${gain_10_d:,.0f} más sobre lo que puso hoy</div>
-</div>""", unsafe_allow_html=True)
-    with col3:
-        worst     = vals_pess[2]
-        worst_d   = disp_pess[2]
-        worst_pct = pct(worst)
-        color = "#22c55e" if worst_pct >= 0 else "#f59e0b"
-        sign  = "+" if worst_pct >= 0 else ""
-        st.markdown(f"""<div class="metric-card" style="text-align:center;">
-<div class="metric-label">SI TODO SALE MAL (10 años)</div>
-<div class="metric-value" style="color:{color};">{sign}{worst_pct:.0f}%</div>
-<div class="metric-sub">${worst_d:,.0f} en el peor escenario</div>
-</div>
-<div class="worst-case-context">
-  Históricamente, en 10 años los mercados siempre se recuperaron de las crisis.
-</div>""", unsafe_allow_html=True)
+    # ── Cards de proyección eliminados ─────────────────────────────────
+    # El gráfico de barras de arriba ya muestra los 3 escenarios
+    # (Pésimo/Base/Excelente) × 3 períodos (1/5/10 años) visualmente.
+    # Los cards repetían esa info Y mezclaban unidades ($ en card 1,
+    # % en cards 2-3), generando sobrecarga cognitiva para el público
+    # objetivo. Si en el futuro se quiere reintroducir un resumen
+    # numérico, mantener UNA sola unidad (todo $ o todo %) y máximo
+    # 1-2 cards, no 3.
 
 
 # ─── Tabla de activos con botón de eliminar ───────────────────────────────────
