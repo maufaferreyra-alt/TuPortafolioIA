@@ -364,7 +364,7 @@ def render_pie_chart(portfolio: dict):
         height=420,
     )
 
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True})
 
     # Capa 2: desglose (mismas categorías que la tabla de abajo)
     with st.expander("Ver desglose detallado →"):
@@ -467,7 +467,7 @@ def render_evolution_chart(simulation: dict, initial_capital: float, years: int)
         height=360,
     )
 
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True})
 
     # Solo 2 métricas, con lenguaje simple
     col1, col2 = st.columns(2)
@@ -633,7 +633,7 @@ def render_bar_simulation(portfolio: dict, initial_capital: float,
     )
     fig.update_traces(cliponaxis=False)
 
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True})
 
     st.markdown(
         f'<p class="chart-currency-note">{currency_note}</p>',

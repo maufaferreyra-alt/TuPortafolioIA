@@ -475,7 +475,7 @@ def _render_chart(sin_invertir: float, spy_ars: float, original: float):
             bargap=0.4,
         )
 
-        st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+        st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True})
 
     except ImportError:
         import pandas as pd

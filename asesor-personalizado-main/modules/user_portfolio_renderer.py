@@ -308,7 +308,7 @@ def _render_loading():
                 paper_bgcolor="rgba(0,0,0,0)",
                 plot_bgcolor="rgba(0,0,0,0)",
             )
-            st.plotly_chart(fig_cartera, use_container_width=True, config={"displayModeBar": False})
+            st.plotly_chart(fig_cartera, use_container_width=True, config={"staticPlot": True})
 
         # Detectar si algún activo está en modo simple (sin valuación de mercado).
         # En modo simple precio_actual_ars queda en None.
@@ -802,7 +802,7 @@ def _render_mini_donut(grupo: dict):
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
     )
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True})
 
 
 def _user_asset_card_html(activo: dict, color: str) -> str:

@@ -301,7 +301,7 @@ def render_comparison_page():
         )
         fig_real = _construir_donut(alloc_real_disp, "Real")
         if fig_real:
-            st.plotly_chart(fig_real, use_container_width=True, config={"displayModeBar": False})
+            st.plotly_chart(fig_real, use_container_width=True, config={"staticPlot": True})
 
     with col_sug:
         st.markdown(
@@ -311,7 +311,7 @@ def render_comparison_page():
         )
         fig_sug = _construir_donut(alloc_sug_disp, "Sugerida")
         if fig_sug:
-            st.plotly_chart(fig_sug, use_container_width=True, config={"displayModeBar": False})
+            st.plotly_chart(fig_sug, use_container_width=True, config={"staticPlot": True})
 
     # ── Leyenda única compartida por los dos donuts ──────────────
     st.markdown(

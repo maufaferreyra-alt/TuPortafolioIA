@@ -1026,7 +1026,7 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
                                 bgcolor="rgba(0,0,0,0)"),
                     margin=dict(l=0, r=0, t=40, b=0),
                 )
-                st.plotly_chart(_fig_sim, use_container_width=True, config={"displayModeBar": False, "responsive": True})
+                st.plotly_chart(_fig_sim, use_container_width=True, config={"staticPlot": True, "responsive": True})
             except Exception:
                 pass
 
@@ -1127,7 +1127,7 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
                         f'Valores en {_disp_curr}</p>',
                         unsafe_allow_html=True,
                     )
-                    st.plotly_chart(_fig_ap, use_container_width=True, config={"displayModeBar": False, "responsive": True})
+                    st.plotly_chart(_fig_ap, use_container_width=True, config={"staticPlot": True, "responsive": True})
                 except Exception:
                     pass
 
