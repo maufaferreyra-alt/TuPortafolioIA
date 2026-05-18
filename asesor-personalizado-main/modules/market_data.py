@@ -273,6 +273,7 @@ def get_precio_dia(ticker: str, tipo: str) -> float | None:
     dispatch = {
         "accion_arg": get_arg_stocks_prices,
         "cedear":     get_arg_cedears_prices,
+        "etf":        get_arg_cedears_prices,  # ETFs cotizan como CEDEARs
         "bono":       get_arg_bonds_prices,
         "on":         get_arg_corp_prices,
         "letra":      get_arg_notes_prices,

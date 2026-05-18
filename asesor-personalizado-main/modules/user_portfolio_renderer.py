@@ -33,6 +33,7 @@ from .universo_instrumentos import (
 NOMBRES_PLURAL_POR_TIPO = {
     "accion_arg": "acciones",
     "cedear":     "CEDEARs",
+    "etf":        "unidades",
     "bono":       "bonos",
     "on":         "ONs",
     "letra":      "letras",
@@ -42,6 +43,7 @@ NOMBRES_PLURAL_POR_TIPO = {
 NOMBRES_SINGULAR_POR_TIPO = {
     "accion_arg": "acción",
     "cedear":     "CEDEAR",
+    "etf":        "unidad",
     "bono":       "bono",
     "on":         "ON",
     "letra":      "letra",
@@ -446,11 +448,24 @@ def _render_loading():
 
     st.caption(f"💡 {tipo_seleccionado['descripcion']}")
 
+    # Nota para ETFs: técnicamente se compran como CEDEARs, pero los
+    # mostramos aparte para que la cartera del usuario quede alineada
+    # con la sugerida (donde figuran como "Fondos globales").
+    if tipo_seleccionado["id"] == "etf":
+        st.info(
+            "Sí, un ETF se compra como CEDEAR en tu broker. Lo separamos "
+            "acá para que se entienda mejor: un ETF es un fondo que junta "
+            "muchas empresas o activos, así que en tu cartera lo vas a ver "
+            "como fondo, igual que en la cartera que te sugerimos.",
+            icon="ℹ️",
+        )
+
     # PASO 2: Buscar activo del universo filtrado
     # Placeholder adaptado al tipo elegido
     PLACEHOLDERS_POR_TIPO = {
         "bono":       "Ej: AL30, GD30, AE38, Bonar...",
-        "cedear":     "Ej: AAPL, Apple, SPY, MELI...",
+        "cedear":     "Ej: AAPL, Apple, MSFT, MELI...",
+        "etf":        "Ej: SPY, QQQ, S&P 500, Nasdaq...",
         "accion_arg": "Ej: YPFD, GGAL, Pampa, Macro...",
         "on":         "Ej: YPFDS, ON YPF, Pan American...",
         "fci":        "Ej: Money Market, Cocos, Balanz...",

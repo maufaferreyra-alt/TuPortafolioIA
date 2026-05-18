@@ -24,21 +24,24 @@ UNIVERSO_INSTRUMENTOS = [
     {"ticker": "AL29", "nombre": "Bonar 2029", "tipo": "bono"},
     {"ticker": "GD29", "nombre": "Global 2029 (ley NY)", "tipo": "bono"},
 
-    # ─── CEDEARs: ETFs (fondos globales que cotizan en Argentina) ───
-    {"ticker": "SPY",  "nombre": "ETF S&P 500", "tipo": "cedear"},
-    {"ticker": "VOO",  "nombre": "ETF Vanguard S&P 500", "tipo": "cedear"},
-    {"ticker": "QQQ",  "nombre": "ETF Nasdaq 100", "tipo": "cedear"},
-    {"ticker": "EEM",  "nombre": "ETF Mercados Emergentes", "tipo": "cedear"},
-    {"ticker": "EWZ",  "nombre": "ETF Brasil", "tipo": "cedear"},
-    {"ticker": "GLD",  "nombre": "ETF Oro", "tipo": "cedear"},
-    {"ticker": "IAU",  "nombre": "ETF Oro iShares", "tipo": "cedear"},
-    {"ticker": "SLV",  "nombre": "ETF Plata", "tipo": "cedear"},
-    {"ticker": "XLE",  "nombre": "ETF Energía", "tipo": "cedear"},
-    {"ticker": "XLF",  "nombre": "ETF Sector Financiero", "tipo": "cedear"},
-    {"ticker": "XLK",  "nombre": "ETF Sector Tecnología", "tipo": "cedear"},
-    {"ticker": "ARKK", "nombre": "ETF ARK Innovation", "tipo": "cedear"},
-    {"ticker": "DIA",  "nombre": "ETF Dow Jones", "tipo": "cedear"},
-    {"ticker": "IWM",  "nombre": "ETF Russell 2000", "tipo": "cedear"},
+    # ─── ETFs (fondos del exterior que cotizan como CEDEARs) ───
+    # tipo "etf": se compran como CEDEARs en Argentina, pero los
+    # separamos para que en la cartera del usuario figuren como fondos
+    # diversificados, igual que en la cartera sugerida.
+    {"ticker": "SPY",  "nombre": "ETF S&P 500", "tipo": "etf"},
+    {"ticker": "VOO",  "nombre": "ETF Vanguard S&P 500", "tipo": "etf"},
+    {"ticker": "QQQ",  "nombre": "ETF Nasdaq 100", "tipo": "etf"},
+    {"ticker": "EEM",  "nombre": "ETF Mercados Emergentes", "tipo": "etf"},
+    {"ticker": "EWZ",  "nombre": "ETF Brasil", "tipo": "etf"},
+    {"ticker": "GLD",  "nombre": "ETF Oro", "tipo": "etf"},
+    {"ticker": "IAU",  "nombre": "ETF Oro iShares", "tipo": "etf"},
+    {"ticker": "SLV",  "nombre": "ETF Plata", "tipo": "etf"},
+    {"ticker": "XLE",  "nombre": "ETF Energía", "tipo": "etf"},
+    {"ticker": "XLF",  "nombre": "ETF Sector Financiero", "tipo": "etf"},
+    {"ticker": "XLK",  "nombre": "ETF Sector Tecnología", "tipo": "etf"},
+    {"ticker": "ARKK", "nombre": "ETF ARK Innovation", "tipo": "etf"},
+    {"ticker": "DIA",  "nombre": "ETF Dow Jones", "tipo": "etf"},
+    {"ticker": "IWM",  "nombre": "ETF Russell 2000", "tipo": "etf"},
 
     # ─── CEDEARs: Tecnología ───
     {"ticker": "AAPL", "nombre": "Apple Inc.", "tipo": "cedear"},

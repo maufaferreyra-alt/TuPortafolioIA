@@ -53,8 +53,19 @@ TIPOS_INSTRUMENTO = [
     {
         "id": "cedear",
         "label": "CEDEARs",
-        "descripcion": "Acciones de empresas extranjeras desde Argentina (AAPL, SPY, etc.)",
+        "descripcion": "Acciones de empresas extranjeras desde Argentina (AAPL, MSFT, etc.)",
         "icono": "🌎",
+    },
+    {
+        # Los ETFs se compran como CEDEARs en Argentina, pero los
+        # listamos aparte: agrupan muchas empresas/activos en una sola
+        # compra y en la cartera sugerida figuran como "Fondos globales".
+        # Tenerlos separados evita la incoherencia de cargarlos como
+        # CEDEAR y verlos después clasificados como fondo.
+        "id": "etf",
+        "label": "ETFs (fondos del exterior)",
+        "descripcion": "Fondos que reúnen muchas empresas o activos en una sola compra (SPY, QQQ, etc.)",
+        "icono": "🌐",
     },
     {
         "id": "accion_arg",
@@ -91,7 +102,7 @@ TIPOS_INSTRUMENTO = [
 
 # Tipos cuyo precio se sigue EN VIVO (tienen cotización en la API del 6B).
 # El resto (bonos, ONs, FCIs, letras) se cargan/editan a mano.
-TIPOS_VIVO = {"accion_arg", "cedear", "mep"}
+TIPOS_VIVO = {"accion_arg", "cedear", "etf", "mep"}
 
 
 def crear_activo(
@@ -282,6 +293,7 @@ def get_tipo_info(tipo_id: str) -> dict | None:
 DESCRIPCIONES_CATEGORIA = {
     "accion_arg": "Empresas argentinas que cotizan en la bolsa local",
     "cedear":     "Acciones de empresas extranjeras compradas en pesos",
+    "etf":        "Fondos que reúnen muchas empresas o activos del exterior en una sola compra",
     "bono":       "Préstamos al gobierno que pagan interés en plazos fijos",
     "on":         "Préstamos a empresas privadas con interés fijo",
     "letra":      "Bonos cortos del Tesoro, menores a un año",
@@ -293,6 +305,7 @@ DESCRIPCIONES_CATEGORIA = {
 NOMBRES_CATEGORIA = {
     "accion_arg": "Acciones argentinas",
     "cedear":     "CEDEARs (acciones del exterior)",
+    "etf":        "ETFs (fondos del exterior)",
     "bono":       "Bonos del gobierno",
     "on":         "ONs (deuda de empresas)",
     "letra":      "Letras del Tesoro",
@@ -309,6 +322,7 @@ NOMBRES_CATEGORIA = {
 RENTABILIDAD_ANUAL_REAL_POR_CATEGORIA = {
     "accion_arg": 0.08,  # 8% real anual (acciones ARG históricamente)
     "cedear":     0.10,  # 10% real anual (S&P 500 histórico USD)
+    "etf":        0.08,  # 8% real anual (índices diversificados, conservador)
     "bono":       0.06,  # 6% real anual (soberanos ARG estable)
     "on":         0.08,  # 8% real anual (ONs corporativas)
     "letra":      0.04,  # 4% real anual (LECAPs corto plazo)
@@ -321,6 +335,7 @@ RENTABILIDAD_ANUAL_REAL_POR_CATEGORIA = {
 RIESGO_POR_CATEGORIA = {
     "accion_arg": "alto",
     "cedear":     "medio",
+    "etf":        "medio",
     "bono":       "medio",
     "on":         "medio",
     "letra":      "bajo",

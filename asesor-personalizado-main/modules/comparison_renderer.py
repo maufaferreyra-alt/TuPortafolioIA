@@ -20,6 +20,7 @@ from .user_portfolio import (
 COLORES_CATEGORIA = {
     "accion_arg": "#60a5fa",   # azul accent
     "cedear":     "#a78bfa",   # violeta
+    "etf":        "#4fa3ff",   # azul (mismo de "Fondos globales")
     "bono":       "#34d399",   # verde
     "on":         "#fbbf24",   # amarillo
     "letra":      "#f472b6",   # rosa
@@ -37,8 +38,8 @@ COLORES_CATEGORIA = {
 _CATEGORIA_SUGERIDA_A_TIPO = {
     "Acciones ARG":   "accion_arg",
     "CEDEARs":        "cedear",
-    "ETFs":           "cedear",
-    "ETFs Globales":  "cedear",
+    "ETFs":           "etf",
+    "ETFs Globales":  "etf",
     "Bonos USD":      "bono",
     "Bonos CER":      "bono",
     "Dólar MEP":      "mep",
@@ -56,6 +57,7 @@ _CATEGORIA_SUGERIDA_A_TIPO = {
 _TIPO_A_CAT_UNIF = {
     "accion_arg": "Renta variable",
     "cedear":     "Renta variable",
+    "etf":        "Fondos globales",
     "bono":       "Renta fija",
     "on":         "Renta fija",
     "letra":      "Renta fija",
