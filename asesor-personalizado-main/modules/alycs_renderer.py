@@ -190,3 +190,11 @@ Tiene toda la información de tu cartera para que puedan trabajar juntos.
                 "Después abrí la cuenta en el broker, contactá al asesor y pegale este "
                 "mensaje. Te va a ahorrar tiempo a vos y al asesor."
             )
+
+            # Botón para contraer el mensaje: si alguien lo abrió sin
+            # querer o solo por curiosidad, puede volver a ocultarlo.
+            if st.button("✕ Cerrar este mensaje", key="cerrar_mensaje_asesor",
+                         use_container_width=True):
+                st.session_state["mostrar_mensaje_asesor"] = False
+                st.session_state.pop("alyc_seleccionada", None)
+                st.rerun()

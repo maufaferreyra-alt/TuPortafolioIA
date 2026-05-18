@@ -1351,12 +1351,63 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
     # ── Comparador de ALyCs (brokers) ─────────────────────────────────────────
     from modules.alycs_renderer import render_alycs_section
     render_alycs_section(portfolio, profile)
+    # Línea + aire para separar los accesos del pie de la sección de
+    # brokers, que quedaban demasiado pegados.
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("---")
     st.markdown("<br>", unsafe_allow_html=True)
 
+    # ── Accesos del pie de resultados — grilla 3 + 2 ──────────────────────────
+    # Cada acceso: un botón (relleno #4fa3ff vía CSS en ui_config, por las
+    # clases .st-key-<key>) con una descripción corta debajo, para que se
+    # entienda qué hace cada uno sin depender de tooltips.
+    col_eval, col_glos, col_meto = st.columns(3)
+    with col_eval:
+        if st.button("🔄 Nueva Evaluación", key="restart", use_container_width=True):
+            # Rehacer el test conserva la cartera de práctica que el
+            # usuario armó a mano: al terminar la nueva evaluación la
+            # compara contra el portafolio sugerido nuevo.
+            _conservar = ("user_portfolio_activos", "user_portfolio_step", "theme")
+            for key in list(st.session_state.keys()):
+                if key not in _conservar:
+                    del st.session_state[key]
+            st.rerun()
+        st.caption("Rehacé el test de perfil si cambió algo en tu situación.")
+    with col_glos:
+        if st.button("📚 Ver Glosario", key="glosario_from_results", use_container_width=True):
+            st.session_state._prev_step = "results"
+            st.session_state.step = "glosario"
+            st.rerun()
+        st.caption("¿Hay un término que no entendés? Buscá su definición acá.")
+    with col_meto:
+        if st.button("ℹ️ Cómo funciona", key="how_from_results", use_container_width=True):
+            st.session_state._prev_step = "results"
+            st.session_state.step = "como_funciona"
+            st.rerun()
+        st.caption("Mirá por dentro cómo la app arma tu cartera. Sin vueltas.")
+
+    col_port, col_costo = st.columns(2)
+    with col_port:
+        if st.button("💼 Cargar mi portafolio actual", key="results_load_portfolio_btn",
+                     use_container_width=True):
+            st.session_state["step"] = "user_portfolio"
+            # Reset al estado inicial de la página de carga
+            st.session_state["user_portfolio_step"] = "intro"
+            st.rerun()
+        st.caption("¿Querés algo más avanzado? Armá tu propia cartera y aprendé en el camino.")
+    with col_costo:
+        if st.button("💸 ¿Cuánto perdí por no invertir?", key="costo_from_results",
+                     use_container_width=True):
+            st.session_state._prev_step = "results"
+            st.session_state.step = "costo_no_invertir"
+            st.rerun()
+        st.caption("Mirá cuánta plata dejaste de ganar por tener los ahorros parados.")
+
     # ── Disclaimer legal de cierre ────────────────────────────────────────────
-    # Disclaimer legal COMPLETO (nivel 2): aparece una sola vez, acá al
-    # final del flujo. Los disclaimers cortos del medio (gráficos, sim,
-    # Lucas) son la versión de 1 línea de este mismo mensaje.
+    # Disclaimer legal COMPLETO (nivel 2): aparece una sola vez, abajo de
+    # todo. Los disclaimers cortos del medio (gráficos, sim, Lucas) son la
+    # versión de 1 línea de este mismo mensaje.
+    st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(f"""<div class="portfolio-disclaimer">
   <div class="pd-icon">ℹ️</div>
   <div class="pd-body">
@@ -1370,48 +1421,6 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
     usuarios · Fines educativos.</p>
   </div>
 </div>""", unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # Accesos del pie de resultados, en grilla simétrica 3 + 2.
-    # Fila 1: navegación / utilidades. Fila 2: las dos exploraciones
-    # opcionales (cargar tu cartera real, ver el costo de no invertir).
-    col_eval, col_glos, col_meto = st.columns(3)
-    with col_eval:
-        if st.button("🔄 Nueva Evaluación", key="restart", use_container_width=True):
-            # Rehacer el test conserva la cartera de práctica que el
-            # usuario armó a mano: al terminar la nueva evaluación la
-            # compara contra el portafolio sugerido nuevo.
-            _conservar = ("user_portfolio_activos", "user_portfolio_step", "theme")
-            for key in list(st.session_state.keys()):
-                if key not in _conservar:
-                    del st.session_state[key]
-            st.rerun()
-    with col_glos:
-        if st.button("📚 Ver Glosario", key="glosario_from_results", use_container_width=True):
-            st.session_state._prev_step = "results"
-            st.session_state.step = "glosario"
-            st.rerun()
-    with col_meto:
-        if st.button("ℹ️ Cómo funciona", key="how_from_results", use_container_width=True):
-            st.session_state._prev_step = "results"
-            st.session_state.step = "como_funciona"
-            st.rerun()
-
-    col_port, col_costo = st.columns(2)
-    with col_port:
-        if st.button("💼 Cargar mi portafolio actual",
-                     key="results_load_portfolio_btn", use_container_width=True):
-            st.session_state["step"] = "user_portfolio"
-            # Reset al estado inicial de la página de carga
-            st.session_state["user_portfolio_step"] = "intro"
-            st.rerun()
-    with col_costo:
-        if st.button("💸 ¿Cuánto perdí por no invertir?",
-                     key="costo_from_results", use_container_width=True):
-            st.session_state._prev_step = "results"
-            st.session_state.step = "costo_no_invertir"
-            st.rerun()
 
 # ══════════════════════════════════════════════════════════════════════════════
 # GLOSARIO
