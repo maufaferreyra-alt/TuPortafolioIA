@@ -432,16 +432,21 @@ def render_comparison_page():
             unsafe_allow_html=True,
         )
         for gap in gaps:
-            with st.container(border=True):
-                st.markdown(
-                    f'<div style="padding: 0.25rem 0;">'
-                    f'<div style="font-size: 1rem; font-weight: 600; color: #ffffff; margin-bottom: 0.25rem;">'
-                    f'{gap["icon"]} {gap["titulo"]}</div>'
-                    f'<div style="font-size: 0.875rem; color: rgba(255,255,255,0.75); line-height: 1.5;">'
-                    f'{gap["explicacion"]}</div>'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
+            # border-left del color de la categoría del gap — lo ata
+            # visualmente a su porción en los donuts de arriba.
+            color = _COLOR_CAT_UNIF.get(gap.get("categoria"), "#60a5fa")
+            st.markdown(
+                f'<div style="border-left:3px solid {color}; '
+                f'background:rgba(255,255,255,0.03); '
+                f'border-radius:0 10px 10px 0; '
+                f'padding:0.85rem 1.1rem; margin-bottom:0.55rem;">'
+                f'<div style="font-size:1rem; font-weight:600; color:#ffffff; '
+                f'margin-bottom:0.3rem;">{gap["icon"]} {gap["titulo"]}</div>'
+                f'<div style="font-size:0.875rem; color:rgba(255,255,255,0.72); '
+                f'line-height:1.55;">{gap["explicacion"]}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
 
     # ── CTAs finales: handoff a asesor ───────────────────────────
     st.markdown(

@@ -439,6 +439,7 @@ def detectar_gaps_simples(allocation_real: dict, allocation_sugerida: dict) -> l
         if peso > 60:
             gaps.append({
                 "icon": "🎯",
+                "categoria": tipo,
                 "titulo": f"Estás muy concentrado en {NOMBRES_CATEGORIA.get(tipo, tipo)}",
                 "explicacion": (
                     f"Tenés el {peso:.0f}% de tu plata en una sola categoría. "
@@ -467,6 +468,7 @@ def detectar_gaps_simples(allocation_real: dict, allocation_sugerida: dict) -> l
                 explicacion_extra = " Te da acceso a las empresas más grandes del mundo."
             gaps.append({
                 "icon": "🧩",
+                "categoria": tipo,
                 "titulo": f"Te falta {nombre}",
                 "explicacion": (
                     f"La sugerida tiene un {peso_sug:.0f}% acá y vos tenés "
@@ -487,6 +489,7 @@ def detectar_gaps_simples(allocation_real: dict, allocation_sugerida: dict) -> l
             if not any(g["titulo"].endswith(f"en {NOMBRES_CATEGORIA.get(tipo, tipo)}") for g in gaps):
                 gaps.append({
                     "icon": "⚖️",
+                    "categoria": tipo,
                     "titulo": f"Tenés más {nombre} de lo recomendado",
                     "explicacion": (
                         f"Vos: {peso_real:.0f}%. Sugerido: {peso_sug:.0f}%. "
