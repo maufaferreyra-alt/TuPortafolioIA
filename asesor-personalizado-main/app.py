@@ -1033,25 +1033,29 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
             st.caption(
                 "Plazo fijo: TEA 18% (promedio bancos grandes mayo 2026, BCRA) descontado "
                 "por inflación interanual 32% (INDEC, abr 2026). Las cifras representan "
-                "poder adquisitivo en pesos de hoy. Proyección estimada — no garantiza "
-                "rendimientos futuros."
+                "poder adquisitivo en pesos de hoy. ℹ️ Proyección estimada — no es "
+                "promesa de rendimiento."
             )
 
         st.markdown("<div style='margin: 24px 0; border-top: 1px solid rgba(255,255,255,0.06);'></div>", unsafe_allow_html=True)
 
         # ── Panel 2: Aporte mensual ────────────────────────────────────
-        st.markdown("#### 💰 ¿Y si además aporta todos los meses?")
+        st.markdown("#### 💰 ¿Y si además aportás todos los meses?")
         with st.container():
-            st.caption("No hace falta tener mucho para empezar. Si además de su inversión inicial aparta una pequeña cantidad cada mes, el resultado a largo plazo cambia enormemente. Pruebe con distintos montos y vea la diferencia.")
+            st.caption("No hace falta tener mucho para empezar. Si además de tu inversión inicial apartás una pequeña cantidad cada mes, el resultado a largo plazo cambia enormemente. Probá con distintos montos y mirá la diferencia.")
 
             _aporte_key = "aporte_mensual_usd"
             # Inicializar valores en session_state SOLO si no existen.
             # Después de esto el widget se controla 100% por su key, sin
             # pasar value= (que generaba conflicto y reseteos esporádicos).
             if _aporte_key + "_ars" not in st.session_state:
-                st.session_state[_aporte_key + "_ars"] = 50_000
+                # Default 15.000 ARS — monto realista para sueldo
+                # argentino joven sin abrumar al usuario objetivo.
+                st.session_state[_aporte_key + "_ars"] = 15_000
             if _aporte_key not in st.session_state:
-                st.session_state[_aporte_key] = 100
+                # Default 10 USD — equivalente a ~15.000 ARS al MEP
+                # actual (~$1430). Coherente con el default ARS.
+                st.session_state[_aporte_key] = 10
 
             _col_aporte, _col_slider = st.columns([1, 2])
             with _col_aporte:
@@ -1059,7 +1063,7 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
                     _aporte_ars = st.number_input(
                         "¿Cuánto podría apartar por mes? (en pesos)",
                         min_value=0, max_value=50_000_000,
-                        step=50_000,
+                        step=5_000,
                         key=_aporte_key + "_ars",
                         on_change=_keep_sim_expanded,
                     )
@@ -1071,7 +1075,7 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
                     _aporte_usd_val = st.number_input(
                         "¿Cuánto podría apartar por mes? (en USD)",
                         min_value=0, max_value=500_000,
-                        step=100,
+                        step=10,
                         key=_aporte_key,
                         on_change=_keep_sim_expanded,
                     )
@@ -1091,7 +1095,7 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
 <div style="font-size:0.84rem;color:#22c55e;font-weight:600;">La diferencia: +{_disp_prefix}{_proy_ext:,.0f}{_disp_suffix} solo por apartar {_disp_prefix}{_aporte_disp:,.0f}{_disp_suffix} por mes</div>
 </div>""", unsafe_allow_html=True)
                 else:
-                    st.info("Ingrese un monto mensual para ver el impacto")
+                    st.info("Ingresá un monto mensual para ver el impacto")
 
             if _aporte_usd_val > 0:
                 try:
@@ -1131,7 +1135,7 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
                 except Exception:
                     pass
 
-            st.caption("Este cálculo asume que los aportes mensuales se invierten al mismo retorno estimado que su cartera. Es una proyección, no una garantía.")
+            st.caption("Este cálculo asume que los aportes mensuales se invierten al mismo retorno estimado que tu cartera. ℹ️ Proyección estimada — no es promesa de rendimiento.")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
