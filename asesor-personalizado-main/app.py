@@ -1152,7 +1152,7 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
   <div class="lucas-avatar">💬</div>
   <div class="lucas-title-wrap">
     <h3 class="lucas-title">Hablá con Lucas</h3>
-    <p class="lucas-subtitle">Tu asesor financiero IA</p>
+    <p class="lucas-subtitle">Tu asistente financiero IA</p>
   </div>
 </div>""", unsafe_allow_html=True)
 
@@ -1211,7 +1211,7 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
             is_last  = (i == len(chat_history) - 1)
             is_user  = msg["role"] == "user"
             align    = "chat-user" if is_user else "chat-advisor"
-            label    = "Usted" if is_user else "Lucas · Asesor IA"
+            label    = "Vos" if is_user else "Lucas · Asesor IA"
             safe_content = _html.escape(msg["content"]).replace("\n", "<br>")
             id_attr = ' id="last-message-anchor"' if is_last else ''
             st.markdown(
@@ -1243,9 +1243,10 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
         st.rerun()
 
     # Footer mini: disclaimer + link 'empezar de nuevo'
+    # Disclaimer corto y consistente (nivel 1). El legal completo va una
+    # sola vez al final del flujo (pantalla 9).
     st.markdown("""<p class="lucas-footer-note">
-  Lucas es un asistente IA con fines educativos.
-  No reemplaza el asesoramiento de un profesional matriculado por la CNV.
+  ℹ️ Es un asistente IA — la decisión final la tomás vos.
 </p>""", unsafe_allow_html=True)
 
     if chat_history:
