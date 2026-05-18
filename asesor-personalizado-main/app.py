@@ -1353,17 +1353,20 @@ border-radius:10px;margin:4px 0 20px 0;border:1px solid rgba(34,197,94,0.15);">
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Disclaimer legal de cierre ────────────────────────────────────────────
+    # Disclaimer legal COMPLETO (nivel 2): aparece una sola vez, acá al
+    # final del flujo. Los disclaimers cortos del medio (gráficos, sim,
+    # Lucas) son la versión de 1 línea de este mismo mensaje.
     st.markdown(f"""<div class="portfolio-disclaimer">
   <div class="pd-icon">ℹ️</div>
   <div class="pd-body">
-    <strong>Esta cartera es una sugerencia educativa, no asesoramiento financiero.</strong>
-    <p>Está construida con datos históricos y modelos académicos ({tip("Markowitz")},
-    {tip("Evans & Archer")}) aplicados a su perfil. No considera su situación impositiva,
-    patrimonio total ni objetivos personales puntuales. Antes de operar, consulte con un
-    asesor financiero matriculado por la <strong>{tip("CNV")} (Comisión Nacional de Valores)</strong>
-    para validar que esta estrategia se ajuste a su realidad.</p>
-    <p class="pd-fine">TuPortafolioIA no recibe comisiones por las recomendaciones · No opera por
-    cuenta de los usuarios · Fines exclusivamente educativos.</p>
+    <strong>Esto es una sugerencia educativa, no asesoramiento financiero personalizado.</strong>
+    <p>La armamos con modelos académicos ({tip("Markowitz")}, {tip("Evans & Archer")})
+    aplicados a tu perfil. No consideramos tu situación impositiva ni tus objetivos
+    personales puntuales. Antes de operar con plata real, conviene que hables con un
+    asesor matriculado por la <strong>{tip("CNV")} (Comisión Nacional de Valores)</strong>
+    para validar que esto encaje con tu realidad.</p>
+    <p class="pd-fine">TuPortafolioIA no recibe comisiones · No opera por cuenta de los
+    usuarios · Fines educativos.</p>
   </div>
 </div>""", unsafe_allow_html=True)
 
