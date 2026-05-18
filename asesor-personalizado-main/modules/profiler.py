@@ -296,11 +296,20 @@ def render_profiler() -> dict | None:
 
             col_b1, col_b2 = st.columns([1, 2])
             with col_b1:
-                if answered > 0 and st.button("← Atrás", key=f"back_{q['id']}"):
-                    prev_id = QUESTIONS[answered - 1]["id"]
-                    answers.pop(prev_id, None)
-                    st.session_state.answers = answers
-                    st.rerun()
+                if answered > 0:
+                    # Preguntas 2+: el "atrás" vuelve a la pregunta anterior
+                    # (borra esa respuesta para poder corregirla).
+                    if st.button("← Atrás", key=f"back_{q['id']}"):
+                        prev_id = QUESTIONS[answered - 1]["id"]
+                        answers.pop(prev_id, None)
+                        st.session_state.answers = answers
+                        st.rerun()
+                else:
+                    # Primera pregunta: el "atrás" sale del cuestionario y
+                    # vuelve al menú principal.
+                    if st.button("← Volver al inicio", key=f"back_{q['id']}"):
+                        st.session_state.step = "intro"
+                        st.rerun()
             with col_b2:
                 label = "Continuar →" if answered < len(QUESTIONS) - 1 else "Última sección →"
                 if st.button(label, key=f"next_{q['id']}", use_container_width=True):
