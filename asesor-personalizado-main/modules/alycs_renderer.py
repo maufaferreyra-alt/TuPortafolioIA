@@ -71,10 +71,9 @@ def render_alycs_section(portfolio: dict, profile: dict):
     st.markdown(
         '<div style="text-align:center; max-width:680px; '
         'margin:2.5rem auto 1.25rem auto;">'
-        '<div style="font-size:0.8rem; font-weight:600; '
-        'letter-spacing:0.06em; text-transform:uppercase; '
+        '<div style="font-size:0.9rem; font-weight:600; '
         'color:#60a5fa; margin-bottom:0.4rem;">'
-        '¿Estás preparado para invertir?'
+        '💡 Te facilitamos el paso 1, así no pensás tanto'
         '</div>'
         '<div style="font-size:1.75rem; font-weight:700; color:#f5f6fa; '
         'margin-bottom:0.6rem; letter-spacing:-0.01em;">'
